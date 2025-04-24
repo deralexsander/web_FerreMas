@@ -3,45 +3,171 @@
 
 <!-- Título dinámico de la pestaña -->
 {% block nombrePag %}
-<title>FerreMas</title>
+<title>FerraMas</title>
 {% endblock %}
 
 {% block contenido %}
 
 <!-- Contenedor principal de bienvenida con animación -->
-<div class="bienvenida">
-    <div class="titulo-marca">
-        <h1>FerreMas</h1>
+<div class="container_center">
+  <div class="fijar">
+    <div class="titulo">
+      <h1>FerreMas</h1>
     </div>
-    <div class="descripcion-marca">
-        <p>Todo lo que necesitas para tu hogar</p>
+    <div class="slogan">
+      <p>Todo lo que necesitas para tu hogar</p>
     </div>
-</div>
+  </div>
 
-<div class="contenedor-informacion">
-    <div class="bloque-info">
-      <div class="columna-info">
-        <div class="titulo-marca-secundario">
-          <h1>FerraMas</h1>
-        </div>
-        <div class="descripcion-marca-secundario">
-          <p>Tecnología y eficiencia en cada detalle</p>
-        </div>
+  <!-- Iconos animados y eslogan dividido -->
+  <div class="contenedor">
+    <div class="container_izquierda">
+      <div class="titulo_2">
+        <h1>FerraMas</h1>
+      </div>
+      <div class="slogan_2">
+        <p>Tecnología y eficiencia en cada detalle</p>
       </div>
     </div>
   
-    <div class="bloque-info">
-      <div class="columna-info">
-        <div class="iconos">
-          <p>hola soy un icono</p>
-        </div>
+    <!-- Sección de íconos representativos -->
+    <div class="container_derecha">
+      <div class="iconos">
+        <svg class="icono" data-lucide="wifi"></svg>
+        <svg class="icono" data-lucide="lightbulb"></svg>
+        <svg class="icono" data-lucide="thermometer"></svg>
+        <svg class="icono" data-lucide="camera"></svg>
+        <svg class="icono" data-lucide="lock"></svg>
+        <svg class="icono" data-lucide="alarm-clock"></svg>
+        <svg class="icono" data-lucide="plug"></svg>
+        <svg class="icono" data-lucide="fan"></svg>
+        <svg class="icono" data-lucide="fridge"></svg>
       </div>
     </div>
   </div>
-  
+</div>
 
-<!-- Contenedor segundario de bienvenida -->
+<!-- Filtro visual desenfocado (efecto blur) -->
+<div class="cuadro-blur"></div>
 
+<!-- Fondo blanco que separa los bloques -->
+<div class="fondo-blanco">
+
+  <!-- Botón de scroll hacia información -->
+  <div class="main__action">
+    <a class="main__scroll" href="#hola">
+      <div class="main__scroll-box">
+        <!-- Flecha animada -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 0h24v24H0z" fill="none"></path>
+          <path d="M11.9997 13.1716L7.04996 8.22186L5.63574 9.63607L11.9997 16L18.3637 9.63607L16.9495 8.22186L11.9997 13.1716Z" fill="hsla(194, 89%, 45%, 1)">
+          </path>
+        </svg>
+      </div>
+      <span class="main__scroll-text">Más información</span>
+    </a>
+  </div>
+
+  <!-- Sección de bloques informativos -->
+  <div class="contenedor_informacion" id="hola">
+
+    <!-- Bloque 1: Quiénes somos -->
+    <div class="bloque_info">
+      <div class="columna_info">
+        <div class="titulo_info"><h1>¿Quiénes somos?</h1></div>
+        <div class="texto_info"><p>En <strong>FerraMas</strong> nos especializamos en ofrecer dispositivos electrónicos para tu hogar...</p></div>
+      </div>
+      <div class="columna_info">
+        <div class="m2">
+          <img class="imagen_info" src="{% static 'media/logotipo.svg' %}" alt="Imagen 1">
+        </div>
+      </div>
+    </div>
   
+    <!-- Bloque 2: Compra desde cualquier lugar -->
+    <div class="bloque_info invertido">
+      <div class="columna_info">
+        <div class="titulo_info"><h1>Compra desde donde quieras</h1></div>
+        <div class="texto_info"><p>Haz tus pedidos desde tu celular, tablet o computador. Nuestra tienda online está disponible 24/7, con una experiencia rápida, simple y segura.</p></div>
+      </div>
+      <div class="columna_info">
+        <div class="m2">
+          <div class="container">
+            <!-- Animación de carga -->
+            <div class="loader"></div>
+            <div class="loader"></div>
+            <div class="loader"></div>
+          </div>            
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloque 3: Seguridad -->
+    <div class="bloque_info">
+      <div class="columna_info">
+        <div class="titulo_info"><h1>Seguridad garantizada</h1></div>
+        <div class="texto_info"><p>En <strong>FerraMas</strong> tus pagos están protegidos por sistemas de seguridad certificados. Realiza tus compras con tranquilidad desde cualquier lugar.</p></div>
+      </div>
+      <div class="columna_info">
+        <div class="cards">
+          <!-- Tarjetas de beneficio -->
+          <div class="card red">
+            <img src="{% static 'media/icono 1.png' %}" alt="Tarjeta segura" class="card-icono" />
+            <p class="second-text">Tu información está protegida con tecnología de encriptación avanzada.</p>
+          </div>
+          <div class="card blue">
+            <img src="{% static 'media/icono_dispositivo_global.png' %}" alt="Dispositivos globales" class="card-icono" />
+            <p class="second-text">Visualiza el estado de tus compras en todo momento.</p>
+          </div>
+          <div class="card green">
+            <img src="{% static 'media/icono_atencion_cliente.png' %}" alt="Atención al cliente" class="card-icono" />
+            <p class="second-text">Soporte disponible para ayudarte en cada paso de tu compra.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Bloque 4: Promociones -->
+    <div class="bloque_info invertido">
+      <div class="columna_info">
+        <div class="titulo_info"><h1>Promociones exclusivas online</h1></div>
+        <div class="texto_info"><p>Aprovecha descuentos únicos al comprar por nuestra web. ¡Siempre hay ofertas activas!</p></div>
+      </div>
+      <div class="columna_info">
+        <div class="m2">
+          <img class="imagen_info" src="{% static 'media/descuento.png' %}" alt="Imagen 2">
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloque 5: Equipo humano -->
+    <div class="bloque_info">
+      <div class="columna_info">
+        <div class="titulo_info"><h1>Quienes están detrás</h1></div>
+        <div class="row">
+          <!-- Tarjetas de presentación del equipo -->
+          {% for i in "1234" %}
+          <div class="tarjeta-de-presentacion">
+            <div class="foto-perfil">
+              <img src="{% static 'media/alexander.jpg' %}" alt="Imagen 1">
+            </div>
+            <div class="parte-inferior">
+              <div class="contenido">
+                <span class="descripcion">Lorem ipsum dolor sit amet consectetur adipisicing elit.</span>
+              </div>
+              <div class="info-extra">
+                <div class="redes-sociales">
+                  <span class="nombre">Mi Nombre</span> 
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 {% endblock %}
