@@ -363,20 +363,28 @@ body {
 .button {
     outline: 0 !important;
     border: 0 !important;
-    width: clamp(35px, 10vw, 30px); /* Set min, preferred, and max width */
-    height: clamp(35px, 10vw, 30px); /* Set min, preferred, and max height */
+    width: clamp(50px, 10vw, 30px); /* Set min, preferred, and max width */
+    height: clamp(50px, 10vw, 30px); /* Set min, preferred, and max height */
     border-radius: 50%;
     background-color: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
     transition: all ease-in-out 0.3s;
     cursor: pointer;
 }
   
 .button:hover {
     transform: translateY(-3px);
+}
+
+.button svg,
+.button .icon,
+.button .navbar {
+  color: rgb(255, 255, 255) !important;
+  stroke: currentColor !important;
+  width: 400%;
+  height: 400%;
 }
 
 .search-container {
@@ -1050,13 +1058,13 @@ a {
   .centrar-login,
   .centrar-registro,
   .centrar-recuperar {
-    display: flex;
-    justify-content:center;     /* ← Alinea contenido arriba en el eje vertical */
-    align-items: center;             /* ← Centra en el eje horizontal */
+    display: none;
     flex-direction: column;
-    text-align: center;
+    align-items: center;
+    justify-content: center;
     padding: 20px;
-    gap: 10px;                       /* Espacio entre elementos opcional */
+    gap: 10px;
+    text-align: center;
   }
 
   .centrar {
@@ -1073,18 +1081,23 @@ a {
     display: none;
   }
   
+  /* Lo visible realmente */
   .visible {
-    display: block !important;
+    display: flex !important;
   }
   
+  /* Oculto real */
   .oculto {
     display: none !important;
   }
+
+
   .centrar-recuperar {
     display: none;
   }
   
 
+  /* Animaciones */
   .animacion-salida {
     animation: popOut 0.4s ease forwards;
   }
@@ -1093,6 +1106,21 @@ a {
     animation: popIn 0.4s ease forwards;
   }
   
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+
+
 
 
   .form {
