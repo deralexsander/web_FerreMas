@@ -91,7 +91,62 @@
   @property --y-3 { syntax: '<percentage>'; inherits: false; initial-value: 7%; }
   @property --x-3 { syntax: '<percentage>'; inherits: false; initial-value: 24%; }
 
+
+/* -------------------------------------------------------------
+   Animación: slideUpFade
+   Descripción: 
+   Hace que un elemento aparezca desde abajo hacia su lugar 
+   original con una transición suave de opacidad.
+------------------------------------------------------------- */
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;                  /* Totalmente invisible */
+    transform: translateY(90px); /* Desplazado hacia abajo */
+  }
+  100% {
+    opacity: 1;                  /* Completamente visible */
+    transform: translateY(0);    /* En su posición original */
+  }
+}
+
+
+/* ================================================
+   Animación: popBeforeFadeOut
+   Descripción: 
+   Hace que un elemento primero se agrande levemente, 
+   luego se achique y desaparezca gradualmente.
+   ================================================ */
+   @keyframes popBeforeFadeOut {
+    0% {
+      transform: scale(1);
+      opacity: 1; /* completamente visible */
+    }
+    70% {
+      transform: scale(1.02); /* pequeño aumento para generar un "pop" */
+      opacity: 1; /* sigue visible */
+    }
+    100% {
+      transform: scale(0.9); /* se achica */
+      opacity: 0; /* desaparece */
+    }
+  }
+
+  /* ================================================
+   Animación: popBeforeFadeOut
+   Descripción: 
+   Hace que el elemento deje de ocupar espacio en en la página
+   y no sea interactivo.
+   ================================================ */
   
+  @keyframes ocultarElemento {
+    to {
+      opacity: 0;
+      height: 0;
+      padding: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+  }
 /* ======================== body ======================== */
 
 html, body {
@@ -150,4 +205,95 @@ body {
   
     min-height: 100vh;
     margin: 0;
+}
+
+/* ======================== Bienvenida ======================== */
+.bienvenida {
+  display: flex;
+  flex-direction: column; /* Organiza los elementos verticalmente */
+  justify-content: center;
+  align-items: center;
+  padding: 100px 5px 0px 5px; /* arriba derecha abajo izquierda */
+  text-align: center; /* Centra el texto si se corta */
+  animation: ocultarElemento 0.5s ease 3.5s forwards;
+}
+
+
+.titulo-marca h1,
+.descripcion-marca p {
+  margin: 0; /* Elimina el margen por defecto */
+  color: white;
+}
+
+
+
+.titulo-marca{
+  font-size: clamp(30px, 9vw, 130px);
+  opacity: 0; /* Inicialmente invisible */
+  animation:
+    slideUpFade 1.5s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards,
+    popBeforeFadeOut 1.4s ease 2s forwards;
+}
+
+
+.descripcion-marca{
+  font-size: clamp(1em, 9vw, 4.5em);
+  opacity: 0; /* Inicialmente invisible */
+  animation:
+    slideUpFade 1.5s cubic-bezier(0.23, 1, 0.32, 1) 0.9s forwards,
+    popBeforeFadeOut 1.4s ease 2.2s forwards;
+}
+
+/* ======================== base ======================== */
+
+
+
+
+
+
+
+
+
+
+/* ======================== reutilizables ======================== */
+
+
+/* Contenedor principal */
+.contenedor-informacion {
+  display: flex;
+  flex-direction: row; /* Horizontal por defecto */
+  width: 100%;
+  justify-content: center;
+  align-items: stretch;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+/* Cada bloque ocupa mitad del contenedor */
+.bloque-info {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Contenido centrado dentro de cada columna */
+.columna-info {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+
+
+/* ======================== Ajusta estilos para pantallas menores a 800px  ======================== */
+@media (max-width: 800px) {
+  .contenedor-informacion {
+    flex-direction: column;
+  }
 }
