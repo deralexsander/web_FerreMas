@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% load static %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <script src="{% static 'js/script.js' %}"></script>
+        <!-- Colocar icono a la pestaña -->
+        <link rel="icon" src="{% static 'media/' %}">
+        <!-- Colocar nombre a la pestaña -->
+        {% block nombrePag %}
+        {% endblock %}
+    </head>
+
+    <body>
+        <!-- buscador para productos -->
+        {% block buscador %}
+        {% endblock %}
+        <!-- Contenido de la web -->
+        {% block contenido %}
+        {% endblock %}
+
+
+    </body>
+</html>
