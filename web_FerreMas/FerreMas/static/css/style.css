@@ -363,8 +363,8 @@ body {
 .button {
     outline: 0 !important;
     border: 0 !important;
-    width: clamp(50px, 10vw, 30px); /* Set min, preferred, and max width */
-    height: clamp(50px, 10vw, 30px); /* Set min, preferred, and max height */
+    width: 35px; /* Fixed width */
+    height: 35px; /* Fixed height */
     border-radius: 50%;
     background-color: transparent;
     display: flex;
@@ -383,8 +383,8 @@ body {
 .button .navbar {
   color: rgb(255, 255, 255) !important;
   stroke: currentColor !important;
-  width: 400%;
-  height: 400%;
+  width: 100%;
+  height: 100%;
 }
 
 .search-container {
@@ -514,6 +514,14 @@ body {
     popIn 1.6s cubic-bezier(0.23, 1, 0.32, 1) 5.2s forwards
 }
 
+.titulo_productos {
+  color: #ffffff;
+  padding: 90px 5px 0px 0px; /* arriba/abajo 0px, derecha/izquierda 5px */
+  margin: 0; /* Elimina márgenes automáticos que agregan los navegadores */
+  text-align: center; /* Opcional: centra el texto */
+}
+
+
 .iconos {
     position: absolute;
     top: 50%;
@@ -611,7 +619,31 @@ a {
     align-items: center;
     flex-direction: row;
     width: 100%;
-    padding: 5vh 0px;
+    padding: 4vh 0px;
+    flex-wrap: wrap;
+    position: relative;
+    margin: 0 auto; /* Centra horizontalmente */
+  }
+
+  .contenedor_informacion_principal_productos{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    width: 100%;
+    padding: 4vh 0px;
+    flex-wrap: wrap;
+    position: relative;
+    margin: 0 auto; /* Centra horizontalmente */
+  }
+
+  .contenedor_informacion_categoria{
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    flex-direction: row;
+    width: 100%;
+    padding: 0 5%;
     flex-wrap: wrap;
     position: relative;
     margin: 0 auto; /* Centra horizontalmente */
@@ -1500,7 +1532,15 @@ a {
     flex-wrap: wrap;           /* Permite que se bajen si no caben en la misma fila */
     gap: 1.5rem;                /* Espacio entre tarjetas */
     justify-content: center;   /* Centrado horizontal */
-    padding: 100px 10px 0px 10px;
+    padding: 10px 10px 0px 10px;
+  }
+
+  .contenedor_productos_categoria {
+    display: flex;
+    flex-wrap: wrap;           /* Permite que se bajen si no caben en la misma fila */
+    gap: 1.5rem;                /* Espacio entre tarjetas */
+    justify-content: left;   /* Centrado horizontal */
+    padding: 0px 5% 0px 5%;
   }
   
 
@@ -1756,10 +1796,22 @@ a {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    padding: 110px 10px 0px 10px;
+    padding: 10px 10px 0px 10px;
   }
 
+  .button {
+    outline: 0 !important;
+    border: 0 !important;
+    width: 50px; /* Fixed width */
+    height: 50px; /* Fixed height */
+    border-radius: 50%;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all ease-in-out 0.3s;
+    cursor: pointer;
+}
   
- 
 }
 
