@@ -6,6 +6,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   let actual = 0;
 
   function mostrarSiguienteIcono() {
+    if (!iconos.length) return; // Solución: evitar error si no hay iconos
     iconos.forEach(i => i.classList.remove('mostrar'));
     iconos[actual].classList.add('mostrar');
     actual = (actual + 1) % iconos.length;
@@ -78,33 +79,28 @@ window.addEventListener('DOMContentLoaded', async () => {
     }, 400);
   }
 
+  function mostrarMensaje(texto) {
+    const contenedor = document.getElementById('contenedor-mensaje');
+    const mensajeTexto = document.getElementById('mensaje-texto');
+    const cerrarBtn = document.getElementById('cerrar-mensaje');
 
-  // ===================🔥 MENSAJES ===================
+    mensajeTexto.textContent = texto;
+    contenedor.classList.remove('oculto', 'ocultar-pop');
+    contenedor.style.display = 'block';
 
-function mostrarMensaje(texto) {
-  const contenedor = document.getElementById('contenedor-mensaje');
-  const mensajeTexto = document.getElementById('mensaje-texto');
-  const cerrarBtn = document.getElementById('cerrar-mensaje');
-
-  mensajeTexto.textContent = texto;
-  contenedor.classList.remove('oculto', 'ocultar-pop');
-  contenedor.style.display = 'block';
-
-  setTimeout(() => {
-    contenedor.classList.add('ocultar-pop');
     setTimeout(() => {
-      contenedor.classList.remove('ocultar-pop');
-      contenedor.classList.add('oculto');
-    }, 1500);
-  }, 4000);
-}
-
-
-  // ===================🔥 FIREBASE CONFIGURACIÓN Y AUTENTICACIÓN ===================
+      contenedor.classList.add('ocultar-pop');
+      setTimeout(() => {
+        contenedor.classList.remove('ocultar-pop');
+        contenedor.classList.add('oculto');
+      }, 1500);
+    }, 4000);
+  }
 
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
   const { getAnalytics } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js");
   const { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+  const { getFirestore, doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
 
   const firebaseConfig = {
     apiKey: "AIzaSyCOsIJF-ywgaQPqT5ApyodIcRRBCiU-mtI",
@@ -118,19 +114,15 @@ function mostrarMensaje(texto) {
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const auth = getAuth();
+  const db = getFirestore(app);
 
   const pathActual = window.location.pathname;
 
-  // 🔥 Detectar usuario logueado en todas las páginas
   onAuthStateChanged(auth, (user) => {
     const botonAccesoLink = document.querySelector('a[href="/acceso/"]');
 
     if (botonAccesoLink) {
-      if (user) {
-        botonAccesoLink.setAttribute('href', '/perfil/');
-      } else {
-        botonAccesoLink.setAttribute('href', '/acceso/');
-      }
+      botonAccesoLink.setAttribute('href', user ? '/perfil/' : '/acceso/');
     }
 
     if (user && pathActual === '/acceso/') {
@@ -141,22 +133,25 @@ function mostrarMensaje(texto) {
       window.location.href = '/acceso/';
     }
 
-    if (document.getElementById('nombre-usuario') && document.getElementById('correo-usuario') && document.getElementById('foto-usuario')) {
+    const nombreUsuario = document.getElementById('nombre-usuario');
+    const correoUsuario = document.getElementById('correo-usuario');
+    const fotoUsuario = document.getElementById('foto-usuario');
+
+    if (nombreUsuario && correoUsuario && fotoUsuario) {
       if (user) {
         const nombre = user.displayName || "Sin nombre";
         const correo = user.email;
-        const fotoURL = user.photoURL || "https://via.placeholder.com/100";
+        const fotoURL = user.photoURL || "https://placehold.co/100x100"; // Solución: cambiar placeholder
 
-        document.getElementById('nombre-usuario').textContent = nombre;
-        document.getElementById('correo-usuario').textContent = correo;
-        document.getElementById('foto-usuario').src = fotoURL;
+        nombreUsuario.textContent = nombre;
+        correoUsuario.textContent = correo;
+        fotoUsuario.src = fotoURL;
       } else {
         window.location.href = "/acceso/";
       }
     }
   });
 
-  // 🔥 Botón de logout
   const botonLogout = document.getElementById('boton-logout');
   if (botonLogout) {
     botonLogout.addEventListener('click', async () => {
@@ -171,116 +166,104 @@ function mostrarMensaje(texto) {
     });
   }
 
-// ===================🔥 REGISTRO MANUAL (email, nombre de usuario y contraseña) ===================
+  const formularioRegistro = document.querySelector('.centrar-registro .form');
+  if (formularioRegistro) {
+    formularioRegistro.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-const formularioRegistro = document.querySelector('.centrar-registro .form');
+      const inputs = formularioRegistro.querySelectorAll('.input');
+      const email = inputs[0].value.trim();
+      const username = inputs[1].value.trim();
+      const password = inputs[2].value;
+      const confirmPassword = inputs[3].value;
 
-formularioRegistro.addEventListener('submit', async (e) => {
-  e.preventDefault();
+      if (!email || !username || !password || !confirmPassword) {
+        mostrarMensaje('Por favor, completa todos los campos.');
+        return;
+      }
 
-  const inputs = formularioRegistro.querySelectorAll('.input');
-  const email = inputs[0].value.trim();
-  const username = inputs[1].value.trim();
-  const password = inputs[2].value;
-  const confirmPassword = inputs[3].value;
+      if (password !== confirmPassword) {
+        mostrarMensaje('Las contraseñas no coinciden');
+        return;
+      }
 
-  if (!email || !username || !password || !confirmPassword) {
-    mostrarMensaje('Por favor, completa todos los campos.');
-    return;
-  }
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-  if (password !== confirmPassword) {
-    mostrarMensaje('Las contraseñas no coinciden');
-    return;
-  }
+        await updateProfile(user, {
+          displayName: username
+        });
 
-  try {
-    const { updateProfile } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+        await setDoc(doc(db, "usuarios", user.uid), {
+          uid: user.uid,
+          email: email,
+          nombre: username,
+          fecha_registro: new Date()
+        });
 
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    console.log('Usuario registrado:', user);
-
-    // Actualizar el nombre de usuario (displayName)
-    await updateProfile(user, {
-      displayName: username
+        window.location.href = "/";
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje('Correo ya registrado en nuestro sistema.');
+      }
     });
-
-    console.log('Nombre de usuario actualizado:', username);
-
-    window.location.href = "/";
-  } catch (error) {
-    console.error(error);
-    mostrarMensaje('Correo ya registrado en nuestro sistema.');
-  }
-});
-
-  // ===================🔥 LOGIN MANUAL ===================
-
-const formularioLogin = document.querySelector('.centrar-login .form');
-
-formularioLogin.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const inputs = formularioLogin.querySelectorAll('.input');
-  const email = inputs[0].value.trim();
-  const password = inputs[1].value.trim();
-
-  if (!email || !password) {
-    mostrarMensaje('Por favor, completa ambos campos.');
-    return;
   }
 
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    console.log('Usuario inició sesión:', user);
+  const formularioLogin = document.querySelector('.centrar-login .form');
+  if (formularioLogin) {
+    formularioLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    window.location.href = "/";
-  } catch (error) {
-    console.error(error);
-    mostrarMensaje('usuario o contraseña incorrectos.');
-  }
-});
+      const inputs = formularioLogin.querySelectorAll('.input');
+      const email = inputs[0].value.trim();
+      const password = inputs[1].value.trim();
 
-// ===================🔥 RECUPERAR CONTRASEÑA ===================
+      if (!email || !password) {
+        mostrarMensaje('Por favor, completa ambos campos.');
+        return;
+      }
 
-const formularioRecuperar = document.querySelector('.centrar-recuperar .form');
-const botonRecuperar = formularioRecuperar.querySelector('.button-submit');
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-botonRecuperar.addEventListener('click', async (e) => {
-  e.preventDefault();
-
-  const inputCorreo = formularioRecuperar.querySelector('.input');
-  const email = inputCorreo.value.trim();
-
-  if (!email) {
-    mostrarMensaje('Por favor, ingresa tu correo.');
-    return;
+        window.location.href = "/";
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje('Usuario o contraseña incorrectos.');
+      }
+    });
   }
 
-  try {
-    const { sendPasswordResetEmail } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+  const formularioRecuperar = document.querySelector('.centrar-recuperar .form');
+  const botonRecuperar = formularioRecuperar?.querySelector('.button-submit');
 
-    await sendPasswordResetEmail(auth, email);
-    mostrarMensaje('Te hemos enviado un correo para restablecer tu contraseña.');
+  if (formularioRecuperar && botonRecuperar) {
+    botonRecuperar.addEventListener('click', async (e) => {
+      e.preventDefault();
 
-    // Opcional: limpiar el campo
-    inputCorreo.value = '';
+      const inputCorreo = formularioRecuperar.querySelector('.input');
+      const email = inputCorreo.value.trim();
 
-    // Opcional: volver al formulario de login
-    const centrarRecuperar = document.querySelector('.centrar-recuperar');
-    const centrarLogin = document.querySelector('.centrar-login');
-    cambiarFormulario(centrarRecuperar, centrarLogin);
+      if (!email) {
+        mostrarMensaje('Por favor, ingresa tu correo.');
+        return;
+      }
 
-  } catch (error) {
-    console.error(error);
-    mostrarMensaje('Correo no registrado o error al enviar el correo.');
+      try {
+        await sendPasswordResetEmail(auth, email);
+        mostrarMensaje('Te hemos enviado un correo para restablecer tu contraseña.');
+
+        inputCorreo.value = '';
+
+        cambiarFormulario(formularioRecuperar, centrarLogin);
+
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje('Correo no registrado o error al enviar el correo.');
+      }
+    });
   }
-});
-
-
 
 });
-
-
