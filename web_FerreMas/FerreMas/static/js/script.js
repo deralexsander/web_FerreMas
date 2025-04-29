@@ -78,26 +78,98 @@ window.addEventListener('DOMContentLoaded', async () => {
     }, 400);
   }
 
+
+  // ===================🔥 MENSAJES ===================
+
+function mostrarMensaje(texto) {
+  const contenedor = document.getElementById('contenedor-mensaje');
+  const mensajeTexto = document.getElementById('mensaje-texto');
+  const cerrarBtn = document.getElementById('cerrar-mensaje');
+
+  mensajeTexto.textContent = texto;
+  contenedor.classList.remove('oculto', 'ocultar-pop');
+  contenedor.style.display = 'block';
+
+  setTimeout(() => {
+    contenedor.classList.add('ocultar-pop');
+    setTimeout(() => {
+      contenedor.classList.remove('ocultar-pop');
+      contenedor.classList.add('oculto');
+    }, 1500);
+  }, 4000);
+}
+
+
   // ===================🔥 FIREBASE CONFIGURACIÓN Y AUTENTICACIÓN ===================
 
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
   const { getAnalytics } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js");
-  const { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-
+  const { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
 
   const firebaseConfig = {
-    apiKey: "AIzaSyCAM_dosGr_VfJtMePggSQ0RZ2iDerHwWQ",
-    authDomain: "ferremas-9ab69.firebaseapp.com",
-    projectId: "ferremas-9ab69",
-    storageBucket: "ferremas-9ab69.appspot.com",
-    messagingSenderId: "647782254608",
-    appId: "1:647782254608:web:8572f96398f846ccd6e295",
-    measurementId: "G-LZLNBPKZC8"
+    apiKey: "AIzaSyCOsIJF-ywgaQPqT5ApyodIcRRBCiU-mtI",
+    authDomain: "ferremas-1a2c4.firebaseapp.com",
+    projectId: "ferremas-1a2c4",
+    storageBucket: "ferremas-1a2c4.firebasestorage.app",
+    messagingSenderId: "427152375883",
+    appId: "1:427152375883:web:f3dc467e589520bbf44dce"
   };
 
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const auth = getAuth();
+
+  const pathActual = window.location.pathname;
+
+  // 🔥 Detectar usuario logueado en todas las páginas
+  onAuthStateChanged(auth, (user) => {
+    const botonAccesoLink = document.querySelector('a[href="/acceso/"]');
+
+    if (botonAccesoLink) {
+      if (user) {
+        botonAccesoLink.setAttribute('href', '/perfil/');
+      } else {
+        botonAccesoLink.setAttribute('href', '/acceso/');
+      }
+    }
+
+    if (user && pathActual === '/acceso/') {
+      window.location.href = '/perfil/';
+    }
+
+    if (!user && pathActual === '/perfil/') {
+      window.location.href = '/acceso/';
+    }
+
+    if (document.getElementById('nombre-usuario') && document.getElementById('correo-usuario') && document.getElementById('foto-usuario')) {
+      if (user) {
+        const nombre = user.displayName || "Sin nombre";
+        const correo = user.email;
+        const fotoURL = user.photoURL || "https://via.placeholder.com/100";
+
+        document.getElementById('nombre-usuario').textContent = nombre;
+        document.getElementById('correo-usuario').textContent = correo;
+        document.getElementById('foto-usuario').src = fotoURL;
+      } else {
+        window.location.href = "/acceso/";
+      }
+    }
+  });
+
+  // 🔥 Botón de logout
+  const botonLogout = document.getElementById('boton-logout');
+  if (botonLogout) {
+    botonLogout.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        alert('Has cerrado sesión correctamente.');
+        window.location.href = '/acceso/';
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        alert('Ocurrió un error al intentar cerrar sesión.');
+      }
+    });
+  }
 
 // ===================🔥 REGISTRO MANUAL (email, nombre de usuario y contraseña) ===================
 
@@ -113,12 +185,12 @@ formularioRegistro.addEventListener('submit', async (e) => {
   const confirmPassword = inputs[3].value;
 
   if (!email || !username || !password || !confirmPassword) {
-    alert('Por favor, completa todos los campos.');
+    mostrarMensaje('Por favor, completa todos los campos.');
     return;
   }
 
   if (password !== confirmPassword) {
-    alert('Las contraseñas no coinciden');
+    mostrarMensaje('Las contraseñas no coinciden');
     return;
   }
 
@@ -139,7 +211,7 @@ formularioRegistro.addEventListener('submit', async (e) => {
     window.location.href = "/";
   } catch (error) {
     console.error(error);
-    alert('Error al registrarse: ' + error.message);
+    mostrarMensaje('Correo ya registrado en nuestro sistema.');
   }
 });
 
@@ -155,7 +227,7 @@ formularioLogin.addEventListener('submit', async (e) => {
   const password = inputs[1].value.trim();
 
   if (!email || !password) {
-    alert('Por favor, completa ambos campos.');
+    mostrarMensaje('Por favor, completa ambos campos.');
     return;
   }
 
@@ -167,7 +239,7 @@ formularioLogin.addEventListener('submit', async (e) => {
     window.location.href = "/";
   } catch (error) {
     console.error(error);
-    alert('Error al iniciar sesión: ' + error.message);
+    mostrarMensaje('usuario o contraseña incorrectos.');
   }
 });
 
@@ -183,7 +255,7 @@ botonRecuperar.addEventListener('click', async (e) => {
   const email = inputCorreo.value.trim();
 
   if (!email) {
-    alert('Por favor, ingresa tu correo.');
+    mostrarMensaje('Por favor, ingresa tu correo.');
     return;
   }
 
@@ -191,7 +263,7 @@ botonRecuperar.addEventListener('click', async (e) => {
     const { sendPasswordResetEmail } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
 
     await sendPasswordResetEmail(auth, email);
-    alert('Te hemos enviado un correo para restablecer tu contraseña.');
+    mostrarMensaje('Te hemos enviado un correo para restablecer tu contraseña.');
 
     // Opcional: limpiar el campo
     inputCorreo.value = '';
@@ -203,58 +275,9 @@ botonRecuperar.addEventListener('click', async (e) => {
 
   } catch (error) {
     console.error(error);
-    alert('Error al enviar correo de recuperación: ' + error.message);
+    mostrarMensaje('Correo no registrado o error al enviar el correo.');
   }
 });
-
-
-// ===================🔥 LOGIN Y REGISTRO CON GOOGLE ===================
-
-// Importamos Firebase Auth dinámicamente cuando se necesite
-const { GoogleAuthProvider, signInWithPopup } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-
-// --- Botón de Registrar con Google ---
-const botonesGoogleRegistro = document.querySelectorAll('.centrar-registro .btn.google');
-
-botonesGoogleRegistro.forEach(boton => {
-  boton.addEventListener('click', async (e) => {
-    e.preventDefault();
-
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log('Usuario registrado con Google:', user);
-
-      window.location.href = "/";
-    } catch (error) {
-      console.error(error);
-      alert('Error al registrarse con Google: ' + error.message);
-    }
-  });
-});
-
-// --- Botón de Iniciar sesión con Google ---
-const botonesGoogleLogin = document.querySelectorAll('.centrar-login .btn.google');
-
-botonesGoogleLogin.forEach(boton => {
-  boton.addEventListener('click', async (e) => {
-    e.preventDefault();
-
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log('Usuario inició sesión con Google:', user);
-
-      window.location.href = "/";
-    } catch (error) {
-      console.error(error);
-      alert('Error al iniciar sesión con Google: ' + error.message);
-    }
-  });
-});
-
 
 
 

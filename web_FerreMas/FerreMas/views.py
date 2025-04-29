@@ -13,3 +13,6 @@ def productos(request):
 
 def carrito(request):
     return render(request, 'web/carrito.html')
+
+def perfil(request):
+    return render(request, 'web/perfil.html')

@@ -140,15 +140,22 @@
 @keyframes popOut {
   0% {
     opacity: 1;
-    transform: scale(1) translateY(0px); 
+    transform: scale(1); 
     /* Comienza con su tamaño y posición normales */
   }
   100% {
     opacity: 0;
-    transform: scale(0.9) translateY(0); 
+    transform: scale(0.9); 
     /* Se achica levemente (efecto de salida) y mantiene su posición */
   }
 }
+
+
+@keyframes popOutError {
+  0% { opacity: 1; transform: translateX(-80%) scale(1); }
+  100% { opacity: 0; transform: translateX(-80%) scale(0.8); }
+}
+
 
 /* -------------------------------------------------------------
    Animación: popIn
@@ -159,12 +166,12 @@
 @keyframes popIn {
   0% {
     opacity: 0;
-    transform: scale(0.9) translateY(0px); 
+    transform: scale(0.9); 
     /* Comienza más pequeño, pero ya en su posición final */
   }
   100% {
     opacity: 1;
-    transform: scale(1) translateY(0); 
+    transform: scale(1); 
     /* Termina con tamaño normal y completamente visible */
   }
 }
@@ -1661,6 +1668,52 @@ a {
 
 
 
+#contenedor-mensaje {
+  position: absolute;
+  top: 60px;
+  left: 80%;
+  transform: translateX(-80%);
+  z-index: 1;
+}
+
+.error {
+  font-family: 'Poppins', sans-serif;
+  width: 320px;
+  padding: 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  border-radius: 15px;
+  background: linear-gradient(to right, #f45c43, #eb3349);
+  box-shadow: 0 0px 10px #de1c3280;
+  pointer-events: auto;
+  animation: popIn 1.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.error__icon,
+.error__close {
+  width: 20px;
+  height: 20px;
+  margin: 0 8px;
+  cursor: pointer;
+}
+
+.error__title {
+  font-weight: 500;
+  font-size: 14px;
+  color: #fff;
+}
+
+.oculto {
+  display: none;
+}
+
+
+.ocultar-pop {
+  animation: popOutError 0.4s ease forwards;
+}
+
 
 
 @media (max-height: 768px) {
@@ -1811,6 +1864,29 @@ a {
     justify-content: center;
     transition: all ease-in-out 0.3s;
     cursor: pointer;
+}
+
+#contenedor-mensaje {
+  position: absolute;
+  top: 170px;
+  left: 80%;
+  transform: translateX(-80%);
+  z-index: 1;
+}
+
+.error {
+  font-family: 'Poppins', sans-serif;
+  width: 270px;
+  padding: 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  border-radius: 15px;
+  background: linear-gradient(to right, #f45c43, #eb3349);
+  box-shadow: 0 0px 10px #de1c3280;
+  pointer-events: auto;
+  animation: popIn 1.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
   
 }

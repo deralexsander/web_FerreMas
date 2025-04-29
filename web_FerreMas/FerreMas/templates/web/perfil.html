@@ -1,0 +1,26 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block nombrePag %}
+<title>Perfil de </title>
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Bienvenido, <span id="nombre-usuario">Cargando...</span> 🍅</h1>
+<p>Tu correo es: <span id="correo-usuario">Cargando...</span></p>
+
+<div id="foto-container">
+  <img id="foto-usuario" src="" alt="Foto de perfil" style="width:100px; height:100px; border-radius:50%; object-fit:cover;">
+</div>
+
+<!-- Botón para cerrar sesión -->
+<div style="margin-top:20px;">
+  <button id="boton-logout" style="padding: 10px 20px; background-color: #e63946; color: white; border: none; border-radius: 8px; cursor: pointer;">
+    Cerrar sesión
+  </button>
+</div>
+
+
+
+  {% endblock %}
