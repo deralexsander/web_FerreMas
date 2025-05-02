@@ -16,3 +16,6 @@ def carrito(request):
 
 def perfil(request):
     return render(request, 'web/perfil.html')
+
+def registro_personal(request):
+    return render(request, 'registration/registro_personal.html')

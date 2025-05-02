@@ -1,0 +1,95 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block nombrePag %}
+<title>registro personal</title>
+{% endblock %}
+
+{% block contenido %}
+<div id="formulario-trabajador" class="form">
+  <h3>Crear nuevo trabajador</h3>
+
+  <div class="flex-column">
+    <label>Correo electrónico</label>
+    <input type="email" id="correo-trabajador" class="input" placeholder="correo@empresa.cl">
+  </div>
+
+  <div class="flex-column">
+    <label>Nombre</label>
+    <input type="text" id="nombre-trabajador" class="input" placeholder="Nombre del trabajador">
+  </div>
+
+  <div class="flex-column">
+    <label>Apellido paterno</label>
+    <input type="text" id="apellido-paterno-trabajador" class="input" placeholder="Apellido paterno">
+  </div>
+
+  <div class="flex-column">
+    <label>Apellido materno</label>
+    <input type="text" id="apellido-materno-trabajador" class="input" placeholder="Apellido materno">
+  </div>
+
+  <div class="flex-column">
+    <label>RUT</label>
+    <input type="text" id="rut-trabajador" class="input" placeholder="12.345.678-9">
+  </div>
+
+  <div class="flex-column">
+    <label>Rol</label>
+    <select id="rol-trabajador" class="input">
+      <option value="admin">Administrador</option>
+      <option value="vendedor">Vendedor</option>
+      <option value="contador">Contador</option>
+      <option value="bodeguero">Bodeguero</option>
+    </select>
+  </div>
+
+  <div class="flex-column">
+    <label>Contraseña generada automáticamente</label>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <input type="text" id="password-trabajador" class="input" readonly>
+      <button type="button" onclick="copiarPassword()" style="padding: 6px 12px; cursor: pointer;">📋 Copiar</button>
+    </div>
+  </div>
+
+  <button type="button" onclick="crearTrabajador()" class="button-submit">Crear trabajador</button>
+
+  <div id="contenedor-mensaje" class="oculto" style="margin-top: 15px; background: #eef; border: 1px solid #99c; padding: 10px;">
+    <div id="mensaje-texto"></div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('rut-trabajador').addEventListener('input', generarPassword);
+  document.getElementById('nombre-trabajador').addEventListener('input', generarPassword);
+  document.getElementById('apellido-paterno-trabajador').addEventListener('input', generarPassword);
+
+  function generarPassword() {
+    const rut = document.getElementById('rut-trabajador').value.trim();
+    const nombre = document.getElementById('nombre-trabajador').value.trim().toLowerCase();
+    const apellido = document.getElementById('apellido-paterno-trabajador').value.trim().toLowerCase();
+    const passInput = document.getElementById('password-trabajador');
+
+    if (rut && nombre && apellido) {
+      const rutClean = rut.replace(/\./g, '').replace(/-/g, '');
+      const simbolos = ['!', '@', '#', '$', '%'];
+      const simbolo = simbolos[Math.floor(Math.random() * simbolos.length)];
+      const parte1 = nombre.slice(0, 2);
+      const parte2 = apellido.slice(0, 2);
+      const parte3 = nombre.slice(2, 4);
+      const password = `${parte1}${rutClean.slice(0, 3)}${parte2}${simbolo}${rutClean.slice(-3)}${parte3}`;
+      passInput.value = password;
+    } else {
+      passInput.value = "";
+    }
+  }
+
+  function copiarPassword() {
+    const input = document.getElementById('password-trabajador');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    mostrarMensaje('Contraseña copiada al portapapeles');
+  }
+</script>
+{% endblock %}
