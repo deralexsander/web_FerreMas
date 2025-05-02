@@ -2,6 +2,7 @@
 // SCRIPT FIREBASE (AUTH + DB) - Versión consolidada
 // --------------------------
 
+
 window.addEventListener('DOMContentLoaded', async () => {
   // Importaciones de Firebase
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
@@ -13,7 +14,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
-    updateProfile
+    updateProfile,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword
   } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
   const {
     getFirestore,
@@ -165,11 +169,18 @@ window.crearTrabajador = async function() {
         // Intentar obtener por UID primero (más eficiente)
         const docRef = doc(db, "trabajadores", user.uid);
         const docSnap = await getDoc(docRef);
-
+    
         if (docSnap.exists()) {
           datosTrabajador = docSnap.data();
           rol = (datosTrabajador?.rol || "").toLowerCase().trim();
           sessionStorage.setItem("trabajador", JSON.stringify({ ...datosTrabajador, id: user.uid }));
+    
+          // Mostrar modal si cambiarContraseña está en true
+          if (datosTrabajador?.cambiarContraseña === true) {
+            const modal = document.getElementById("passwordChangeModal");
+            if (modal) modal.style.display = "block";
+          }
+    
         } else {
           // Si no existe por UID, buscar por correo (para compatibilidad)
           const q = query(
@@ -177,12 +188,19 @@ window.crearTrabajador = async function() {
             where("correo", "==", user.email.toLowerCase())
           );
           const resultado = await getDocs(q);
-
+    
           if (!resultado.empty) {
             const data = resultado.docs[0].data();
             rol = (data?.rol || "").toLowerCase().trim();
             datosTrabajador = { ...data, id: resultado.docs[0].id };
             sessionStorage.setItem("trabajador", JSON.stringify(datosTrabajador));
+    
+            // Mostrar modal si cambiarContraseña está en true
+            if (data?.cambiarContraseña === true) {
+              const modal = document.getElementById("passwordChangeModal");
+              if (modal) modal.style.display = "block";
+            }
+    
           } else {
             // Usuario normal (cliente)
             rol = "cliente";
@@ -194,6 +212,7 @@ window.crearTrabajador = async function() {
       console.error("Error obteniendo datos de trabajador:", e);
       rol = "";
     }
+    
 
     // Actualizar UI según el rol
     if (tipoUsuario) {
@@ -396,6 +415,76 @@ window.crearTrabajador = async function() {
       }
     });
   }
+
+
+
+
+
+
+
+// Cambiar contraseña desde el modal
+const formCambio = document.getElementById("changePasswordForm");
+if (formCambio) {
+  formCambio.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const currentPassword = document.getElementById("currentPassword").value.trim();
+    const newPassword = document.getElementById("newPassword").value.trim();
+    const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      alert("Completa todos los campos.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("La nueva contraseña no coincide con la confirmación.");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      alert("La nueva contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    try {
+      const user = auth.currentUser;
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+
+      // Reautenticar al usuario
+      await reauthenticateWithCredential(user, credential);
+
+      // Cambiar contraseña
+      await updatePassword(user, newPassword);
+
+      // Actualizar cambiarContraseña a false en Firestore
+      const trabajador = JSON.parse(sessionStorage.getItem("trabajador"));
+      if (trabajador?.id) {
+        await setDoc(
+          doc(db, "trabajadores", trabajador.id),
+          { cambiarContraseña: false },
+          { merge: true }
+        );
+        trabajador.cambiarContraseña = false;
+        sessionStorage.setItem("trabajador", JSON.stringify(trabajador));
+      }
+
+      alert("Contraseña cambiada con éxito.");
+      document.getElementById("passwordChangeModal").style.display = "none";
+    } catch (error) {
+      console.error("Error al cambiar la contraseña:", error);
+      alert("Error al cambiar la contraseña. Verifica la contraseña actual o inténtalo nuevamente.");
+    }
+  });
+}
+
+
+
+
+
+
+
+
 
   
 });

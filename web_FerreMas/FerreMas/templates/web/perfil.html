@@ -7,29 +7,7 @@
 
 {% block contenido %}
 
-<!-- Modal para cambiar contraseña -->
-<div id="passwordChangeModal" class="modal" style="display: none;">
-  <div class="modal-content">
-    <span class="close-modal">&times;</span>
-    <h2>Cambio de contraseña requerido</h2>
-    <p>Por seguridad, debes cambiar tu contraseña antes de continuar.</p>
-    <form id="changePasswordForm">
-      <div class="input-group">
-        <label for="currentPassword">Contraseña actual:</label>
-        <input type="password" id="currentPassword" required>
-      </div>
-      <div class="input-group">
-        <label for="newPassword">Nueva contraseña:</label>
-        <input type="password" id="newPassword" required minlength="6">
-      </div>
-      <div class="input-group">
-        <label for="confirmPassword">Confirmar nueva contraseña:</label>
-        <input type="password" id="confirmPassword" required minlength="6">
-      </div>
-      <button type="submit" class="button-submit">Cambiar contraseña</button>
-    </form>
-  </div>
-</div>
+
 
 <!-- Perfil de usuario -->
 <div class="container_center">
@@ -58,67 +36,9 @@
   </div>
 </div>
 
-<style>
-  /* Modal */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.7);
-  }
 
-  .modal-content {
-    background-color: #fefefe;
-    margin: 10% auto;
-    padding: 20px;
-    border-radius: 8px;
-    width: 80%;
-    max-width: 500px;
-    position: relative;
-  }
 
-  .close-modal {
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    font-size: 24px;
-    cursor: pointer;
-  }
 
-  .input-group {
-    margin-bottom: 15px;
-  }
 
-  .input-group label {
-    display: block;
-    margin-bottom: 5px;
-  }
-
-  .input-group input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-
-  .button-submit {
-    background-color: #0a4a82;
-    color: white;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    width: 100%;
-    font-size: 16px;
-  }
-
-  .button-submit:hover {
-    background-color: #083b6a;
-  }
-</style>
 
 {% endblock %}

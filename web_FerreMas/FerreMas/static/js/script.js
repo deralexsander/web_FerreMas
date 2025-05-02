@@ -94,4 +94,22 @@ window.addEventListener('DOMContentLoaded', async () => {
       }, 1500);
     }, 4000);
   }
+
+
+  // Cerrar el modal al hacer clic en la X
+  document.querySelector('.close-modal').addEventListener('click', function () {
+    document.getElementById('passwordChangeModal').style.display = 'none';
+  });
+
+  // Cerrar el modal al hacer clic fuera del contenido
+  window.addEventListener('click', function (event) {
+    const modal = document.getElementById('passwordChangeModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+
+
+
+
 });

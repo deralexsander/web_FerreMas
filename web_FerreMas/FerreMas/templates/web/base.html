@@ -100,6 +100,30 @@
 
         </div>
 
+        <!-- Modal para cambiar contraseña -->
+        <div id="passwordChangeModal" class="modal" style="display: none;">
+            <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Cambio de contraseña requerido</h2>
+            <p>Por seguridad, debes cambiar tu contraseña antes de continuar.</p>
+            <form id="changePasswordForm">
+                <div class="input-group">
+                <label for="currentPassword">Contraseña actual:</label>
+                <input type="password" id="currentPassword" required>
+                </div>
+                <div class="input-group">
+                <label for="newPassword">Nueva contraseña:</label>
+                <input type="password" id="newPassword" required minlength="6">
+                </div>
+                <div class="input-group">
+                <label for="confirmPassword">Confirmar nueva contraseña:</label>
+                <input type="password" id="confirmPassword" required minlength="6">
+                </div>
+                <button type="submit" class="button-submit">Cambiar contraseña</button>
+            </form>
+            </div>
+        </div>
+
         <!-- buscador para productos -->
         {% block buscador %}
         {% endblock %}
