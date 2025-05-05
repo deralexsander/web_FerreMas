@@ -77,39 +77,29 @@ window.addEventListener('DOMContentLoaded', async () => {
     }, 400);
   }
 
-  function mostrarMensaje(texto) {
-    const contenedor = document.getElementById('contenedor-mensaje');
-    const mensajeTexto = document.getElementById('mensaje-texto');
-    const cerrarBtn = document.getElementById('cerrar-mensaje');
-
-    mensajeTexto.textContent = texto;
-    contenedor.classList.remove('oculto', 'ocultar-pop');
-    contenedor.style.display = 'block';
-
-    setTimeout(() => {
-      contenedor.classList.add('ocultar-pop');
-      setTimeout(() => {
-        contenedor.classList.remove('ocultar-pop');
-        contenedor.classList.add('oculto');
-      }, 1500);
-    }, 4000);
-  }
-
-
-  // Cerrar el modal al hacer clic en la X
-  document.querySelector('.close-modal').addEventListener('click', function () {
-    document.getElementById('passwordChangeModal').style.display = 'none';
-  });
-
-  // Cerrar el modal al hacer clic fuera del contenido
-  window.addEventListener('click', function (event) {
-    const modal = document.getElementById('passwordChangeModal');
-    if (event.target === modal) {
-      modal.style.display = 'none';
-    }
-  });
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
 });

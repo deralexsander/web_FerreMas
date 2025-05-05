@@ -177,6 +177,20 @@
 }
 
 /* -------------------------------------------------------------
+   Animación: popIn
+   Descripción:
+   Hace que un elemento aparezca suavemente
+------------------------------------------------------------- */
+@keyframes pop {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* -------------------------------------------------------------
    Animación: moveRight
    Descripción:
    Desplaza un elemento hacia la derecha de forma horizontal 
@@ -1166,7 +1180,7 @@ a {
   .form {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
     background-color: #0a4a829c; /* Azul profundo con transparencia */
     backdrop-filter: blur(10px); /* (opcional) efecto glass elegante */
     -webkit-backdrop-filter: blur(10px); /* para Safari */
@@ -1671,7 +1685,7 @@ a {
 
 #contenedor-mensaje {
   position: absolute;
-  top: 60px;
+  top: 80px;
   left: 80%;
   transform: translateX(-80%);
   z-index: 1;
@@ -1726,57 +1740,33 @@ a {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.7);
+    backdrop-filter: blur(40px); /* (opcional) efecto glass elegante */
+    opacity: 0;
+    animation: 
+    pop 1.3s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
+    color: #fff;
   }
 
   .modal-content {
-    background-color: #fefefe;
-    margin: 10% auto;
-    padding: 20px;
-    border-radius: 8px;
-    width: 80%;
-    max-width: 500px;
-    position: relative;
-  }
-
-  .close-modal {
     position: absolute;
-    right: 15px;
-    top: 10px;
-    font-size: 24px;
-    cursor: pointer;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    width: 90%; /* Adjusted for smaller screens */
+    max-width: 300px; /* Reduced max width for mobile */
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
   }
 
-  .input-group {
-    margin-bottom: 15px;
+  @media (max-width: 800px) {
+    .modal-content {
+      width: 95%; /* Further adjust for very small screens */
+      max-width: 280px; /* Slightly smaller max width */
+      padding: 15px; /* Reduce padding for mobile */
+    }
   }
 
-  .input-group label {
-    display: block;
-    margin-bottom: 5px;
-  }
 
-  .input-group input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-
-  .button-submit {
-    background-color: #0a4a82;
-    color: white;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    width: 100%;
-    font-size: 16px;
-  }
-
-  .button-submit:hover {
-    background-color: #083b6a;
-  }
 
 
 
@@ -1952,15 +1942,15 @@ a {
 
 #contenedor-mensaje {
   position: absolute;
-  top: 170px;
-  left: 80%;
-  transform: translateX(-80%);
+  top: 130px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1;
 }
 
 .error {
   font-family: 'Poppins', sans-serif;
-  width: 270px;
+  width: 250px;
   padding: 12px;
   display: flex;
   flex-direction: row;

@@ -61,6 +61,25 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+
+    function mostrarMensaje(texto) {
+    const contenedor = document.getElementById('contenedor-mensaje');
+    const mensajeTexto = document.getElementById('mensaje-texto');
+    const cerrarBtn = document.getElementById('cerrar-mensaje');
+
+    mensajeTexto.textContent = texto;
+    contenedor.classList.remove('oculto', 'ocultar-pop');
+    contenedor.style.display = 'block';
+
+    setTimeout(() => {
+      contenedor.classList.add('ocultar-pop');
+      setTimeout(() => {
+        contenedor.classList.remove('ocultar-pop');
+        contenedor.classList.add('oculto');
+      }, 1500);
+    }, 4000);
+  }
+
   // ========== FUNCIÓN PARA CREAR TRABAJADORES (GLOBAL) ==========
 window.crearTrabajador = async function() {
   try {
@@ -325,80 +344,38 @@ window.crearTrabajador = async function() {
     });
   }
 
-  // Formulario de login de trabajador
-  const formularioLoginTrabajador = document.querySelector('.centrar-login-trabajador .form');
-  if (formularioLoginTrabajador) {
-    formularioLoginTrabajador.addEventListener('submit', async (e) => {
-      e.preventDefault();
 
-      const inputs = formularioLoginTrabajador.querySelectorAll('.input');
-      const correoIngresado = inputs[0].value.trim().toLowerCase();
-      const passwordIngresado = inputs[1].value.trim();
+// Formulario de recuperación de contraseña
+const formularioRecuperar = document.querySelector('.centrar-recuperar .form');
+const botonRecuperar = formularioRecuperar?.querySelector('.button-submit');
 
-      if (!correoIngresado || !passwordIngresado) {
-        mostrarMensaje('Completa ambos campos');
-        return;
-      }
+if (formularioRecuperar && botonRecuperar) {
+  botonRecuperar.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const inputCorreo = formularioRecuperar.querySelector('.input');
+    const email = inputCorreo.value.trim();
 
-      try {
-        const q = query(collection(db, "trabajadores"), where("correo", "==", correoIngresado));
-        const resultado = await getDocs(q);
+    if (!email) {
+      mostrarMensaje('Por favor, ingresa tu correo.');
+      return;
+    }
 
-        if (resultado.empty) {
-          mostrarMensaje("Correo no encontrado");
-          return;
-        }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      mostrarMensaje('Te hemos enviado un correo para restablecer tu contraseña.');
+      inputCorreo.value = '';
 
-        const doc = resultado.docs[0];
-        const data = doc.data();
+      // Cambia al formulario de login del cliente
+      const loginCliente = document.querySelector('.centrar-login-cliente');
+      cambiarFormulario(formularioRecuperar.closest('.centrar-recuperar'), loginCliente);
 
-        if (data.password !== passwordIngresado) {
-          mostrarMensaje("Contraseña incorrecta");
-          return;
-        }
+    } catch (error) {
+      console.error(error);
+      mostrarMensaje('Correo no registrado o error al enviar el correo.');
+    }
+  });
+}
 
-        try {
-          await signInWithEmailAndPassword(auth, correoIngresado, passwordIngresado);
-        } catch (error) {
-          if (error.code === 'auth/user-not-found') {
-            await createUserWithEmailAndPassword(auth, correoIngresado, passwordIngresado);
-            mostrarMensaje("Cuenta activada correctamente");
-          } else {
-            throw error;
-          }
-        }
-
-        sessionStorage.setItem("trabajador", JSON.stringify({ ...data, id: doc.id }));
-        mostrarMensaje("Bienvenido " + data.nombre);
-        setTimeout(() => window.location.href = "/perfil/", 1000);
-
-      } catch (error) {
-        console.error("Error en login de trabajador:", error);
-        mostrarMensaje("Ocurrió un error al ingresar");
-      }
-    });
-  }
-
-  // Formulario de recuperación de contraseña
-  const formularioRecuperar = document.querySelector('.centrar-recuperar .form');
-  const botonRecuperar = formularioRecuperar?.querySelector('.button-submit');
-  if (formularioRecuperar && botonRecuperar) {
-    botonRecuperar.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const inputCorreo = formularioRecuperar.querySelector('.input');
-      const email = inputCorreo.value.trim();
-      if (!email) return mostrarMensaje('Por favor, ingresa tu correo.');
-      try {
-        await sendPasswordResetEmail(auth, email);
-        mostrarMensaje('Te hemos enviado un correo para restablecer tu contraseña.');
-        inputCorreo.value = '';
-        cambiarFormulario(formularioRecuperar, document.querySelector('.centrar-login-cliente'));
-      } catch (error) {
-        console.error(error);
-        mostrarMensaje('Correo no registrado o error al enviar el correo.');
-      }
-    });
-  }
 
   // Botón de logout
   const botonLogout = document.getElementById('boton-logout');
@@ -421,64 +398,82 @@ window.crearTrabajador = async function() {
 
 
 
-
-// Cambiar contraseña desde el modal
-const formCambio = document.getElementById("changePasswordForm");
-if (formCambio) {
-  formCambio.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const currentPassword = document.getElementById("currentPassword").value.trim();
-    const newPassword = document.getElementById("newPassword").value.trim();
-    const confirmPassword = document.getElementById("confirmPassword").value.trim();
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      alert("Completa todos los campos.");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      alert("La nueva contraseña no coincide con la confirmación.");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      alert("La nueva contraseña debe tener al menos 6 caracteres.");
-      return;
-    }
-
-    try {
-      const user = auth.currentUser;
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
-
-      // Reautenticar al usuario
-      await reauthenticateWithCredential(user, credential);
-
-      // Cambiar contraseña
-      await updatePassword(user, newPassword);
-
-      // Actualizar cambiarContraseña a false en Firestore
-      const trabajador = JSON.parse(sessionStorage.getItem("trabajador"));
-      if (trabajador?.id) {
-        await setDoc(
-          doc(db, "trabajadores", trabajador.id),
-          { cambiarContraseña: false },
-          { merge: true }
-        );
-        trabajador.cambiarContraseña = false;
-        sessionStorage.setItem("trabajador", JSON.stringify(trabajador));
+  const modal = document.getElementById("passwordChangeModal");
+  const trabajador = JSON.parse(sessionStorage.getItem("trabajador"));
+  
+  // Mostrar u ocultar el modal según cambiarContraseña
+  if (trabajador?.cambiarContraseña === true) {
+    modal.style.display = "block";
+  } else {
+    modal.style.display = "none";
+  }
+  
+  // Lógica del formulario de cambio de contraseña
+  const formCambio = document.getElementById("changePasswordForm");
+  if (formCambio) {
+    formCambio.addEventListener("submit", async (e) => {
+      e.preventDefault();
+  
+      const currentPassword = document.getElementById("currentPassword").value.trim();
+      const newPassword = document.getElementById("newPassword").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+      const contraseñaInicial = "ni209mu!835co";
+  
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        alert("Completa todos los campos.");
+        return;
       }
-
-      alert("Contraseña cambiada con éxito.");
-      document.getElementById("passwordChangeModal").style.display = "none";
-    } catch (error) {
-      console.error("Error al cambiar la contraseña:", error);
-      alert("Error al cambiar la contraseña. Verifica la contraseña actual o inténtalo nuevamente.");
-    }
-  });
-}
-
-
+  
+      if (newPassword !== confirmPassword) {
+        alert("La nueva contraseña no coincide con la confirmación.");
+        return;
+      }
+  
+      if (newPassword.length < 6) {
+        alert("La nueva contraseña debe tener al menos 6 caracteres.");
+        return;
+      }
+  
+      if (currentPassword === newPassword) {
+        alert("La nueva contraseña no puede ser igual a la actual.");
+        return;
+      }
+  
+      if (newPassword === contraseñaInicial) {
+        alert("No puedes usar la contraseña inicial predeterminada.");
+        return;
+      }
+  
+      try {
+        const user = auth.currentUser;
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  
+        // Reautenticar al usuario
+        await reauthenticateWithCredential(user, credential);
+  
+        // Cambiar contraseña
+        await updatePassword(user, newPassword);
+  
+        // Actualizar cambiarContraseña a false en Firestore y en sessionStorage
+        if (trabajador?.id) {
+          await setDoc(
+            doc(db, "trabajadores", trabajador.id),
+            { cambiarContraseña: false },
+            { merge: true }
+          );
+          trabajador.cambiarContraseña = false;
+          sessionStorage.setItem("trabajador", JSON.stringify(trabajador));
+        }
+  
+        alert("Contraseña cambiada con éxito.");
+        modal.style.display = "none";
+      } catch (error) {
+        console.error("Error al cambiar la contraseña:", error);
+        alert("Error al cambiar la contraseña. Verifica la contraseña actual o inténtalo nuevamente.");
+      }
+    });
+  }
+  
 
 
 
