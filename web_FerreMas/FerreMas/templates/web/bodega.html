@@ -1,0 +1,162 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block nombrePag %}
+  <title>Crear Producto</title>
+{% endblock %}
+
+{% block contenido %}
+<div class="contenedor_informacion">
+  <div class="bloque_info">
+    <div class="columna_info">
+      <div class="centrar">
+        <div class="encabezado-formulario">
+          <h1>Nuevo producto</h1>
+        </div>
+        <div class="subtexto-formulario">
+          <p>Completa los datos para registrar un nuevo producto en el sistema.</p>
+        </div>
+      </div>
+    </div>
+    <div class="columna_info">
+      <form class="form" id="crearProductoForm">
+        <div class="flex-column">
+          <label>Nombre del producto</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="nombre" required />
+        </div>
+
+        <div class="flex-column">
+          <label>Categoría</label>
+        </div>
+        <div class="inputForm">
+          <select class="input" name="categoria" required>
+            <option value="">Seleccionar...</option>
+            <option value="herramientas_manual">Herramientas manuales</option>
+            <option value="herramientas_electricas">Herramientas eléctricas</option>
+            <option value="pinturas">Pinturas</option>
+            <option value="materiales_electricos">Materiales eléctricos</option>
+            <option value="accesorios">Accesorios</option>
+            <option value="seguridad">Artículos de seguridad</option>
+          </select>
+        </div>
+
+        <div class="flex-column">
+          <label>Descripción</label>
+        </div>
+        <div class="inputForm">
+          <textarea class="input" name="descripcion" rows="3" required></textarea>
+        </div>
+
+        <div class="flex-column">
+          <label>Marca</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="marca" />
+        </div>
+
+        <div class="flex-column">
+          <label>Precio unitario ($)</label>
+        </div>
+        <div class="inputForm">
+          <input type="number" class="input" name="precio" step="100" required />
+        </div>
+
+        <div class="flex-column">
+          <label>Cantidad en stock</label>
+        </div>
+        <div class="inputForm">
+          <input type="number" class="input" name="stock" required />
+        </div>
+
+        <div class="flex-column">
+          <label>Código interno</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="codigo" required />
+        </div>
+
+        <div class="flex-column">
+          <label>Potencia (W)</label>
+        </div>
+        <div class="inputForm">
+          <input type="number" class="input" name="potencia" />
+        </div>
+
+        <div class="flex-column">
+          <label>Voltaje (V)</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="voltaje" />
+        </div>
+
+        <div class="flex-column">
+          <label>Color</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="color" />
+        </div>
+
+        <div class="flex-column">
+          <label>Tamaño / Capacidad</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="tamano" />
+        </div>
+
+        <div class="flex-column">
+          <label>Material</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="material" />
+        </div>
+
+        <div class="flex-column">
+          <label>Presentación</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="presentacion" />
+        </div>
+
+        <div class="flex-column">
+          <label>Garantía</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="garantia" />
+        </div>
+
+        <div class="flex-column">
+          <label>Uso recomendado</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="uso" />
+        </div>
+
+        <div class="flex-column">
+          <label>Peso (kg)</label>
+        </div>
+        <div class="inputForm">
+          <input type="number" class="input" name="peso" step="0.1" />
+        </div>
+
+        <div class="flex-column">
+          <label>Dimensiones (cm)</label>
+        </div>
+        <div class="inputForm">
+          <input type="text" class="input" name="dimensiones" />
+        </div>
+
+        <div class="flex-column">
+          <label>Fecha de vencimiento (solo si aplica)</label>
+        </div>
+        <div class="inputForm">
+          <input type="date" class="input" name="vencimiento" />
+        </div>
+
+        <button class="button-submit" type="submit">Guardar producto</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

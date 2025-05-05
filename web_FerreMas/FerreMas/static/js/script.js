@@ -81,6 +81,47 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
 
+  const categoriaInput = document.querySelector('select[name="categoria"]');
+
+  const campos = {
+    potencia: document.querySelector('input[name="potencia"]'),
+    voltaje: document.querySelector('input[name="voltaje"]'),
+    color: document.querySelector('input[name="color"]'),
+    vencimiento: document.querySelector('input[name="vencimiento"]')
+  };
+
+  const desactivarTodos = () => {
+    for (let campo in campos) {
+      campos[campo].disabled = true;
+      campos[campo].value = ""; // Limpia el valor al desactivar
+    }
+  };
+
+  const manejarCategoria = () => {
+    const cat = categoriaInput.value;
+    desactivarTodos();
+
+    if (cat === "herramientas_electricas") {
+      campos.potencia.disabled = false;
+      campos.voltaje.disabled = false;
+      campos.color.disabled = false;
+    } else if (cat === "materiales_electricos") {
+      campos.voltaje.disabled = false;
+      campos.color.disabled = false;
+    } else if (cat === "pinturas") {
+      campos.color.disabled = false;
+      campos.vencimiento.disabled = false;
+    } else if (["accesorios", "seguridad"].includes(cat)) {
+      campos.color.disabled = false;
+    }
+    // herramientas_manual no habilita ningún campo extra
+  };
+
+  // Ejecutar al inicio y al cambiar categoría
+  categoriaInput.addEventListener("change", manejarCategoria);
+  manejarCategoria(); // para el estado inicial
+
+
 
 
 

@@ -19,3 +19,6 @@ def perfil(request):
 
 def registro_personal(request):
     return render(request, 'registration/registro_personal.html')
+
+def bodega(request):
+    return render(request, 'web/bodega.html')

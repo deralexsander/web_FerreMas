@@ -47,6 +47,46 @@ window.addEventListener('DOMContentLoaded', async () => {
   const auth = getAuth();
   const db = getFirestore(app);
 
+  const { v4: uuidv4 } = await import("https://jspm.dev/uuid");
+
+const btnAgregarProducto = document.getElementById("agregarProductoBtn");
+if (btnAgregarProducto) {
+  btnAgregarProducto.addEventListener("click", async () => {
+    const productoDePrueba = {
+      nombre: "Martillo de carpintero",
+      categoria: "herramientas_manual",
+      descripcion: "Martillo clásico con mango de madera y cabeza de acero.",
+      marca: "FerraMas",
+      precio: 5990,
+      stock: 25,
+      codigo: "HM001",
+      potencia: null,
+      voltaje: null,
+      color: "Rojo",
+      tamano: "Mediano",
+      material: "Acero y madera",
+      presentacion: "Unidad",
+      garantia: "6 meses",
+      uso: "Construcción general",
+      peso: 0.8,
+      dimensiones: "30 x 10 x 3 cm",
+      vencimiento: null,
+      creadoEn: Timestamp.now()
+    };
+
+    try {
+      const uid = uuidv4();
+      const ref = doc(db, "productos", uid);
+      await setDoc(ref, productoDePrueba);
+      alert("✅ Producto guardado con ID: " + uid);
+    } catch (error) {
+      console.error("Error al guardar producto:", error);
+      alert("❌ Error al guardar el producto.");
+    }
+  });
+}
+
+
   // Función para mostrar mensajes
   function mostrarMensaje(mensaje, tipo = 'error') {
     console.log(tipo.toUpperCase() + ":", mensaje);
@@ -397,7 +437,6 @@ if (formularioRecuperar && botonRecuperar) {
 
 
 
-
   const modal = document.getElementById("passwordChangeModal");
   const trabajador = JSON.parse(sessionStorage.getItem("trabajador"));
   
@@ -454,16 +493,20 @@ if (formularioRecuperar && botonRecuperar) {
         // Cambiar contraseña
         await updatePassword(user, newPassword);
   
-        // Actualizar cambiarContraseña a false en Firestore y en sessionStorage
-        if (trabajador?.id) {
-          await setDoc(
-            doc(db, "trabajadores", trabajador.id),
-            { cambiarContraseña: false },
-            { merge: true }
-          );
-          trabajador.cambiarContraseña = false;
-          sessionStorage.setItem("trabajador", JSON.stringify(trabajador));
+        // Asegurar que el trabajador esté bien cargado
+        let trabajador = JSON.parse(sessionStorage.getItem("trabajador"));
+        if (!trabajador || !trabajador.id) {
+          throw new Error("No se pudo obtener la información del trabajador desde sessionStorage.");
         }
+  
+        // Actualizar cambiarContraseña a false en Firestore y sessionStorage
+        await setDoc(
+          doc(db, "trabajadores", trabajador.id),
+          { cambiarContraseña: false },
+          { merge: true }
+        );
+        trabajador.cambiarContraseña = false;
+        sessionStorage.setItem("trabajador", JSON.stringify(trabajador));
   
         alert("Contraseña cambiada con éxito.");
         modal.style.display = "none";
@@ -474,9 +517,6 @@ if (formularioRecuperar && botonRecuperar) {
     });
   }
   
-
-
-
 
 
 
