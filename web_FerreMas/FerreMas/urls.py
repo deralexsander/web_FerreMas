@@ -9,4 +9,5 @@ urlpatterns = [
     path('perfil/', views.perfil, name="perfil"),
     path('registro_personal/', views.registro_personal, name="registro_personal"),
     path('bodega/', views.bodega, name="bodega"),
+    path("api/subir-imagen/", views.subir_imagen, name="subir_imagen"),
 ]

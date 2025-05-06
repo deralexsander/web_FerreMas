@@ -57,44 +57,62 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
+  
       const formData = new FormData(form);
       const getValue = (key) => formData.get(key)?.trim() || null;
-
-      const producto = {
-        nombre: getValue("nombre"),
-        categoria: getValue("categoria"),
-        descripcion: getValue("descripcion"),
-        marca: getValue("marca"),
-        precio: parseInt(getValue("precio")) || 0,
-        stock: parseInt(getValue("stock")) || 0,
-        codigo: getValue("codigo"),
-        potencia: getValue("potencia") ? parseInt(getValue("potencia")) : null,
-        voltaje: getValue("voltaje"),
-        color: getValue("color"),
-        tamano: getValue("tamano"),
-        material: getValue("material"),
-        presentacion: getValue("presentacion"),
-        garantia: getValue("garantia"),
-        uso: getValue("uso"),
-        peso: getValue("peso") ? parseFloat(getValue("peso")) : null,
-        dimensiones: getValue("dimensiones"),
-        vencimiento: getValue("vencimiento") || null,
-        creadoEn: Timestamp.now()
-      };
-
+  
+      const uid = uuidv4(); // Código único para imagen y producto
+  
+      // Agregamos el código de imagen al FormData (para Django)
+      formData.append("codigo_imagen", uid);
+  
       try {
-        const uid = uuidv4();
+        // 1. Subir la imagen a Django
+        const imagenResponse = await fetch("/api/subir-imagen/", {
+          method: "POST",
+          body: formData
+        });
+  
+        if (!imagenResponse.ok) {
+          throw new Error("Error al subir la imagen a Django");
+        }
+  
+        // 2. Crear el producto en Firebase
+        const producto = {
+          nombre: getValue("nombre"),
+          categoria: getValue("categoria"),
+          descripcion: getValue("descripcion"),
+          marca: getValue("marca"),
+          precio: parseInt(getValue("precio")) || 0,
+          stock: parseInt(getValue("stock")) || 0,
+          codigo: getValue("codigo"),
+          potencia: getValue("potencia") ? parseInt(getValue("potencia")) : null,
+          voltaje: getValue("voltaje"),
+          color: getValue("color"),
+          tamano: getValue("tamano"),
+          material: getValue("material"),
+          presentacion: getValue("presentacion"),
+          garantia: getValue("garantia"),
+          uso: getValue("uso"),
+          peso: getValue("peso") ? parseFloat(getValue("peso")) : null,
+          dimensiones: getValue("dimensiones"),
+          vencimiento: getValue("vencimiento") || null,
+          creadoEn: Timestamp.now(),
+          codigoImagen: uid // vínculo con la imagen en Django
+        };
+  
         const ref = doc(db, "productos", uid);
         await setDoc(ref, producto);
-        alert("✅ Producto guardado con ID: " + uid);
+  
+        alert("✅ Producto guardado con imagen vinculada");
         form.reset();
       } catch (error) {
-        console.error("❌ Error al guardar el producto:", error);
-        alert("❌ No se pudo guardar el producto. Revisa la consola.");
+        console.error("❌ Error al guardar el producto o la imagen:", error);
+        alert("❌ No se pudo guardar el producto o la imagen. Revisa la consola.");
       }
     });
   }
+  
 
 
 
@@ -531,50 +549,52 @@ if (formularioRecuperar && botonRecuperar) {
   
 
 
+  const contenedor = document.getElementById("contenedor-productos");
 
-const contenedor = document.getElementById("contenedor-productos");
-
-async function cargarUltimosProductos() {
-  const productosRef = collection(db, "productos");
-  const q = query(productosRef, orderBy("creadoEn", "desc"), limit(3));
-
-  try {
-    const snapshot = await getDocs(q);
-
-    snapshot.forEach(doc => {
-      const producto = doc.data();
-      const tarjeta = document.createElement("div");
-      tarjeta.className = "tarjeta-producto";
-      tarjeta.innerHTML = `
-        <div class="tarjeta-producto__shine"></div>
-        <div class="tarjeta-producto__glow"></div>
-        <div class="tarjeta-producto__content">
-          <div class="tarjeta-producto__badge">NUEVO</div>
-          <div style="--bg-color: #a78bfa" class="tarjeta-producto__image"></div>
-          <div class="tarjeta-producto__text">
-            <p class="tarjeta-producto__title">${producto.nombre || "Producto sin nombre"}</p>
-            <p class="tarjeta-producto__description">${producto.descripcion}</p>
-          </div>
-          <div class="tarjeta-producto__footer">
-            <div class="tarjeta-producto__price">$${(producto.precio || 0).toLocaleString('es-CL')}</div>
-            <div class="tarjeta-producto__button">
-              <svg height="16" width="16" viewBox="0 0 24 24">
-                <path stroke-width="2" stroke="currentColor" d="M4 12H20M12 4V20" fill="currentColor"></path>
-              </svg>
+  async function cargarUltimosProductos() {
+    const productosRef = collection(db, "productos");
+    const q = query(productosRef, orderBy("creadoEn", "desc"), limit(3));
+  
+    try {
+      const snapshot = await getDocs(q);
+  
+      snapshot.forEach(doc => {
+        const producto = doc.data();
+        const imagenUrl = producto.codigoImagen
+          ? `/media/productos/${producto.codigoImagen}.jpg`
+          : '/static/img/imagen-no-disponible.jpg'; // ruta a imagen por defecto
+  
+        const tarjeta = document.createElement("div");
+        tarjeta.className = "tarjeta-producto";
+        tarjeta.innerHTML = `
+          <div class="tarjeta-producto__shine"></div>
+          <div class="tarjeta-producto__glow"></div>
+          <div class="tarjeta-producto__content">
+            <div class="tarjeta-producto__badge">NUEVO</div>
+            <div class="tarjeta-producto__image" style="background-image: url('${imagenUrl}'); background-size: cover; background-position: center;"></div>
+            <div class="tarjeta-producto__text">
+              <p class="tarjeta-producto__title">${producto.nombre || "Producto sin nombre"}</p>
+              <p class="tarjeta-producto__description">${producto.descripcion}</p>
+            </div>
+            <div class="tarjeta-producto__footer">
+              <div class="tarjeta-producto__price">$${(producto.precio || 0).toLocaleString('es-CL')}</div>
+              <div class="tarjeta-producto__button">
+                <svg height="16" width="16" viewBox="0 0 24 24">
+                  <path stroke-width="2" stroke="currentColor" d="M4 12H20M12 4V20" fill="currentColor"></path>
+                </svg>
+              </div>
             </div>
           </div>
-        </div>
-      `;
-      contenedor.appendChild(tarjeta);
-    });
-  } catch (e) {
-    console.error("Error al cargar productos:", e);
+        `;
+        contenedor.appendChild(tarjeta);
+      });
+    } catch (e) {
+      console.error("Error al cargar productos:", e);
+    }
   }
-}
-
-cargarUltimosProductos();
-
-
+  
+  cargarUltimosProductos();
+  
 
   
 });
