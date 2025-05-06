@@ -19,12 +19,18 @@
       </div>
     </div>
     <div class="columna_info">
-      <form class="form" id="crearProductoForm">
+      <form id="crearProductoForm" enctype="multipart/form-data" method="POST">
         <div class="flex-column">
           <label>Nombre del producto</label>
         </div>
         <div class="inputForm">
           <input type="text" class="input" name="nombre" required />
+        </div>
+        <div class="flex-column">
+          <label>Foto del producto</label>
+        </div>
+        <div class="inputForm">
+          <input type="file" class="input" name="foto" accept="image/*" />
         </div>
 
         <div class="flex-column">

@@ -1376,14 +1376,18 @@ a {
     --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
   
     width: 190px;
-    height: 264px;
+    min-height: 300px;
+    height: auto;
     background: var(--card-bg);
     border-radius: 15px;
     position: relative;
     overflow: hidden;
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: var(--card-shadow);
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins';
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   
@@ -1403,6 +1407,7 @@ a {
     padding: 1.25em;
     height: 100%;
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: 0.75em;
     position: relative;
@@ -1442,6 +1447,7 @@ a {
   }
   
   .tarjeta-producto__text {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 0.5em;
@@ -1456,6 +1462,10 @@ a {
   }
   
   .tarjeta-producto__description {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
     color: var(--card-text);
     font-size: 0.75em;
     margin: 0;
@@ -1463,12 +1473,15 @@ a {
     transition: all 0.3s ease;
   }
   
+  
   .tarjeta-producto__footer {
+    margin-top: auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 10px;
+    padding-top: 0.75em;
   }
+  
   
   .tarjeta-producto__price {
     color: var(--card-text);

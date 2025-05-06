@@ -2,7 +2,6 @@
 // SCRIPT FIREBASE (AUTH + DB) - Versión consolidada
 // --------------------------
 
-
 window.addEventListener('DOMContentLoaded', async () => {
   // Importaciones de Firebase
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
@@ -28,7 +27,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     getDocs,
     query,
     where,
-    Timestamp
+    Timestamp,
+    orderBy, 
+    limit
   } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
 
   // Configuración de Firebase
@@ -49,42 +50,53 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   const { v4: uuidv4 } = await import("https://jspm.dev/uuid");
 
-const btnAgregarProducto = document.getElementById("agregarProductoBtn");
-if (btnAgregarProducto) {
-  btnAgregarProducto.addEventListener("click", async () => {
-    const productoDePrueba = {
-      nombre: "Martillo de carpintero",
-      categoria: "herramientas_manual",
-      descripcion: "Martillo clásico con mango de madera y cabeza de acero.",
-      marca: "FerraMas",
-      precio: 5990,
-      stock: 25,
-      codigo: "HM001",
-      potencia: null,
-      voltaje: null,
-      color: "Rojo",
-      tamano: "Mediano",
-      material: "Acero y madera",
-      presentacion: "Unidad",
-      garantia: "6 meses",
-      uso: "Construcción general",
-      peso: 0.8,
-      dimensiones: "30 x 10 x 3 cm",
-      vencimiento: null,
-      creadoEn: Timestamp.now()
-    };
 
-    try {
-      const uid = uuidv4();
-      const ref = doc(db, "productos", uid);
-      await setDoc(ref, productoDePrueba);
-      alert("✅ Producto guardado con ID: " + uid);
-    } catch (error) {
-      console.error("Error al guardar producto:", error);
-      alert("❌ Error al guardar el producto.");
-    }
-  });
-}
+
+  const form = document.getElementById("crearProductoForm");
+
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const getValue = (key) => formData.get(key)?.trim() || null;
+
+      const producto = {
+        nombre: getValue("nombre"),
+        categoria: getValue("categoria"),
+        descripcion: getValue("descripcion"),
+        marca: getValue("marca"),
+        precio: parseInt(getValue("precio")) || 0,
+        stock: parseInt(getValue("stock")) || 0,
+        codigo: getValue("codigo"),
+        potencia: getValue("potencia") ? parseInt(getValue("potencia")) : null,
+        voltaje: getValue("voltaje"),
+        color: getValue("color"),
+        tamano: getValue("tamano"),
+        material: getValue("material"),
+        presentacion: getValue("presentacion"),
+        garantia: getValue("garantia"),
+        uso: getValue("uso"),
+        peso: getValue("peso") ? parseFloat(getValue("peso")) : null,
+        dimensiones: getValue("dimensiones"),
+        vencimiento: getValue("vencimiento") || null,
+        creadoEn: Timestamp.now()
+      };
+
+      try {
+        const uid = uuidv4();
+        const ref = doc(db, "productos", uid);
+        await setDoc(ref, producto);
+        alert("✅ Producto guardado con ID: " + uid);
+        form.reset();
+      } catch (error) {
+        console.error("❌ Error al guardar el producto:", error);
+        alert("❌ No se pudo guardar el producto. Revisa la consola.");
+      }
+    });
+  }
+
+
 
 
   // Función para mostrar mensajes
@@ -518,6 +530,49 @@ if (formularioRecuperar && botonRecuperar) {
   }
   
 
+
+
+const contenedor = document.getElementById("contenedor-productos");
+
+async function cargarUltimosProductos() {
+  const productosRef = collection(db, "productos");
+  const q = query(productosRef, orderBy("creadoEn", "desc"), limit(3));
+
+  try {
+    const snapshot = await getDocs(q);
+
+    snapshot.forEach(doc => {
+      const producto = doc.data();
+      const tarjeta = document.createElement("div");
+      tarjeta.className = "tarjeta-producto";
+      tarjeta.innerHTML = `
+        <div class="tarjeta-producto__shine"></div>
+        <div class="tarjeta-producto__glow"></div>
+        <div class="tarjeta-producto__content">
+          <div class="tarjeta-producto__badge">NUEVO</div>
+          <div style="--bg-color: #a78bfa" class="tarjeta-producto__image"></div>
+          <div class="tarjeta-producto__text">
+            <p class="tarjeta-producto__title">${producto.nombre || "Producto sin nombre"}</p>
+            <p class="tarjeta-producto__description">${producto.descripcion}</p>
+          </div>
+          <div class="tarjeta-producto__footer">
+            <div class="tarjeta-producto__price">$${(producto.precio || 0).toLocaleString('es-CL')}</div>
+            <div class="tarjeta-producto__button">
+              <svg height="16" width="16" viewBox="0 0 24 24">
+                <path stroke-width="2" stroke="currentColor" d="M4 12H20M12 4V20" fill="currentColor"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      `;
+      contenedor.appendChild(tarjeta);
+    });
+  } catch (e) {
+    console.error("Error al cargar productos:", e);
+  }
+}
+
+cargarUltimosProductos();
 
 
 
