@@ -4,6 +4,7 @@
 
 window.addEventListener('DOMContentLoaded', async () => {
   // Importaciones de Firebase
+  
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
   const { getAnalytics } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js");
   const {
@@ -562,7 +563,7 @@ if (formularioRecuperar && botonRecuperar) {
         const producto = doc.data();
         const imagenUrl = producto.codigoImagen
           ? `/media/productos/${producto.codigoImagen}.jpg`
-          : '/static/img/imagen-no-disponible.jpg'; // ruta a imagen por defecto
+          : '/static/img/imagen-no-disponible.jpg';
   
         const tarjeta = document.createElement("div");
         tarjeta.className = "tarjeta-producto";
@@ -586,6 +587,34 @@ if (formularioRecuperar && botonRecuperar) {
             </div>
           </div>
         `;
+  
+        // Evento para mostrar el modal con los detalles del producto
+        tarjeta.addEventListener("click", () => {
+          document.getElementById("modal-nombre").textContent = producto.nombre || "Producto sin nombre";
+          document.getElementById("modal-categoria").textContent = `Categoría: ${producto.categoria || "Sin categoría"}`;
+          document.getElementById("modal-descripcion").textContent = `Descripción: ${producto.descripcion || "Sin descripción"}`;
+          document.getElementById("modal-marca").textContent = `Marca: ${producto.marca || "Sin marca"}`;
+          document.getElementById("modal-precio").textContent = `Precio: $${(producto.precio || 0).toLocaleString('es-CL')}`;
+          document.getElementById("modal-stock").textContent = `Stock: ${producto.stock || 0}`;
+          document.getElementById("modal-codigo").textContent = `Código: ${producto.codigo || "Sin código"}`;
+          document.getElementById("modal-potencia").textContent = `Potencia: ${producto.potencia || "N/A"}`;
+          document.getElementById("modal-voltaje").textContent = `Voltaje: ${producto.voltaje || "N/A"}`;
+          document.getElementById("modal-color").textContent = `Color: ${producto.color || "N/A"}`;
+          document.getElementById("modal-tamano").textContent = `Tamaño: ${producto.tamano || "N/A"}`;
+          document.getElementById("modal-material").textContent = `Material: ${producto.material || "N/A"}`;
+          document.getElementById("modal-presentacion").textContent = `Presentación: ${producto.presentacion || "N/A"}`;
+          document.getElementById("modal-garantia").textContent = `Garantía: ${producto.garantia || "N/A"}`;
+          document.getElementById("modal-uso").textContent = `Uso: ${producto.uso || "N/A"}`;
+          document.getElementById("modal-peso").textContent = `Peso: ${producto.peso || "N/A"} kg`;
+          document.getElementById("modal-dimensiones").textContent = `Dimensiones: ${producto.dimensiones || "N/A"}`;
+          document.getElementById("modal-vencimiento").textContent = `Vencimiento: ${producto.vencimiento || "N/A"}`;
+          document.getElementById("modal-imagen").src = imagenUrl;
+  
+          const modal = document.getElementById("modal-producto");
+          modal.style.display = "block";
+          modal.style.opacity = 1;
+        });
+  
         contenedor.appendChild(tarjeta);
       });
     } catch (e) {
@@ -596,5 +625,29 @@ if (formularioRecuperar && botonRecuperar) {
   cargarUltimosProductos();
   
 
+// 👉 Funcionalidad para cerrar el modal de producto
+const modalProducto = document.getElementById("modal-producto");
+const cerrarModalProducto = document.getElementById("cerrar-modal");
+
+if (modalProducto && cerrarModalProducto) {
+  cerrarModalProducto.addEventListener("click", () => {
+    modalProducto.style.display = "none";
+  });
+
+  window.addEventListener("click", (e) => {
+    if (e.target === modalProducto) {
+      modalProducto.style.display = "none";
+    }
+  });
+
+  // Opcional: cerrar con la tecla ESC
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalProducto.style.display === "block") {
+      modalProducto.style.display = "none";
+    }
+  });
+}
+
+  
   
 });
