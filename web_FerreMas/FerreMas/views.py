@@ -26,6 +26,9 @@ def registro_personal(request):
 def bodega(request):
     return render(request, 'web/bodega.html')
 
+def trabajadores(request):
+    return render(request, 'web/trabajadores.html')
+
 
 # Vista para recibir la imagen desde el formulario y guardarla con el código UUID
 @csrf_exempt
