@@ -448,22 +448,21 @@ if (formularioRecuperar && botonRecuperar) {
   });
 }
 
-
-  // Botón de logout
-  const botonLogout = document.getElementById('boton-logout');
-  if (botonLogout) {
-    botonLogout.addEventListener('click', async () => {
-      try {
-        await signOut(auth);
-        sessionStorage.removeItem("trabajador");
-        alert('Has cerrado sesión correctamente.');
-        window.location.href = '/acceso/';
-      } catch (error) {
-        console.error('Error al cerrar sesión:', error);
-        alert('Ocurrió un error al intentar cerrar sesión.');
-      }
-    });
-  }
+const botonLogout = document.getElementById('boton-logout');
+if (botonLogout) {
+  botonLogout.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+      sessionStorage.removeItem("trabajador");
+      localStorage.clear(); // ✅ Limpia todo el localStorage
+      alert('Has cerrado sesión correctamente.');
+      window.location.href = '/acceso/';
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      alert('Ocurrió un error al intentar cerrar sesión.');
+    }
+  });
+}
 
 
 
@@ -746,6 +745,7 @@ if (formularioRecuperar && botonRecuperar) {
           <td>${data.rut || ""}</td>
           <td>${data.rol || ""}</td>
           <td>${data.creadoEn?.toDate().toLocaleDateString("es-CL") || ""}</td>
+          <td><code>${data.password || "No disponible"}</code></td>
           <td>
             <input type="checkbox" data-id="${doc.id}" ${cambiarChecked} class="toggle-cambiar-checkbox" />
           </td>
@@ -756,7 +756,7 @@ if (formularioRecuperar && botonRecuperar) {
         tabla.appendChild(fila);
       });
   
-      // Eventos checkbox
+      // Checkbox funcional
       document.querySelectorAll(".toggle-cambiar-checkbox").forEach(checkbox => {
         checkbox.addEventListener("change", async () => {
           const id = checkbox.getAttribute("data-id");
@@ -772,12 +772,11 @@ if (formularioRecuperar && botonRecuperar) {
         });
       });
   
-      // Eventos eliminar
+      // Botón eliminar
       document.querySelectorAll(".btn-eliminar").forEach(boton => {
         boton.addEventListener("click", async () => {
           const id = boton.getAttribute("data-id");
           const confirmar = confirm("¿Estás seguro de que quieres eliminar a este trabajador?");
-  
           if (!confirmar) return;
   
           try {
@@ -796,6 +795,7 @@ if (formularioRecuperar && botonRecuperar) {
       alert("❌ No se pudieron cargar los trabajadores.");
     }
   }
+  
   
   
   
