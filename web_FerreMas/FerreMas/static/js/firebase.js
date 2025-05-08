@@ -30,7 +30,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     where,
     Timestamp,
     orderBy, 
-    limit
+    limit,
+    deleteDoc
   } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
 
   // Configuración de Firebase
@@ -726,6 +727,80 @@ if (formularioRecuperar && botonRecuperar) {
 
 
 
+  async function cargarTrabajadores() {
+    const tabla = document.querySelector("#tabla-trabajadores tbody");
+    if (!tabla) return;
+  
+    try {
+      const snapshot = await getDocs(collection(db, "trabajadores"));
+      tabla.innerHTML = "";
+  
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const cambiarChecked = data.cambiarContraseña === true ? "checked" : "";
+  
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${data.nombre || ""} ${data.apellidoPaterno || ""} ${data.apellidoMaterno || ""}</td>
+          <td>${data.correo || ""}</td>
+          <td>${data.rut || ""}</td>
+          <td>${data.rol || ""}</td>
+          <td>${data.creadoEn?.toDate().toLocaleDateString("es-CL") || ""}</td>
+          <td>
+            <input type="checkbox" data-id="${doc.id}" ${cambiarChecked} class="toggle-cambiar-checkbox" />
+          </td>
+          <td>
+            <button class="btn-eliminar" data-id="${doc.id}">🗑️ Eliminar</button>
+          </td>
+        `;
+        tabla.appendChild(fila);
+      });
+  
+      // Eventos checkbox
+      document.querySelectorAll(".toggle-cambiar-checkbox").forEach(checkbox => {
+        checkbox.addEventListener("change", async () => {
+          const id = checkbox.getAttribute("data-id");
+          const nuevoValor = checkbox.checked;
+  
+          try {
+            await setDoc(doc(db, "trabajadores", id), { cambiarContraseña: nuevoValor }, { merge: true });
+            mostrarMensajeSeguro("✅ Campo actualizado correctamente.");
+          } catch (error) {
+            console.error("Error al actualizar:", error);
+            mostrarMensajeSeguro("❌ Error al actualizar el campo.");
+          }
+        });
+      });
+  
+      // Eventos eliminar
+      document.querySelectorAll(".btn-eliminar").forEach(boton => {
+        boton.addEventListener("click", async () => {
+          const id = boton.getAttribute("data-id");
+          const confirmar = confirm("¿Estás seguro de que quieres eliminar a este trabajador?");
+  
+          if (!confirmar) return;
+  
+          try {
+            await deleteDoc(doc(db, "trabajadores", id));
+            alert("⚠️ El trabajador ha sido eliminado de trabajadores. Ahora quedará como cliente.");
+            cargarTrabajadores();
+          } catch (error) {
+            console.error("Error al eliminar trabajador:", error);
+            alert("❌ Error al eliminar el trabajador.");
+          }
+        });
+      });
+  
+    } catch (error) {
+      console.error("Error al cargar trabajadores:", error);
+      alert("❌ No se pudieron cargar los trabajadores.");
+    }
+  }
+  
+  
+  
+  // Llama esta función donde lo necesites, por ejemplo:
+  cargarTrabajadores();
   
   
 });
