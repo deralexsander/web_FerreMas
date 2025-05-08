@@ -588,31 +588,51 @@ if (formularioRecuperar && botonRecuperar) {
           </div>
         `;
   
-        // Evento para mostrar el modal con los detalles del producto
         tarjeta.addEventListener("click", () => {
+          // Llenar datos del modal
           document.getElementById("modal-nombre").textContent = producto.nombre || "Producto sin nombre";
-          document.getElementById("modal-categoria").textContent = `Categoría: ${producto.categoria || "Sin categoría"}`;
-          document.getElementById("modal-descripcion").textContent = `Descripción: ${producto.descripcion || "Sin descripción"}`;
+          document.getElementById("modal-categoria").textContent = producto.categoria || "Sin categoría";
+          document.getElementById("modal-descripcion").textContent = producto.descripcion || "Sin descripción";
           document.getElementById("modal-marca").textContent = `Marca: ${producto.marca || "Sin marca"}`;
-          document.getElementById("modal-precio").textContent = `Precio: $${(producto.precio || 0).toLocaleString('es-CL')}`;
-          document.getElementById("modal-stock").textContent = `Stock: ${producto.stock || 0}`;
-          document.getElementById("modal-codigo").textContent = `Código: ${producto.codigo || "Sin código"}`;
-          document.getElementById("modal-potencia").textContent = `Potencia: ${producto.potencia || "N/A"}`;
-          document.getElementById("modal-voltaje").textContent = `Voltaje: ${producto.voltaje || "N/A"}`;
-          document.getElementById("modal-color").textContent = `Color: ${producto.color || "N/A"}`;
-          document.getElementById("modal-tamano").textContent = `Tamaño: ${producto.tamano || "N/A"}`;
-          document.getElementById("modal-material").textContent = `Material: ${producto.material || "N/A"}`;
-          document.getElementById("modal-presentacion").textContent = `Presentación: ${producto.presentacion || "N/A"}`;
-          document.getElementById("modal-garantia").textContent = `Garantía: ${producto.garantia || "N/A"}`;
-          document.getElementById("modal-uso").textContent = `Uso: ${producto.uso || "N/A"}`;
-          document.getElementById("modal-peso").textContent = `Peso: ${producto.peso || "N/A"} kg`;
-          document.getElementById("modal-dimensiones").textContent = `Dimensiones: ${producto.dimensiones || "N/A"}`;
-          document.getElementById("modal-vencimiento").textContent = `Vencimiento: ${producto.vencimiento || "N/A"}`;
+          document.getElementById("modal-precio").textContent = `$${(producto.precio || 0).toLocaleString('es-CL')}`;
+          document.getElementById("modal-stock").textContent = `Disponibles: ${producto.stock || 0}`;
+          document.getElementById("modal-codigo").textContent = `Codigo: ${producto.codigo || "Sin código"}`;
+          document.getElementById("modal-potencia").textContent = producto.potencia || "N/A";
+          document.getElementById("modal-voltaje").textContent = producto.voltaje || "N/A";
+          document.getElementById("modal-color").textContent = producto.color || "N/A";
+          document.getElementById("modal-tamano").textContent = producto.tamano || "N/A";
+          document.getElementById("modal-material").textContent = producto.material || "N/A";
+          document.getElementById("modal-presentacion").textContent = producto.presentacion || "N/A";
+          document.getElementById("modal-garantia").textContent = producto.garantia || "N/A";
+          document.getElementById("modal-uso").textContent = producto.uso || "N/A";
+          document.getElementById("modal-peso").textContent = `${producto.peso || "N/A"} kg`;
+          document.getElementById("modal-dimensiones").textContent = producto.dimensiones || "N/A";
+          document.getElementById("modal-vencimiento").textContent = producto.vencimiento || "N/A";
           document.getElementById("modal-imagen").src = imagenUrl;
   
+          // Mostrar modal
           const modal = document.getElementById("modal-producto");
           modal.style.display = "block";
           modal.style.opacity = 1;
+  
+          // Reiniciar cantidad
+          const inputCantidad = document.getElementById("cantidad");
+          if (inputCantidad) inputCantidad.value = 1;
+  
+          // Botones + y -
+          const btnIncrementar = document.getElementById("btn-incrementar");
+          const btnDecrementar = document.getElementById("btn-decrementar");
+  
+          if (btnIncrementar && btnDecrementar && inputCantidad) {
+            btnIncrementar.onclick = () => {
+              inputCantidad.value = parseInt(inputCantidad.value) + 1;
+            };
+  
+            btnDecrementar.onclick = () => {
+              const valor = parseInt(inputCantidad.value);
+              if (valor > 1) inputCantidad.value = valor - 1;
+            };
+          }
         });
   
         contenedor.appendChild(tarjeta);
@@ -622,31 +642,89 @@ if (formularioRecuperar && botonRecuperar) {
     }
   }
   
+  // Cargar los productos
   cargarUltimosProductos();
   
-
-// 👉 Funcionalidad para cerrar el modal de producto
-const modalProducto = document.getElementById("modal-producto");
-const cerrarModalProducto = document.getElementById("cerrar-modal");
-
-if (modalProducto && cerrarModalProducto) {
-  cerrarModalProducto.addEventListener("click", () => {
-    modalProducto.style.display = "none";
-  });
-
-  window.addEventListener("click", (e) => {
-    if (e.target === modalProducto) {
+  // Modal: cerrar con botón, clic fuera o ESC
+  const modalProducto = document.getElementById("modal-producto");
+  const cerrarModalProducto = document.getElementById("cerrar-modal");
+  
+  if (modalProducto && cerrarModalProducto) {
+    cerrarModalProducto.addEventListener("click", () => {
       modalProducto.style.display = "none";
-    }
-  });
+    });
+  
+    window.addEventListener("click", (e) => {
+      if (e.target === modalProducto) {
+        modalProducto.style.display = "none";
+      }
+    });
+  
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalProducto.style.display === "block") {
+        modalProducto.style.display = "none";
+      }
+    });
+  }
+  
 
-  // Opcional: cerrar con la tecla ESC
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && modalProducto.style.display === "block") {
-      modalProducto.style.display = "none";
-    }
-  });
-}
+
+
+
+
+
+
+  // ======= FUNCIONALIDAD DE CANTIDAD (+ / -) =======
+  const inputCantidad = document.getElementById("cantidad");
+  const btnIncrementar = document.querySelector(".btn-aumentar");
+  const btnDecrementar = document.querySelector(".btn-disminuir");
+
+  if (inputCantidad && btnIncrementar && btnDecrementar) {
+    btnIncrementar.addEventListener("click", () => {
+      inputCantidad.value = parseInt(inputCantidad.value) + 1;
+    });
+
+    btnDecrementar.addEventListener("click", () => {
+      const actual = parseInt(inputCantidad.value);
+      if (actual > 1) inputCantidad.value = actual - 1;
+    });
+  }
+
+  // ======= AGREGAR AL CARRITO DESDE MODAL =======
+  const btnAgregarCarrito = document.getElementById("btn-agregar-carrito");
+
+  if (btnAgregarCarrito) {
+    btnAgregarCarrito.addEventListener("click", () => {
+      const nombre = document.getElementById("modal-nombre").textContent.trim();
+      const precioTexto = document.getElementById("modal-precio").textContent.trim().replace(/\$/g, "").replace(/\./g, "").replace(",", ".");
+      const precio = parseFloat(precioTexto);
+      const cantidad = parseInt(document.getElementById("cantidad").value) || 1;
+      const codigo = document.getElementById("modal-codigo").textContent.replace("Codigo:", "").trim();
+      const imagen = document.getElementById("modal-imagen").src;
+
+      const nuevoItem = {
+        codigo,
+        nombre,
+        precio,
+        cantidad,
+        imagen
+      };
+
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      const productoExistente = carrito.find(item => item.codigo === nuevoItem.codigo);
+
+      if (productoExistente) {
+        productoExistente.cantidad += cantidad;
+      } else {
+        carrito.push(nuevoItem);
+      }
+
+      localStorage.setItem("carrito", JSON.stringify(carrito));
+      alert("✅ Producto agregado al carrito");
+    });
+  }
+
+
 
   
   

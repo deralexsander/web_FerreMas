@@ -104,15 +104,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (cat === "herramientas_electricas") {
       campos.potencia.disabled = false;
       campos.voltaje.disabled = false;
-      campos.color.disabled = false;
     } else if (cat === "materiales_electricos") {
       campos.voltaje.disabled = false;
-      campos.color.disabled = false;
     } else if (cat === "pinturas") {
-      campos.color.disabled = false;
       campos.vencimiento.disabled = false;
     } else if (["accesorios", "seguridad"].includes(cat)) {
-      campos.color.disabled = false;
     }
     // herramientas_manual no habilita ningún campo extra
   };
@@ -123,7 +119,25 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
 
-
+  document.addEventListener("DOMContentLoaded", () => {
+    const inputCantidad = document.getElementById("cantidad");
+    const btnAumentar = document.querySelector(".btn-aumentar");
+    const btnDisminuir = document.querySelector(".btn-disminuir");
+  
+    if (!inputCantidad || !btnAumentar || !btnDisminuir) return;
+  
+    btnAumentar.addEventListener("click", () => {
+      inputCantidad.value = parseInt(inputCantidad.value) + 1;
+    });
+  
+    btnDisminuir.addEventListener("click", () => {
+      const actual = parseInt(inputCantidad.value);
+      if (actual > 1) {
+        inputCantidad.value = actual - 1;
+      }
+    });
+  });
+  
 
 
 
