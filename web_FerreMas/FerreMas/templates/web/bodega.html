@@ -2,167 +2,126 @@
 {% load static %}
 
 {% block nombrePag %}
-  <title>Crear Producto</title>
+  <title>bodega</title>
 {% endblock %}
 
 {% block contenido %}
-<div class="contenedor_informacion">
-  <div class="bloque_info">
-    <div class="columna_info">
-      <div class="centrar">
-        <div class="encabezado-formulario">
-          <h1>Nuevo producto</h1>
-        </div>
-        <div class="subtexto-formulario">
-          <p>Completa los datos para registrar un nuevo producto en el sistema.</p>
-        </div>
-      </div>
-    </div>
-    <div class="columna_info">
-      <form id="crearProductoForm" enctype="multipart/form-data" method="POST">
-        <div class="flex-column">
-          <label>Nombre del producto</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="nombre" required />
-        </div>
-        <div class="flex-column">
-          <label>Foto del producto</label>
-        </div>
-        <div class="inputForm">
-          <input type="file" name="foto" accept="image/*" required />
-        </div>
 
-        <div class="flex-column">
-          <label>Categoría</label>
-        </div>
-        <div class="inputForm">
-          <select class="input" name="categoria" required>
-            <option value="">Seleccionar...</option>
-            <option value="herramientas_manual">Herramientas manuales</option>
-            <option value="herramientas_electricas">Herramientas eléctricas</option>
-            <option value="pinturas">Pinturas</option>
-            <option value="materiales_electricos">Materiales eléctricos</option>
-            <option value="accesorios">Accesorios</option>
-            <option value="seguridad">Artículos de seguridad</option>
-          </select>
-        </div>
+<div class="contenedor-bodega" style="padding: 20px;">
+  <h2 class="titulo-seccion">🟠 Productos a Reponer (stock ≤ 5)</h2>
+  <div class="tabla-responsive">
+    <table class="tabla-estilizada" id="tabla-reponer">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Stock</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-        <div class="flex-column">
-          <label>Descripción</label>
-        </div>
-        <div class="inputForm">
-          <textarea class="input" name="descripcion" rows="3" required></textarea>
-        </div>
+  <h2 class="titulo-seccion">🟢 Productos Disponibles (stock > 5)</h2>
+  <label for="filtro-categoria" style="font-weight: bold; display: block; margin: 10px 0;">Filtrar por categoría:</label>
+  <select id="filtro-categoria" class="filtro-categoria">
+    <option value="todas">Todas</option>
+  </select>
 
-        <div class="flex-column">
-          <label>Marca</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="marca" />
-        </div>
-
-        <div class="flex-column">
-          <label>Precio unitario ($)</label>
-        </div>
-        <div class="inputForm">
-          <input type="number" class="input" name="precio" step="100" required />
-        </div>
-
-        <div class="flex-column">
-          <label>Cantidad en stock</label>
-        </div>
-        <div class="inputForm">
-          <input type="number" class="input" name="stock" required />
-        </div>
-
-        <div class="flex-column">
-          <label>Código interno</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="codigo" required />
-        </div>
-
-        <div class="flex-column">
-          <label>Potencia (W)</label>
-        </div>
-        <div class="inputForm">
-          <input type="number" class="input" name="potencia" />
-        </div>
-
-        <div class="flex-column">
-          <label>Voltaje (V)</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="voltaje" />
-        </div>
-
-        <div class="flex-column">
-          <label>Color</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="color" />
-        </div>
-
-        <div class="flex-column">
-          <label>Tamaño / Capacidad</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="tamano" />
-        </div>
-
-        <div class="flex-column">
-          <label>Material</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="material" />
-        </div>
-
-        <div class="flex-column">
-          <label>Presentación</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="presentacion" />
-        </div>
-
-        <div class="flex-column">
-          <label>Garantía</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="garantia" />
-        </div>
-
-        <div class="flex-column">
-          <label>Uso recomendado</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="uso" />
-        </div>
-
-        <div class="flex-column">
-          <label>Peso (kg)</label>
-        </div>
-        <div class="inputForm">
-          <input type="number" class="input" name="peso" step="0.1" />
-        </div>
-
-        <div class="flex-column">
-          <label>Dimensiones (cm)</label>
-        </div>
-        <div class="inputForm">
-          <input type="text" class="input" name="dimensiones" />
-        </div>
-
-        <div class="flex-column">
-          <label>Fecha de vencimiento (solo si aplica)</label>
-        </div>
-        <div class="inputForm">
-          <input type="date" class="input" name="vencimiento" />
-        </div>
-
-        <button class="button-submit" type="submit">Guardar producto</button>
-      </form>
-    </div>
+  <div class="tabla-responsive">
+    <table class="tabla-estilizada" id="tabla-disponibles">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Stock</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 </div>
+
+<style>
+  .tabla-responsive {
+    overflow-x: auto;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border-radius: 12px;
+  }
+
+  .tabla-estilizada {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Poppins', sans-serif;
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .tabla-estilizada thead {
+    background-color: #0a4a82;
+    color: white;
+  }
+
+  .tabla-estilizada th,
+  .tabla-estilizada td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .tabla-estilizada tbody tr:hover {
+    background-color: #f3f8fc;
+  }
+
+  .titulo-seccion {
+    font-size: 1.4rem;
+    margin-top: 30px;
+    color: #0a4a82;
+    font-weight: 600;
+  }
+
+  .filtro-categoria {
+    padding: 8px 12px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+  }
+
+  .btn-reponer, .btn-eliminar-producto {
+    padding: 6px 12px;
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .btn-reponer:hover {
+    background-color: #e07f00;
+  }
+
+  .btn-eliminar-producto {
+    background-color: #f44336;
+  }
+
+  .btn-eliminar-producto:hover {
+    background-color: #d32f2f;
+  }
+
+  .input-reponer {
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    text-align: center;
+    width: 70px;
+  }
+</style>
+
+
 {% endblock %}

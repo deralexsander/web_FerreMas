@@ -26,6 +26,9 @@ def registro_personal(request):
 def bodega(request):
     return render(request, 'web/bodega.html')
 
+def crear_producto(request):
+    return render(request, 'web/crear_producto.html')
+
 def trabajadores(request):
     return render(request, 'web/trabajadores.html')
 
