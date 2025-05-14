@@ -35,18 +35,17 @@
   </div>
 
   <div class="flex-column">
-    <label>Comuna</label>
-    <input type="text" id="comuna" class="input" placeholder="Comuna" required>
-  </div>
-
-  <div class="flex-column">
-    <label>Ciudad</label>
-    <input type="text" id="ciudad" class="input" placeholder="Ciudad" required>
-  </div>
-
-  <div class="flex-column">
     <label>Región</label>
-    <input type="text" id="region" class="input" placeholder="Región" required>
+    <select id="region" class="input" required>
+      <option value="">Seleccione una región</option>
+    </select>
+  </div>
+
+  <div class="flex-column">
+    <label>Comuna</label>
+    <select id="comuna" class="input" disabled required>
+      <option value="">Seleccione una comuna</option>
+    </select>
   </div>
 
   <div class="flex-column">
@@ -56,7 +55,7 @@
 
   <div class="flex-column" style="margin-top: 10px;">
     <label style="display: flex; align-items: center; gap: 5px;">
-      <input type="checkbox" id="guardar-envio">
+      <input type="checkbox" id="guardar-envio" checked disabled>
       ¿Guardar esta dirección para futuras compras?
     </label>
   </div>
@@ -70,10 +69,6 @@
 <div id="lista-direcciones">
   <!-- Aquí se mostrarán las direcciones guardadas del cliente -->
 </div>
+
+
 {% endblock %}
-
-
-
-
-
-

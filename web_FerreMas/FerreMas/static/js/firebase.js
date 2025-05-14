@@ -931,8 +931,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
 
-  // Este bloque va DENTRO de tu window.addEventListener('DOMContentLoaded', async () => { ... })
   const formEnvio = document.getElementById("formulario-direccion");
+
   if (formEnvio) {
     formEnvio.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -949,12 +949,16 @@ window.addEventListener('DOMContentLoaded', async () => {
         correo: document.getElementById("correo")?.value.trim() || "",
         calleNumero: document.getElementById("calle-numero")?.value.trim() || "",
         departamento: document.getElementById("departamento")?.value.trim() || "",
-        comuna: document.getElementById("comuna")?.value.trim() || "",
-        ciudad: document.getElementById("ciudad")?.value.trim() || "",
-        region: document.getElementById("region")?.value.trim() || "",
+        comuna: document.getElementById("comuna")?.value || "",
+        region: document.getElementById("region")?.value || "",
         codigoPostal: document.getElementById("codigo-postal")?.value.trim() || "",
         fechaGuardado: new Date()
       };
+
+      if (!direccion.region || !direccion.comuna) {
+        alert("Debe seleccionar región y comuna.");
+        return;
+      }
 
       const guardar = document.getElementById("guardar-envio")?.checked;
 
@@ -964,6 +968,8 @@ window.addEventListener('DOMContentLoaded', async () => {
           await addDoc(ref, direccion);
           alert("✅ Dirección guardada");
           formEnvio.reset();
+          document.getElementById("comuna").innerHTML = '<option value="">Seleccione una comuna</option>';
+          document.getElementById("comuna").disabled = true;
           cargarDirecciones();
         } catch (error) {
           console.error("❌ Error al guardar dirección:", error);
@@ -993,7 +999,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         const div = document.createElement("div");
         div.innerHTML = `
           <p><strong>${datos.nombre}</strong><br>
-          ${datos.calleNumero}, ${datos.comuna}, ${datos.ciudad}<br>
+          ${datos.calleNumero}, ${datos.comuna}, ${datos.region}<br>
           <button onclick="eliminarDireccion('${docSnap.id}')">Eliminar</button>
           </p>
           <hr>
@@ -1018,7 +1024,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  // Al cargar la página, intenta cargar direcciones (solo si el contenedor existe)
   if (document.getElementById("lista-direcciones")) {
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -1026,6 +1031,5 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
-
   
 });
