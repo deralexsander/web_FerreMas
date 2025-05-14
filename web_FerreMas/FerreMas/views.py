@@ -32,6 +32,9 @@ def crear_producto(request):
 def trabajadores(request):
     return render(request, 'web/trabajadores.html')
 
+def datos_personales(request):
+    return render(request, 'web/datos_personales.html')
+
 
 # Vista para recibir la imagen desde el formulario y guardarla con el código UUID
 @csrf_exempt

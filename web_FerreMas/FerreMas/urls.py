@@ -12,4 +12,5 @@ urlpatterns = [
     path("api/subir-imagen/", views.subir_imagen, name="subir_imagen"),
     path('trabajadores/', views.trabajadores, name="trabajadores"),
     path('crear_producto/', views.crear_producto, name="crear_producto"),
+    path('datos_personales/', views.datos_personales, name="datos_personales"),
 ]

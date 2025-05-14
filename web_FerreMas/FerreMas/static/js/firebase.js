@@ -24,6 +24,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     doc,
     setDoc,
     getDoc,
+    addDoc,
     collection,
     getDocs,
     query,
@@ -153,81 +154,81 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ========== FUNCIÓN PARA CREAR TRABAJADORES (GLOBAL) ==========
-window.crearTrabajador = async function() {
-  try {
-    const correo = document.getElementById("correo-trabajador").value.trim().toLowerCase();
-    const nombre = document.getElementById("nombre-trabajador").value.trim();
-    const apellidoPaterno = document.getElementById("apellido-paterno-trabajador").value.trim();
-    const apellidoMaterno = document.getElementById("apellido-materno-trabajador").value.trim();
-    const rut = document.getElementById("rut-trabajador").value.trim();
-    const rol = document.getElementById("rol-trabajador").value;
-    const password = document.getElementById("password-trabajador").value.trim();
+    window.crearTrabajador = async function() {
+    try {
+      const correo = document.getElementById("correo-trabajador").value.trim().toLowerCase();
+      const nombre = document.getElementById("nombre-trabajador").value.trim();
+      const apellidoPaterno = document.getElementById("apellido-paterno-trabajador").value.trim();
+      const apellidoMaterno = document.getElementById("apellido-materno-trabajador").value.trim();
+      const rut = document.getElementById("rut-trabajador").value.trim();
+      const rol = document.getElementById("rol-trabajador").value;
+      const password = document.getElementById("password-trabajador").value.trim();
 
-    // Validación de campos
-    if (!correo || !nombre || !apellidoPaterno || !apellidoMaterno || !rut || !rol || !password) {
-      mostrarMensaje("Todos los campos son obligatorios.");
-      return;
-    }
+      // Validación de campos
+      if (!correo || !nombre || !apellidoPaterno || !apellidoMaterno || !rut || !rol || !password) {
+        mostrarMensaje("Todos los campos son obligatorios.");
+        return;
+      }
 
-    // 1. Guardar credenciales del admin actual
-    const adminActual = auth.currentUser;
-    const adminEmail = adminActual.email;
-    const adminPassword = prompt("Por seguridad, ingrese su contraseña de administrador:");
+      // 1. Guardar credenciales del admin actual
+      const adminActual = auth.currentUser;
+      const adminEmail = adminActual.email;
+      const adminPassword = prompt("Por seguridad, ingrese su contraseña de administrador:");
 
-    if (!adminPassword) {
-      mostrarMensaje("Se requiere la contraseña de administrador.");
-      return;
-    }
+      if (!adminPassword) {
+        mostrarMensaje("Se requiere la contraseña de administrador.");
+        return;
+      }
 
-    // 2. Crear el nuevo usuario en Authentication
-    const userCredential = await createUserWithEmailAndPassword(auth, correo, password);
-    const nuevoUsuario = userCredential.user;
+      // 2. Crear el nuevo usuario en Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, correo, password);
+      const nuevoUsuario = userCredential.user;
 
-    // 3. Crear documento en Firestore
-    const nuevoTrabajador = {
-      uid: nuevoUsuario.uid,
-      correo,
-      nombre,
-      apellidoPaterno,
-      apellidoMaterno,
-      rut,
-      rol,
-      password, // Considera no almacenar la contraseña en Firestore
-      cambiarContraseña: true,
-      creadoEn: Timestamp.now(),
-      creadoPor: adminActual.uid
-    };
+      // 3. Crear documento en Firestore
+      const nuevoTrabajador = {
+        uid: nuevoUsuario.uid,
+        correo,
+        nombre,
+        apellidoPaterno,
+        apellidoMaterno,
+        rut,
+        rol,
+        password, // Considera no almacenar la contraseña en Firestore
+        cambiarContraseña: true,
+        creadoEn: Timestamp.now(),
+        creadoPor: adminActual.uid
+      };
 
-    await setDoc(doc(db, "trabajadores", nuevoUsuario.uid), nuevoTrabajador);
+      await setDoc(doc(db, "trabajadores", nuevoUsuario.uid), nuevoTrabajador);
 
-    // 4. Volver a autenticar al admin
-    await signOut(auth);
-    await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
+      // 4. Volver a autenticar al admin
+      await signOut(auth);
+      await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
 
-    mostrarMensaje("Trabajador creado correctamente", "success");
-    document.querySelectorAll('input').forEach(input => input.value = '');
+      mostrarMensaje("Trabajador creado correctamente", "success");
+      document.querySelectorAll('input').forEach(input => input.value = '');
 
-  } catch (error) {
-    console.error("Error completo:", error);
-    
-    if (error.code === 'permission-denied') {
-      mostrarMensaje("Error: No tienes permisos para realizar esta acción. Contacta al administrador.");
-    } else if (error.code === 'auth/email-already-in-use') {
-      mostrarMensaje("Error: Este correo ya está registrado.");
-    } else {
-      mostrarMensaje("Error: " + error.message);
-    }
-    
-    // Intenta reautenticar al admin si hubo error
-    if (adminActual && adminEmail && adminPassword) {
-      try {
-        await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
-      } catch (reauthError) {
-        console.error("Error al reautenticar:", reauthError);
+    } catch (error) {
+      console.error("Error completo:", error);
+      
+      if (error.code === 'permission-denied') {
+        mostrarMensaje("Error: No tienes permisos para realizar esta acción. Contacta al administrador.");
+      } else if (error.code === 'auth/email-already-in-use') {
+        mostrarMensaje("Error: Este correo ya está registrado.");
+      } else {
+        mostrarMensaje("Error: " + error.message);
+      }
+      
+      // Intenta reautenticar al admin si hubo error
+      if (adminActual && adminEmail && adminPassword) {
+        try {
+          await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
+        } catch (reauthError) {
+          console.error("Error al reautenticar:", reauthError);
+        }
       }
     }
-  }
-};
+  };
 
   // ========== MANEJO DE AUTENTICACIÓN ==========
   const pathActual = window.location.pathname;
@@ -370,6 +371,9 @@ window.crearTrabajador = async function() {
     }
   });
 
+
+
+  
   // ========== MANEJO DE FORMULARIOS ==========
 
   // Formulario de registro de cliente
@@ -396,6 +400,13 @@ window.crearTrabajador = async function() {
     });
   }
 
+
+
+
+
+
+
+
   // Formulario de login de cliente
   const formularioLogin = document.querySelector('.centrar-login-cliente .form');
   if (formularioLogin) {
@@ -417,52 +428,52 @@ window.crearTrabajador = async function() {
   }
 
 
-// Formulario de recuperación de contraseña
-const formularioRecuperar = document.querySelector('.centrar-recuperar .form');
-const botonRecuperar = formularioRecuperar?.querySelector('.button-submit');
+  // Formulario de recuperación de contraseña
+  const formularioRecuperar = document.querySelector('.centrar-recuperar .form');
+  const botonRecuperar = formularioRecuperar?.querySelector('.button-submit');
 
-if (formularioRecuperar && botonRecuperar) {
-  botonRecuperar.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const inputCorreo = formularioRecuperar.querySelector('.input');
-    const email = inputCorreo.value.trim();
+  if (formularioRecuperar && botonRecuperar) {
+    botonRecuperar.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const inputCorreo = formularioRecuperar.querySelector('.input');
+      const email = inputCorreo.value.trim();
 
-    if (!email) {
-      mostrarMensaje('Por favor, ingresa tu correo.');
-      return;
-    }
+      if (!email) {
+        mostrarMensaje('Por favor, ingresa tu correo.');
+        return;
+      }
 
-    try {
-      await sendPasswordResetEmail(auth, email);
-      mostrarMensaje('Te hemos enviado un correo para restablecer tu contraseña.');
-      inputCorreo.value = '';
+      try {
+        await sendPasswordResetEmail(auth, email);
+        mostrarMensaje('Te hemos enviado un correo para restablecer tu contraseña.');
+        inputCorreo.value = '';
 
-      // Cambia al formulario de login del cliente
-      const loginCliente = document.querySelector('.centrar-login-cliente');
-      cambiarFormulario(formularioRecuperar.closest('.centrar-recuperar'), loginCliente);
+        // Cambia al formulario de login del cliente
+        const loginCliente = document.querySelector('.centrar-login-cliente');
+        cambiarFormulario(formularioRecuperar.closest('.centrar-recuperar'), loginCliente);
 
-    } catch (error) {
-      console.error(error);
-      mostrarMensaje('Correo no registrado o error al enviar el correo.');
-    }
-  });
-}
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje('Correo no registrado o error al enviar el correo.');
+      }
+    });
+  }
 
-const botonLogout = document.getElementById('boton-logout');
-if (botonLogout) {
-  botonLogout.addEventListener('click', async () => {
-    try {
-      await signOut(auth);
-      sessionStorage.removeItem("trabajador");
-      localStorage.clear(); // ✅ Limpia todo el localStorage
-      alert('Has cerrado sesión correctamente.');
-      window.location.href = '/acceso/';
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-      alert('Ocurrió un error al intentar cerrar sesión.');
-    }
-  });
-}
+  const botonLogout = document.getElementById('boton-logout');
+  if (botonLogout) {
+    botonLogout.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        sessionStorage.removeItem("trabajador");
+        localStorage.clear(); // ✅ Limpia todo el localStorage
+        alert('Has cerrado sesión correctamente.');
+        window.location.href = '/acceso/';
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        alert('Ocurrió un error al intentar cerrar sesión.');
+      }
+    });
+  }
 
 
 
@@ -916,6 +927,105 @@ if (botonLogout) {
   
   cargarProductosBodega();
   
-  
+
+
+
+
+  // Este bloque va DENTRO de tu window.addEventListener('DOMContentLoaded', async () => { ... })
+  const formEnvio = document.getElementById("formulario-direccion");
+  if (formEnvio) {
+    formEnvio.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Debes iniciar sesión");
+        return;
+      }
+
+      const direccion = {
+        nombre: document.getElementById("nombre")?.value.trim() || "",
+        telefono: document.getElementById("telefono")?.value.trim() || "",
+        correo: document.getElementById("correo")?.value.trim() || "",
+        calleNumero: document.getElementById("calle-numero")?.value.trim() || "",
+        departamento: document.getElementById("departamento")?.value.trim() || "",
+        comuna: document.getElementById("comuna")?.value.trim() || "",
+        ciudad: document.getElementById("ciudad")?.value.trim() || "",
+        region: document.getElementById("region")?.value.trim() || "",
+        codigoPostal: document.getElementById("codigo-postal")?.value.trim() || "",
+        fechaGuardado: new Date()
+      };
+
+      const guardar = document.getElementById("guardar-envio")?.checked;
+
+      if (guardar) {
+        try {
+          const ref = collection(db, "direcciones", user.uid, "items");
+          await addDoc(ref, direccion);
+          alert("✅ Dirección guardada");
+          formEnvio.reset();
+          cargarDirecciones();
+        } catch (error) {
+          console.error("❌ Error al guardar dirección:", error);
+          alert("Ocurrió un error al guardar la dirección");
+        }
+      } else {
+        alert("✅ Dirección utilizada solo para esta compra (no guardada)");
+      }
+    });
+  }
+
+  async function cargarDirecciones() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const contenedor = document.getElementById("lista-direcciones");
+    if (!contenedor) return;
+
+    try {
+      const ref = collection(db, "direcciones", user.uid, "items");
+      const snapshot = await getDocs(ref);
+
+      contenedor.innerHTML = "";
+
+      snapshot.forEach((docSnap) => {
+        const datos = docSnap.data();
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <p><strong>${datos.nombre}</strong><br>
+          ${datos.calleNumero}, ${datos.comuna}, ${datos.ciudad}<br>
+          <button onclick="eliminarDireccion('${docSnap.id}')">Eliminar</button>
+          </p>
+          <hr>
+        `;
+        contenedor.appendChild(div);
+      });
+    } catch (error) {
+      console.error("❌ Error al cargar direcciones:", error);
+    }
+  }
+
+  window.eliminarDireccion = async function(idDireccion) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      await deleteDoc(doc(db, "direcciones", user.uid, "items", idDireccion));
+      alert("🗑️ Dirección eliminada correctamente");
+      cargarDirecciones();
+    } catch (error) {
+      console.error("❌ Error al eliminar dirección:", error);
+    }
+  };
+
+  // Al cargar la página, intenta cargar direcciones (solo si el contenedor existe)
+  if (document.getElementById("lista-direcciones")) {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        cargarDirecciones();
+      }
+    });
+  }
+
   
 });
