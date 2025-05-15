@@ -364,21 +364,23 @@ body {
 /* ======================== Navbar ======================== */
  
 .button-container {
-    display: flex;
-    background-color: rgb(27, 133, 219);
-    width: clamp(300px, 80%, 200px); /* Set min, preferred, and max width */
-    height: 7vh; /* Adjust height relative to viewport height */
-    align-items: center;
-    justify-content: space-around;
-    border-radius: 15px; /* Use viewport height for consistent scaling */
-    position: fixed;
-    top: 2vh;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    backdrop-filter: blur(10px); /* Added blur effect */
-    background-color: #0a4a82bb; /* Set color to #0a4a82 */
+  display: flex;
+  background-color: rgb(27, 133, 219);
+  width: clamp(310px, 80%, 210px); /* Increased min and max width by 10px */
+  height: 7vh; /* Adjust height relative to viewport height */
+  align-items: center;
+  justify-content: space-around;
+  border-radius: 15px; /* Use viewport height for consistent scaling */
+  position: fixed;
+  top: 2vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  backdrop-filter: blur(10px); /* Added blur effect */
+  background-color: #0a4a82bb; /* Set color to #0a4a82 */
+  padding-right: 20px; /* Add space to the right */
 }
+
 
   
 .button {
@@ -386,7 +388,6 @@ body {
     border: 0 !important;
     width: 35px; /* Fixed width */
     height: 35px; /* Fixed height */
-    border-radius: 50%;
     background-color: transparent;
     display: flex;
     align-items: center;
@@ -396,7 +397,7 @@ body {
 }
   
 .button:hover {
-    transform: translateY(-3px);
+    transform: translateY(-0px);
 }
 
 .button svg,
@@ -1934,8 +1935,16 @@ a {
   
 
 
-
-
+.contador {
+  color: white;
+  font-size: 20px;
+  position: absolute;
+  top: 3;
+  left: 96%;
+  transform: translateX(-96%);
+  z-index: 10000;
+  margin-top: 0; /* Elimina cualquier espacio superior */
+}
 
 
 
