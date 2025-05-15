@@ -549,6 +549,15 @@ window.addEventListener('DOMContentLoaded', async () => {
   
 
 
+
+
+
+
+
+
+
+
+
   const contenedor = document.getElementById("contenedor-productos");
 
   async function cargarUltimosProductos() {
@@ -574,7 +583,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             <div class="tarjeta-producto__image" style="background-image: url('${imagenUrl}'); background-size: cover; background-position: center;"></div>
             <div class="tarjeta-producto__text">
               <p class="tarjeta-producto__title">${producto.nombre || "Producto sin nombre"}</p>
-              <p class="tarjeta-producto__description">${producto.descripcion}</p>
+              <p class="tarjeta-producto__description">${producto.descripcion || ""}</p>
             </div>
             <div class="tarjeta-producto__footer">
               <div class="tarjeta-producto__price">$${(producto.precio || 0).toLocaleString('es-CL')}</div>
@@ -588,7 +597,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         `;
   
         tarjeta.addEventListener("click", () => {
-          // Llenar datos del modal
           document.getElementById("modal-nombre").textContent = producto.nombre || "Producto sin nombre";
           document.getElementById("modal-categoria").textContent = producto.categoria || "Sin categoría";
           document.getElementById("modal-descripcion").textContent = producto.descripcion || "Sin descripción";
@@ -609,29 +617,8 @@ window.addEventListener('DOMContentLoaded', async () => {
           document.getElementById("modal-vencimiento").textContent = producto.vencimiento || "N/A";
           document.getElementById("modal-imagen").src = imagenUrl;
   
-          // Mostrar modal
-          const modal = document.getElementById("modal-producto");
-          modal.style.display = "block";
-          modal.style.opacity = 1;
-  
-          // Reiniciar cantidad
-          const inputCantidad = document.getElementById("cantidad");
-          if (inputCantidad) inputCantidad.value = 1;
-  
-          // Botones + y -
-          const btnIncrementar = document.getElementById("btn-incrementar");
-          const btnDecrementar = document.getElementById("btn-decrementar");
-  
-          if (btnIncrementar && btnDecrementar && inputCantidad) {
-            btnIncrementar.onclick = () => {
-              inputCantidad.value = parseInt(inputCantidad.value) + 1;
-            };
-  
-            btnDecrementar.onclick = () => {
-              const valor = parseInt(inputCantidad.value);
-              if (valor > 1) inputCantidad.value = valor - 1;
-            };
-          }
+          document.getElementById("modal-producto").style.display = "block";
+          document.getElementById("cantidad").value = 1;
         });
   
         contenedor.appendChild(tarjeta);
@@ -641,8 +628,88 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
   
-  // Cargar los productos
+  async function cargarProductosPorCategoria(nombreCategoria, idContenedor) {
+    const contenedor = document.getElementById(idContenedor);
+    if (!contenedor) return;
+  
+    const productosRef = collection(db, "productos");
+    const q = query(productosRef, where("categoria", "==", nombreCategoria));
+  
+    try {
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        contenedor.innerHTML = "<p>No hay productos disponibles.</p>";
+        return;
+      }
+  
+      snapshot.forEach(doc => {
+        const producto = doc.data();
+        const imagenUrl = producto.codigoImagen
+          ? `/media/productos/${producto.codigoImagen}.jpg`
+          : '/static/img/imagen-no-disponible.jpg';
+  
+        const tarjeta = document.createElement("div");
+        tarjeta.className = "tarjeta-producto";
+        tarjeta.innerHTML = `
+          <div class="tarjeta-producto__shine"></div>
+          <div class="tarjeta-producto__glow"></div>
+          <div class="tarjeta-producto__content">
+            <div class="tarjeta-producto__badge">${producto.novedad ? "NUEVO" : ""}</div>
+            <div class="tarjeta-producto__image" style="background-image: url('${imagenUrl}'); background-size: cover; background-position: center;"></div>
+            <div class="tarjeta-producto__text">
+              <p class="tarjeta-producto__title">${producto.nombre || "Producto sin nombre"}</p>
+              <p class="tarjeta-producto__description">${producto.descripcion || ""}</p>
+            </div>
+            <div class="tarjeta-producto__footer">
+              <div class="tarjeta-producto__price">$${(producto.precio || 0).toLocaleString('es-CL')}</div>
+              <div class="tarjeta-producto__button">
+                <svg height="16" width="16" viewBox="0 0 24 24">
+                  <path stroke-width="2" stroke="currentColor" d="M4 12H20M12 4V20" fill="currentColor"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        `;
+  
+        tarjeta.addEventListener("click", () => {
+          // Aquí puedes copiar el mismo código del modal anterior si quieres mostrar los detalles también
+        });
+  
+        contenedor.appendChild(tarjeta);
+      });
+  
+    } catch (e) {
+      console.error(`Error al cargar productos de categoría ${nombreCategoria}:`, e);
+    }
+  }
+  
+  // Llamadas
   cargarUltimosProductos();
+  cargarProductosPorCategoria("herramientas_manual", "categoria-herramientas-manuales");
+  cargarProductosPorCategoria("herramientas_electricas", "categoria-herramientas-electricas");
+  cargarProductosPorCategoria("pinturas", "categoria-pinturas");
+  cargarProductosPorCategoria("materiales_electricos", "categoria-materiales-electricos");
+  cargarProductosPorCategoria("accesorios", "categoria-accesorios");
+  cargarProductosPorCategoria("seguridad", "categoria-seguridad");
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
   // Modal: cerrar con botón, clic fuera o ESC
   const modalProducto = document.getElementById("modal-producto");
@@ -728,6 +795,109 @@ if (btnAgregarCarrito) {
     actualizarContadorProductosDiferentes(); // 🔁 Refresca el contador
   });
 }
+
+
+
+
+  function renderizarCarrito() {
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    const contenedor = document.getElementById("carrito-contenido");
+    const btnPagar = document.getElementById("btn-pagar");
+  
+    if (carrito.length === 0) {
+      contenedor.innerHTML = "<p>No hay productos en el carrito. Debes tener al menos un producto para continuar con la compra.</p>";
+      btnPagar.disabled = true; // Desactiva el botón de pagar
+      return;
+    }
+  
+    btnPagar.disabled = false; // Habilita el botón si hay productos
+  
+    let total = 0;
+  
+    const html = carrito.map((item, index) => {
+      const subtotal = item.precio * item.cantidad;
+      total += subtotal;
+  
+      return `
+        <div class="producto-carrito">
+          <img src="${item.imagen}" width="80">
+          <h4>${item.nombre}</h4>
+          <p>Código: ${item.codigo}</p>
+          <div class="cantidad-control">
+            <button class="btn-cantidad-menor" data-index="${index}">-</button>
+            <span class="cantidad">${item.cantidad}</span>
+            <button class="btn-cantidad-mayor" data-index="${index}">+</button>
+          </div>
+          <p>Precio unidad: $${item.precio.toLocaleString('es-CL')}</p>
+          <p>Subtotal: $${subtotal.toLocaleString('es-CL')}</p>
+          <button class="btn-eliminar" data-index="${index}">❌ Eliminar</button>
+          <hr>
+        </div>
+      `;
+    }).join("");
+  
+    contenedor.innerHTML = `
+      ${html}
+      <h3>Total: $${total.toLocaleString('es-CL')}</h3>
+    `;
+  
+    document.querySelectorAll(".btn-cantidad-mayor").forEach(btn => {
+      btn.addEventListener("click", () => modificarCantidad(btn.dataset.index, 1));
+    });
+    document.querySelectorAll(".btn-cantidad-menor").forEach(btn => {
+      btn.addEventListener("click", () => modificarCantidad(btn.dataset.index, -1));
+    });
+    document.querySelectorAll(".btn-eliminar").forEach(btn => {
+      btn.addEventListener("click", () => eliminarProducto(btn.dataset.index));
+    });
+  }
+  
+  function modificarCantidad(index, delta) {
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    if (!carrito[index]) return;
+  
+    carrito[index].cantidad += delta;
+    if (carrito[index].cantidad < 1) carrito[index].cantidad = 1;
+  
+    localStorage.setItem("carrito", JSON.stringify(carrito));
+    renderizarCarrito();
+  }
+  
+  function eliminarProducto(index) {
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    carrito.splice(index, 1);
+    localStorage.setItem("carrito", JSON.stringify(carrito));
+    renderizarCarrito();
+  }
+  
+  function vaciarCarrito() {
+    localStorage.removeItem("carrito");
+    renderizarCarrito();
+  }
+  
+    renderizarCarrito();
+  
+    document.getElementById("btn-vaciar-carrito").addEventListener("click", vaciarCarrito);
+  
+    document.getElementById("btn-pagar").addEventListener("click", () => {
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      if (carrito.length === 0) {
+        alert("⚠️ Debes agregar al menos un producto para continuar con la compra.");
+        return;
+      }
+  
+      alert("🚧 La funcionalidad de pago aún no está disponible.");
+    });
+  
+
+
+
+
+
+
+
+
+
 
 
 

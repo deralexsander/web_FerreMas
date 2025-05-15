@@ -1949,7 +1949,23 @@ a {
 
 
 
-
+.carrito-contenedor {
+  max-width: 700px;
+  margin: auto;
+}
+.acciones-carrito {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.acciones-carrito button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.producto-carrito {
+  margin-bottom: 20px;
+}
 
 
 

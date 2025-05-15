@@ -6,124 +6,28 @@
 {% endblock %}
 
 {% block contenido %}
-<div class="carrito-contenedor">
-    <div id="carrito-contenido"></div>
-  
-    <div class="acciones-carrito">
-      <button id="btn-vaciar-carrito">🗑 Vaciar carrito</button>
-      <button id="btn-pagar">💳 Pagar</button>
+
+
+<div class="contenedor_informacion" >
+
+  <div class="bloque_info">
+    <div class="columna_info">
+      <div id="carrito-contenido"></div>
+    </div>
+    <div class="columna_info">
+      <div class="acciones-carrito">
+        <button id="btn-vaciar-carrito">🗑 Vaciar carrito</button>
+        <button id="btn-pagar">💳 Pagar</button>
+      </div>
     </div>
   </div>
-  
-  <script>
-  function renderizarCarrito() {
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    const contenedor = document.getElementById("carrito-contenido");
-  
-    if (carrito.length === 0) {
-      contenedor.innerHTML = "<p>No hay productos en el carrito.</p>";
-      return;
-    }
-  
-    let total = 0;
-  
-    const html = carrito.map((item, index) => {
-      const subtotal = item.precio * item.cantidad;
-      total += subtotal;
-  
-      return `
-        <div class="producto-carrito">
-          <img src="${item.imagen}" width="80">
-          <h4>${item.nombre}</h4>
-          <p>Código: ${item.codigo}</p>
-          <div class="cantidad-control">
-            <button class="btn-cantidad-menor" data-index="${index}">-</button>
-            <span class="cantidad">${item.cantidad}</span>
-            <button class="btn-cantidad-mayor" data-index="${index}">+</button>
-          </div>
-          <p>Precio unidad: $${item.precio.toLocaleString('es-CL')}</p>
-          <p>Subtotal: $${subtotal.toLocaleString('es-CL')}</p>
-          <button class="btn-eliminar" data-index="${index}">❌ Eliminar</button>
-          <hr>
-        </div>
-      `;
-    }).join("");
-  
-    contenedor.innerHTML = `
-      ${html}
-      <h3>Total: $${total.toLocaleString('es-CL')}</h3>
-    `;
-  
-    // Eventos de cantidad
-    document.querySelectorAll(".btn-cantidad-mayor").forEach(btn => {
-      btn.addEventListener("click", () => modificarCantidad(btn.dataset.index, 1));
-    });
-    document.querySelectorAll(".btn-cantidad-menor").forEach(btn => {
-      btn.addEventListener("click", () => modificarCantidad(btn.dataset.index, -1));
-    });
-  
-    // Eliminar producto
-    document.querySelectorAll(".btn-eliminar").forEach(btn => {
-      btn.addEventListener("click", () => eliminarProducto(btn.dataset.index));
-    });
-  }
-  
-  function modificarCantidad(index, delta) {
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    if (!carrito[index]) return;
-  
-    carrito[index].cantidad += delta;
-    if (carrito[index].cantidad < 1) carrito[index].cantidad = 1;
-  
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-    renderizarCarrito();
-  }
-  
-  function eliminarProducto(index) {
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    carrito.splice(index, 1);
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-    renderizarCarrito();
-  }
-  
-  function vaciarCarrito() {
-    localStorage.removeItem("carrito");
-    renderizarCarrito();
-  }
-  
-  document.addEventListener("DOMContentLoaded", () => {
-    renderizarCarrito();
-  
-    document.getElementById("btn-vaciar-carrito").addEventListener("click", vaciarCarrito);
-    document.getElementById("btn-pagar").addEventListener("click", () => {
-      alert("🚧 La funcionalidad de pago aún no está disponible.");
-    });
-  });
-  </script>
-  
-  <style>
-  .carrito-contenedor {
-    max-width: 700px;
-    margin: auto;
-  }
-  .acciones-carrito {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-  }
-  .acciones-carrito button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-  }
-  .producto-carrito {
-    margin-bottom: 20px;
-  }
-  </style>
-  
 
-    
+</div>
+
+
+
+
+
+
+
 {% endblock %}
-
-
-
