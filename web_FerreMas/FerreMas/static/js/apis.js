@@ -93,3 +93,34 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
   
+
+  document.addEventListener("DOMContentLoaded", () => {
+  const contenedor = document.getElementById("contenedor-sucursales");
+
+  fetch("https://gist.githubusercontent.com/deralexsander/509c0851749f70c64533fd1bc3c2566e/raw/26f20a43cec48854859345e1fa2e461dd974050b/sucursales-ferremas.json")
+    .then(res => res.json())
+    .then(data => {
+      contenedor.innerHTML = ""; // Limpiar por si acaso
+
+      data.forEach(regionData => {
+        const regionTitulo = document.createElement("h3");
+        regionTitulo.textContent = regionData.region;
+        contenedor.appendChild(regionTitulo);
+
+        regionData.sucursales.forEach(sucursal => {
+          const div = document.createElement("div");
+          div.classList.add("tarjeta-sucursal");
+          div.innerHTML = `
+            <h4>${sucursal.nombre}</h4>
+            <p><strong>Dirección:</strong> ${sucursal.direccion}</p>
+            <p><strong>Teléfono:</strong> ${sucursal.telefono}</p>
+          `;
+          contenedor.appendChild(div);
+        });
+      });
+    })
+    .catch(error => {
+      contenedor.innerHTML = "<p>Error al cargar las sucursales.</p>";
+      console.error("❌ Error cargando sucursales:", error);
+    });
+});

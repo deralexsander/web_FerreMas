@@ -804,6 +804,8 @@ if (btnAgregarCarrito) {
     const contenedor = document.getElementById("carrito-contenido");
     const btnPagar = document.getElementById("btn-pagar");
   
+    if (!contenedor || !btnPagar) return;
+  
     if (carrito.length === 0) {
       contenedor.innerHTML = "<p>No hay productos en el carrito. Debes tener al menos un producto para continuar con la compra.</p>";
       btnPagar.disabled = true; // Desactiva el botón de pagar
@@ -860,34 +862,48 @@ if (btnAgregarCarrito) {
     if (carrito[index].cantidad < 1) carrito[index].cantidad = 1;
   
     localStorage.setItem("carrito", JSON.stringify(carrito));
-    renderizarCarrito();
+    if (document.getElementById("carrito-contenido")) {
+      renderizarCarrito();
+}
   }
   
   function eliminarProducto(index) {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     carrito.splice(index, 1);
     localStorage.setItem("carrito", JSON.stringify(carrito));
-    renderizarCarrito();
+    if (document.getElementById("carrito-contenido")) {
+      renderizarCarrito();
+}
   }
   
   function vaciarCarrito() {
     localStorage.removeItem("carrito");
-    renderizarCarrito();
+    if (document.getElementById("carrito-contenido")) {
+      renderizarCarrito();
+    } 
   }
   
-    renderizarCarrito();
+    if (document.getElementById("carrito-contenido")) {
+      renderizarCarrito();
+    }
   
-    document.getElementById("btn-vaciar-carrito").addEventListener("click", vaciarCarrito);
+    const btnVaciar = document.getElementById("btn-vaciar-carrito");
+    if (btnVaciar) {
+      btnVaciar.addEventListener("click", vaciarCarrito);
+    }
   
-    document.getElementById("btn-pagar").addEventListener("click", () => {
-      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-      if (carrito.length === 0) {
-        alert("⚠️ Debes agregar al menos un producto para continuar con la compra.");
-        return;
-      }
-  
-      alert("🚧 La funcionalidad de pago aún no está disponible.");
-    });
+    const btnPagar = document.getElementById("btn-pagar");
+    if (btnPagar) {
+      btnPagar.addEventListener("click", () => {
+        const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+        if (carrito.length === 0) {
+          alert("⚠️ Debes agregar al menos un producto para continuar con la compra.");
+          return;
+        }
+    
+        alert("🚧 La funcionalidad de pago aún no está disponible.");
+      });
+    }
   
 
 
@@ -976,7 +992,9 @@ if (btnAgregarCarrito) {
   
   
   // Llama esta función donde lo necesites, por ejemplo:
-  cargarTrabajadores();
+  if (document.querySelector("#tabla-trabajadores tbody")) {
+    cargarTrabajadores();
+  }
 
 
 
@@ -1090,7 +1108,13 @@ if (btnAgregarCarrito) {
   
   
   
-  cargarProductosBodega();
+  if (
+    document.querySelector("#tabla-reponer tbody") &&
+    document.querySelector("#tabla-disponibles tbody") &&
+    document.getElementById("filtro-categoria")
+  ) {
+    cargarProductosBodega();
+  }
   
 
 
