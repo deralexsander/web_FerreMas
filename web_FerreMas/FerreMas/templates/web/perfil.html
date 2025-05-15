@@ -9,44 +9,40 @@
 
 
 
-<!-- Perfil de usuario -->
-<div class="container_center">
-  <div class="tarjeta-de-presentacion">
-    <div class="foto-perfil">
-      <img id="foto-usuario" src="" alt="Foto de perfil" />
-    </div>
+<div class="contenedor_informacion" >
 
-    <div class="parte-inferior">
-      <div class="contenido">
-        <span id="nombre-usuario" class="nombre">Cargando...</span>
-        <span id="correo-usuario" class="descripcion">Cargando...</span>
-        <div class="info-extra">
-          <span id="rol-usuario" class="descripcion" style="font-weight:bold; color: #fff;">Tipo: ...</span>
-        </div>
-      </div>
+  <div class="bloque_info">
+    <div class="columna_info">
+      
+      <a href="{% url 'registro_personal' %}">
+        <button class="button-submit" style="width: 300px;">Registro de personal</button>
+      </a>
+      <a href="{% url 'crear_producto' %}">
+        <button class="button-submit" style="width: 300px;">crear un nuevo producto.</button>
+      </a>
+      <a href="{% url 'bodega' %}">
+        <button class="button-submit" style="width: 300px;">bodega.</button>
+      </a>
+      <a href="{% url 'trabajadores' %}">
+        <button class="button-submit" style="width: 300px;">trabajadores</button>
+      </a>
+      <a href="{% url 'datos_personales' %}">
+        <button class="button-submit" style="width: 300px;">direcciones</button>
+      </a>
+      <button id="boton-logout" class="button-submit" style="width: 300px;">Cerrar sesión</button>
+    </div>
+    <div class="columna_info">
+
+      <span id="nombre-usuario" class="nombre">Cargando...</span>
+      <span id="correo-usuario" class="descripcion">Cargando...</span>
+      <span id="region-trabajador" class="descripcion">Región: ...</span>
+      <span id="comuna-trabajador" class="descripcion">Comuna: ...</span>
+      <span id="rol-usuario" class="descripcion" style="font-weight:bold; color: #fff;">Tipo: ...</span>
     </div>
   </div>
 
-  <!-- Botones -->
-  <div style="margin-top: 30px;">
-    <button id="boton-logout" class="button-submit" style="width: 300px;">Cerrar sesión</button>
-    <a href="{% url 'registro_personal' %}">
-      <button class="button-submit" style="width: 300px;">Registro de personal</button>
-    </a>
-    <a href="{% url 'crear_producto' %}">
-      <button class="button-submit" style="width: 300px;">crear un nuevo producto.</button>
-    </a>
-    <a href="{% url 'bodega' %}">
-      <button class="button-submit" style="width: 300px;">bodega.</button>
-    </a>
-    <a href="{% url 'trabajadores' %}">
-      <button class="button-submit" style="width: 300px;">trabajadores</button>
-    </a>
-    <a href="{% url 'datos_personales' %}">
-      <button class="button-submit" style="width: 300px;">direcciones</button>
-    </a>
-  </div>
 </div>
+
 
 
 

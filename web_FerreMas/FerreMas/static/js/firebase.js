@@ -154,7 +154,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ========== FUNCIÓN PARA CREAR TRABAJADORES (GLOBAL) ==========
-    window.crearTrabajador = async function() {
+  window.crearTrabajador = async function() {
     try {
       const correo = document.getElementById("correo-trabajador").value.trim().toLowerCase();
       const nombre = document.getElementById("nombre-trabajador").value.trim();
@@ -163,28 +163,29 @@ window.addEventListener('DOMContentLoaded', async () => {
       const rut = document.getElementById("rut-trabajador").value.trim();
       const rol = document.getElementById("rol-trabajador").value;
       const password = document.getElementById("password-trabajador").value.trim();
-
+      
+      // ⚠️ ESTO FALTABA
+      const regionSucursal = document.getElementById("region-sucursal").value;
+      const comunaSucursal = document.getElementById("comuna-sucursal").value;
+  
       // Validación de campos
-      if (!correo || !nombre || !apellidoPaterno || !apellidoMaterno || !rut || !rol || !password) {
+      if (!correo || !nombre || !apellidoPaterno || !apellidoMaterno || !rut || !rol || !password || !regionSucursal || !comunaSucursal) {
         mostrarMensaje("Todos los campos son obligatorios.");
         return;
       }
-
-      // 1. Guardar credenciales del admin actual
+  
       const adminActual = auth.currentUser;
       const adminEmail = adminActual.email;
       const adminPassword = prompt("Por seguridad, ingrese su contraseña de administrador:");
-
+  
       if (!adminPassword) {
         mostrarMensaje("Se requiere la contraseña de administrador.");
         return;
       }
-
-      // 2. Crear el nuevo usuario en Authentication
+  
       const userCredential = await createUserWithEmailAndPassword(auth, correo, password);
       const nuevoUsuario = userCredential.user;
-
-      // 3. Crear documento en Firestore
+  
       const nuevoTrabajador = {
         uid: nuevoUsuario.uid,
         correo,
@@ -193,24 +194,25 @@ window.addEventListener('DOMContentLoaded', async () => {
         apellidoMaterno,
         rut,
         rol,
-        password, // Considera no almacenar la contraseña en Firestore
+        password,
         cambiarContraseña: true,
         creadoEn: Timestamp.now(),
-        creadoPor: adminActual.uid
+        creadoPor: adminActual.uid,
+        regionSucursal,     // ✅ guardamos región
+        comunaSucursal      // ✅ guardamos comuna
       };
-
+  
       await setDoc(doc(db, "trabajadores", nuevoUsuario.uid), nuevoTrabajador);
-
-      // 4. Volver a autenticar al admin
+  
       await signOut(auth);
       await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
-
+  
       mostrarMensaje("Trabajador creado correctamente", "success");
       document.querySelectorAll('input').forEach(input => input.value = '');
-
+  
     } catch (error) {
       console.error("Error completo:", error);
-      
+  
       if (error.code === 'permission-denied') {
         mostrarMensaje("Error: No tienes permisos para realizar esta acción. Contacta al administrador.");
       } else if (error.code === 'auth/email-already-in-use') {
@@ -218,8 +220,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       } else {
         mostrarMensaje("Error: " + error.message);
       }
-      
-      // Intenta reautenticar al admin si hubo error
+  
       if (adminActual && adminEmail && adminPassword) {
         try {
           await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
@@ -229,72 +230,61 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     }
   };
+  
 
   // ========== MANEJO DE AUTENTICACIÓN ==========
   const pathActual = window.location.pathname;
 
   onAuthStateChanged(auth, async (user) => {
-    // Limpiar datos antiguos si el usuario cambió
     const trabajadorStorage = JSON.parse(sessionStorage.getItem("trabajador"));
     if (!user || (trabajadorStorage && user.uid !== trabajadorStorage.id)) {
       sessionStorage.removeItem("trabajador");
     }
-
-    // Actualizar enlaces de acceso/perfil
+  
     const botonAccesoLink = document.querySelector('a[href="/acceso/"]');
     if (botonAccesoLink) botonAccesoLink.setAttribute('href', user ? '/perfil/' : '/acceso/');
     if (user && pathActual === '/acceso/') window.location.href = '/perfil/';
     if (!user && pathActual === '/perfil/') window.location.href = '/acceso/';
-
-    // Elementos de la UI
+  
     const nombreUsuario = document.getElementById('nombre-usuario');
     const correoUsuario = document.getElementById('correo-usuario');
-    const fotoUsuario = document.getElementById('foto-usuario');
     const tipoUsuario = document.getElementById('rol-usuario');
-
+  
     let rol = "";
     let datosTrabajador = null;
-
+  
     try {
-      // Siempre obtener datos frescos de Firestore
       if (user) {
-        // Intentar obtener por UID primero (más eficiente)
         const docRef = doc(db, "trabajadores", user.uid);
         const docSnap = await getDoc(docRef);
-    
+  
         if (docSnap.exists()) {
           datosTrabajador = docSnap.data();
           rol = (datosTrabajador?.rol || "").toLowerCase().trim();
           sessionStorage.setItem("trabajador", JSON.stringify({ ...datosTrabajador, id: user.uid }));
-    
-          // Mostrar modal si cambiarContraseña está en true
+  
           if (datosTrabajador?.cambiarContraseña === true) {
             const modal = document.getElementById("passwordChangeModal");
             if (modal) modal.style.display = "block";
           }
-    
         } else {
-          // Si no existe por UID, buscar por correo (para compatibilidad)
           const q = query(
-            collection(db, "trabajadores"), 
+            collection(db, "trabajadores"),
             where("correo", "==", user.email.toLowerCase())
           );
           const resultado = await getDocs(q);
-    
+  
           if (!resultado.empty) {
             const data = resultado.docs[0].data();
             rol = (data?.rol || "").toLowerCase().trim();
             datosTrabajador = { ...data, id: resultado.docs[0].id };
             sessionStorage.setItem("trabajador", JSON.stringify(datosTrabajador));
-    
-            // Mostrar modal si cambiarContraseña está en true
+  
             if (data?.cambiarContraseña === true) {
               const modal = document.getElementById("passwordChangeModal");
               if (modal) modal.style.display = "block";
             }
-    
           } else {
-            // Usuario normal (cliente)
             rol = "cliente";
             sessionStorage.setItem("trabajador", JSON.stringify({ rol: "cliente" }));
           }
@@ -304,9 +294,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       console.error("Error obteniendo datos de trabajador:", e);
       rol = "";
     }
-    
-
-    // Actualizar UI según el rol
+  
     if (tipoUsuario) {
       const rolesDisplay = {
         admin: "Tipo: Admin",
@@ -317,8 +305,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       };
       tipoUsuario.textContent = rolesDisplay[rol] || rolesDisplay.cliente;
     }
-
-    // Actualizar clases CSS según rol
+  
     const body = document.body;
     const roleClasses = [
       'usuario-admin',
@@ -328,36 +315,35 @@ window.addEventListener('DOMContentLoaded', async () => {
       'usuario-cliente'
     ];
     body.classList.remove(...roleClasses);
-    
-    if (rol) {
-      body.classList.add(`usuario-${rol}`);
-    } else {
-      body.classList.add('usuario-cliente');
-    }
-
-    // Mostrar información del usuario
-    if (nombreUsuario && correoUsuario && fotoUsuario && user) {
+    body.classList.add(`usuario-${rol || "cliente"}`);
+  
+    if (nombreUsuario && correoUsuario && user) {
       const trabajadorCorreo = datosTrabajador?.correo || "";
-
+  
       await user.reload();
       const userRefrescado = auth.currentUser;
-
+  
       const sessionNombre = sessionStorage.getItem("nombreRegistroCliente") || "";
       const nombreBase = userRefrescado.displayName || sessionNombre || datosTrabajador?.nombre || "";
       const apellidoPaterno = datosTrabajador?.apellidoPaterno || "";
       const apellidoMaterno = datosTrabajador?.apellidoMaterno || "";
-
+  
       let nombreCompleto = `${nombreBase} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-      if (!nombreCompleto || nombreCompleto === "") {
+      if (!nombreCompleto) {
         nombreCompleto = user.email.split("@")[0];
       }
-
+  
       nombreUsuario.textContent = nombreCompleto;
       correoUsuario.textContent = trabajadorCorreo || user.email;
-      fotoUsuario.src = user.photoURL || "https://placehold.co/100x100";
+  
+      // ✅ Mostrar región y comuna
+      const regionUsuario = document.getElementById("region-trabajador");
+      const comunaUsuario = document.getElementById("comuna-trabajador");
+  
+      if (regionUsuario) regionUsuario.textContent = `Región: ${datosTrabajador?.regionSucursal || "No registrada"}`;
+      if (comunaUsuario) comunaUsuario.textContent = `Comuna: ${datosTrabajador?.comunaSucursal || "No registrada"}`;
     }
-
-    // Si es admin, mostrar datos de trabajadores (para debug)
+  
     if (rol === "admin") {
       try {
         const trabajadoresSnapshot = await getDocs(collection(db, "trabajadores"));
@@ -370,6 +356,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     }
   });
+  
+  
 
 
 
@@ -679,61 +667,68 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   
 
+// ======= FUNCIONALIDAD DE CANTIDAD (+ / -) =======
+const inputCantidad = document.getElementById("cantidad");
+const btnIncrementar = document.querySelector(".btn-aumentar");
+const btnDecrementar = document.querySelector(".btn-disminuir");
 
+if (inputCantidad && btnIncrementar && btnDecrementar) {
+  btnIncrementar.addEventListener("click", () => {
+    inputCantidad.value = parseInt(inputCantidad.value) + 1;
+  });
 
+  btnDecrementar.addEventListener("click", () => {
+    const actual = parseInt(inputCantidad.value);
+    if (actual > 1) inputCantidad.value = actual - 1;
+  });
+}
 
-
-
-
-  // ======= FUNCIONALIDAD DE CANTIDAD (+ / -) =======
-  const inputCantidad = document.getElementById("cantidad");
-  const btnIncrementar = document.querySelector(".btn-aumentar");
-  const btnDecrementar = document.querySelector(".btn-disminuir");
-
-  if (inputCantidad && btnIncrementar && btnDecrementar) {
-    btnIncrementar.addEventListener("click", () => {
-      inputCantidad.value = parseInt(inputCantidad.value) + 1;
-    });
-
-    btnDecrementar.addEventListener("click", () => {
-      const actual = parseInt(inputCantidad.value);
-      if (actual > 1) inputCantidad.value = actual - 1;
-    });
+// ======= CONTADOR DE PRODUCTOS DIFERENTES =======
+function actualizarContadorProductosDiferentes() {
+  const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  const badgeContador = document.getElementById("contador-productos");
+  if (badgeContador) {
+    badgeContador.textContent = carrito.length;
   }
+}
 
-  // ======= AGREGAR AL CARRITO DESDE MODAL =======
-  const btnAgregarCarrito = document.getElementById("btn-agregar-carrito");
+// ======= ACTUALIZAR AL CARGAR LA PÁGINA =======
+actualizarContadorProductosDiferentes();
 
-  if (btnAgregarCarrito) {
-    btnAgregarCarrito.addEventListener("click", () => {
-      const nombre = document.getElementById("modal-nombre").textContent.trim();
-      const precioTexto = document.getElementById("modal-precio").textContent.trim().replace(/\$/g, "").replace(/\./g, "").replace(",", ".");
-      const precio = parseFloat(precioTexto);
-      const cantidad = parseInt(document.getElementById("cantidad").value) || 1;
-      const codigo = document.getElementById("modal-codigo").textContent.replace("Codigo:", "").trim();
-      const imagen = document.getElementById("modal-imagen").src;
+// ======= AGREGAR PRODUCTO AL CARRITO =======
+const btnAgregarCarrito = document.getElementById("btn-agregar-carrito");
 
-      const nuevoItem = {
-        codigo,
-        nombre,
-        precio,
-        cantidad,
-        imagen
-      };
+if (btnAgregarCarrito) {
+  btnAgregarCarrito.addEventListener("click", () => {
+    const nombre = document.getElementById("modal-nombre").textContent.trim();
+    const precioTexto = document.getElementById("modal-precio").textContent.trim().replace(/\$/g, "").replace(/\./g, "").replace(",", ".");
+    const precio = parseFloat(precioTexto);
+    const cantidad = parseInt(document.getElementById("cantidad").value) || 1;
+    const codigo = document.getElementById("modal-codigo").textContent.replace("Codigo:", "").trim();
+    const imagen = document.getElementById("modal-imagen").src;
 
-      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-      const productoExistente = carrito.find(item => item.codigo === nuevoItem.codigo);
+    const nuevoItem = {
+      codigo,
+      nombre,
+      precio,
+      cantidad,
+      imagen
+    };
 
-      if (productoExistente) {
-        productoExistente.cantidad += cantidad;
-      } else {
-        carrito.push(nuevoItem);
-      }
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    const productoExistente = carrito.find(item => item.codigo === nuevoItem.codigo);
 
-      localStorage.setItem("carrito", JSON.stringify(carrito));
-      alert("✅ Producto agregado al carrito");
-    });
-  }
+    if (productoExistente) {
+      productoExistente.cantidad += cantidad;
+    } else {
+      carrito.push(nuevoItem);
+    }
+
+    localStorage.setItem("carrito", JSON.stringify(carrito));
+    actualizarContadorProductosDiferentes(); // 🔁 Refresca el contador
+  });
+}
+
 
 
 

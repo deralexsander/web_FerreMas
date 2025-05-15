@@ -38,12 +38,58 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-
-
-
-
-
-
     
+  });
+  
+  document.addEventListener("DOMContentLoaded", () => {
+    const selectRegion = document.getElementById("region-sucursal");
+    const selectComuna = document.getElementById("comuna-sucursal");
+    let sucursalesData = [];
+  
+    fetch("https://gist.githubusercontent.com/deralexsander/509c0851749f70c64533fd1bc3c2566e/raw/26f20a43cec48854859345e1fa2e461dd974050b/sucursales-ferremas.json")
+      .then(res => res.json())
+      .then(data => {
+        sucursalesData = data;
+  
+        // Llenar regiones
+        sucursalesData.forEach(region => {
+          const option = document.createElement("option");
+          option.value = region.region;
+          option.textContent = region.region;
+          selectRegion.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.error("Error al cargar las regiones:", error);
+      });
+  
+    // Al cambiar región, llenamos comunas
+    selectRegion.addEventListener("change", () => {
+      const regionSeleccionada = selectRegion.value;
+      selectComuna.innerHTML = '<option value="">Seleccione una comuna</option>';
+      selectComuna.disabled = true;
+  
+      if (!regionSeleccionada) return;
+  
+      const region = sucursalesData.find(r => r.region === regionSeleccionada);
+      if (!region) return;
+  
+      // Obtener comunas extrayéndolas desde dirección (luego de la coma)
+      const comunas = [...new Set(
+        region.sucursales.map(s => {
+          const partesDireccion = s.direccion.split(",");
+          return partesDireccion.length > 1 ? partesDireccion[1].trim() : "Desconocida";
+        })
+      )];
+  
+      comunas.forEach(comuna => {
+        const option = document.createElement("option");
+        option.value = comuna;
+        option.textContent = comuna;
+        selectComuna.appendChild(option);
+      });
+  
+      selectComuna.disabled = false;
+    });
   });
   
