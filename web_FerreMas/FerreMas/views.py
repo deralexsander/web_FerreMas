@@ -52,3 +52,41 @@ def subir_imagen(request):
         return JsonResponse({'status': 'ok', 'ruta': ruta})
 
     return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+
+# views.py
+
+import mercadopago
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def crear_preferencia(request):
+    if request.method == 'POST':
+        datos = json.loads(request.body)
+
+        sdk = mercadopago.SDK("APP_USR-3060994062731939-051521-21ad6cf9dbf496c7174f3213cbc90788-445521183")
+
+        items = []
+        for item in datos.get("items", []):
+            items.append({
+                "title": item["nombre"],
+                "quantity": int(item["cantidad"]),
+                "unit_price": float(item["precio"]),
+                "currency_id": "CLP"
+            })
+
+        preferencia_data = {
+            "items": items,
+            "back_urls": {
+                "success": "https://www.google.com",         # Redirección si el pago fue exitoso
+                "failure": "https://www.youtube.com",        # Redirección si el pago fue rechazado
+                "pending": "https://www.mercadopago.cl"      # Redirección si el pago está pendiente
+                },
+            "auto_return": "approved"
+        }
+
+        preferencia = sdk.preference().create(preferencia_data)
+        return JsonResponse({"init_point": preferencia["response"]["init_point"]})

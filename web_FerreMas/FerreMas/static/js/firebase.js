@@ -853,7 +853,52 @@ if (btnAgregarCarrito) {
       btn.addEventListener("click", () => eliminarProducto(btn.dataset.index));
     });
   }
+
+const btnPagar = document.getElementById("btn-pagar");
+
+  if (btnPagar) {
+    btnPagar.addEventListener("click", async () => {
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+      if (carrito.length === 0) {
+        alert("⚠️ Debes agregar al menos un producto.");
+        return;
+      }
+
+      try {
+        const respuesta = await fetch("/crear-preferencia/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: carrito })
+        });
+
+        const data = await respuesta.json();
+
+        if (data.init_point) {
+          window.location.href = data.init_point; // redirige a la pasarela de Mercado Pago
+        } else {
+          alert("❌ Error al generar el pago.");
+        }
+      } catch (error) {
+        console.error("Error al conectar con el servidor:", error);
+        alert("❌ Hubo un problema al generar el pago.");
+      }
+    });
+  }
+
+
   
+
+
+
+
+
+
+
+
+
+
+
   function modificarCantidad(index, delta) {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     if (!carrito[index]) return;
@@ -892,18 +937,7 @@ if (btnAgregarCarrito) {
       btnVaciar.addEventListener("click", vaciarCarrito);
     }
   
-    const btnPagar = document.getElementById("btn-pagar");
-    if (btnPagar) {
-      btnPagar.addEventListener("click", () => {
-        const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-        if (carrito.length === 0) {
-          alert("⚠️ Debes agregar al menos un producto para continuar con la compra.");
-          return;
-        }
-    
-        alert("🚧 La funcionalidad de pago aún no está disponible.");
-      });
-    }
+
   
 
 
