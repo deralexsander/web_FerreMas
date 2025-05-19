@@ -35,6 +35,9 @@ def trabajadores(request):
 def datos_personales(request):
     return render(request, 'web/datos_personales.html')
 
+def armado_pedidos(request):
+    return render(request, 'web/armado_pedidos.html')
+
 
 def pedidos_realizados(request):
     return render(request, 'web/pedidos.html')

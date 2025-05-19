@@ -17,5 +17,6 @@ urlpatterns = [
     path('pedidos_realizados/', views.pedidos_realizados, name="pedidos_realizados"),
     path('trasferencias/', views.trasferencias, name="trasferencias"),
     path('historial_pedidos/', views.historial_pedidos, name="historial_pedidos"),
+    path('armado_pedidos/', views.armado_pedidos, name="armado_pedidos"),
 
 ]

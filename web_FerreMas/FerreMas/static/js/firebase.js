@@ -1526,9 +1526,6 @@ if (document.querySelector("#tabla-transferencias")) {
     });
 
 
-
-
-
 async function cargarPedidos() {
   const tablaSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
   const tablaDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
@@ -1613,7 +1610,8 @@ async function cargarPedidos() {
             return;
           }
 
-          const estadoActual = pedidoSnap.data().estadoPedido;
+          const pedidoData = pedidoSnap.data();
+          const estadoActual = pedidoData.estadoPedido;
 
           if (estadoActual !== "Pendiente de preparación") {
             alert("⚠️ Este pedido ya fue tomado por otro vendedor.");
@@ -1629,6 +1627,41 @@ async function cargarPedidos() {
           btn.disabled = true;
           estadoCelda.textContent = "Preparando pedido";
 
+          // ========== MAILTO ==========
+          const correoCliente = pedidoData.correoCliente || "";
+          const nombreCliente = pedidoData.nombreCliente || "Cliente";
+          const tipoEntrega = pedidoData.tipoEntrega === "domicilio" ? "Despacho a domicilio" : "Retiro en tienda";
+          const total = typeof pedidoData.total === "number" ? `$${pedidoData.total.toLocaleString("es-CL")}` : "-";
+          const codigoPedido = pedidoData.codigoPedido || id;
+
+          let nombresProductos = [];
+          if (Array.isArray(pedidoData.carrito)) {
+            nombresProductos = pedidoData.carrito.map(p => `${p.nombre || "Producto"} x${p.cantidad || 1}`);
+          }
+
+          const asunto = `🧺 Tu pedido ${codigoPedido} está en preparación`;
+          const cuerpo = `
+Hola ${nombreCliente},
+
+Te contamos que tu pedido ha sido tomado por nuestro equipo y ya está en preparación. Aquí tienes los detalles:
+
+🆔 Código del Pedido: ${codigoPedido}
+🛍️ Productos:
+${nombresProductos.join("\n")}
+
+💰 Total: ${total}
+🚚 Entrega: ${tipoEntrega}
+
+Te avisaremos cuando esté listo para el despacho o retiro.
+
+Gracias por tu compra 🙌
+
+Equipo Ferremas
+          `;
+
+          const mailtoLink = `mailto:${correoCliente}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+          window.open(mailtoLink, '_blank');
+
         } catch (error) {
           console.error("❌ Error al tomar pedido:", error);
           alert("❌ Hubo un problema. Intenta nuevamente.");
@@ -1642,6 +1675,8 @@ async function cargarPedidos() {
     tablaDomicilio.innerHTML = `<tr><td colspan="8">❌ Error al cargar pedidos.</td></tr>`;
   }
 }
+
+
 
 
 

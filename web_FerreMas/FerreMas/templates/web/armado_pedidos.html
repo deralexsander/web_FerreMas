@@ -1,0 +1,26 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block nombrePag %}
+<title>armado pedidos</title>
+{% endblock %}
+
+{% block contenido %}
+<h2>🧪 Pedidos en Preparación</h2>
+<table id="tabla-preparacion-pedidos">
+  <thead>
+    <tr>
+      <th>Código Pedido</th>
+      <th>Cliente</th>
+      <th>Correo</th>
+      <th>Productos</th>
+      <th>Cantidad Total</th>
+      <th>Total</th>
+      <th>Acción</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+
+{% endblock %}
