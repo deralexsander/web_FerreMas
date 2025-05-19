@@ -616,7 +616,7 @@ window.addEventListener('DOMContentLoaded', async () => {
           document.getElementById("modal-dimensiones").textContent = producto.dimensiones || "N/A";
           document.getElementById("modal-vencimiento").textContent = producto.vencimiento || "N/A";
           document.getElementById("modal-imagen").src = imagenUrl;
-  
+          document.getElementById("modal-producto").setAttribute("data-uid", doc.id);  
           document.getElementById("modal-producto").style.display = "block";
           document.getElementById("cantidad").value = 1;
         });
@@ -771,11 +771,16 @@ if (btnAgregarCarrito) {
     const precioTexto = document.getElementById("modal-precio").textContent.trim().replace(/\$/g, "").replace(/\./g, "").replace(",", ".");
     const precio = parseFloat(precioTexto);
     const cantidad = parseInt(document.getElementById("cantidad").value) || 1;
-    const codigo = document.getElementById("modal-codigo").textContent.replace("Codigo:", "").trim();
+    const uid = document.getElementById("modal-producto").getAttribute("data-uid"); // ✅ Usar uid del producto
     const imagen = document.getElementById("modal-imagen").src;
 
+    if (!uid) {
+      alert("❌ No se pudo identificar el producto. Intenta nuevamente.");
+      return;
+    }
+
     const nuevoItem = {
-      codigo,
+      uid,
       nombre,
       precio,
       cantidad,
@@ -783,7 +788,7 @@ if (btnAgregarCarrito) {
     };
 
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    const productoExistente = carrito.find(item => item.codigo === nuevoItem.codigo);
+    const productoExistente = carrito.find(item => item.uid === nuevoItem.uid);
 
     if (productoExistente) {
       productoExistente.cantidad += cantidad;
@@ -808,11 +813,11 @@ if (btnAgregarCarrito) {
   
     if (carrito.length === 0) {
       contenedor.innerHTML = "<p>No hay productos en el carrito. Debes tener al menos un producto para continuar con la compra.</p>";
-      btnPagar.disabled = true; // Desactiva el botón de pagar
+    btnPagar.disabled = true;
       return;
     }
   
-    btnPagar.disabled = false; // Habilita el botón si hay productos
+  btnPagar.disabled = false;
   
     let total = 0;
   
@@ -838,10 +843,8 @@ if (btnAgregarCarrito) {
       `;
     }).join("");
   
-    contenedor.innerHTML = `
-      ${html}
-      <h3>Total: $${total.toLocaleString('es-CL')}</h3>
-    `;
+  // Ya no se muestra el total
+  contenedor.innerHTML = html;
   
     document.querySelectorAll(".btn-cantidad-mayor").forEach(btn => {
       btn.addEventListener("click", () => modificarCantidad(btn.dataset.index, 1));
@@ -854,6 +857,8 @@ if (btnAgregarCarrito) {
     });
   }
 
+
+
 const btnPagar = document.getElementById("btn-pagar");
 
   if (btnPagar) {
@@ -865,17 +870,23 @@ const btnPagar = document.getElementById("btn-pagar");
         return;
       }
 
+    // Obtener tipo de entrega seleccionado
+    const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value || "tienda";
+
       try {
         const respuesta = await fetch("/crear-preferencia/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items: carrito })
+        body: JSON.stringify({
+          items: carrito,
+          tipo_entrega: tipoEntrega
+        })
         });
 
         const data = await respuesta.json();
 
         if (data.init_point) {
-          window.location.href = data.init_point; // redirige a la pasarela de Mercado Pago
+        window.location.href = data.init_point;
         } else {
           alert("❌ Error al generar el pago.");
         }
@@ -1168,6 +1179,7 @@ const btnPagar = document.getElementById("btn-pagar");
 
       const direccion = {
         nombre: document.getElementById("nombre")?.value.trim() || "",
+        rut: document.getElementById("rut")?.value.trim() || "",
         telefono: document.getElementById("telefono")?.value.trim() || "",
         correo: document.getElementById("correo")?.value.trim() || "",
         calleNumero: document.getElementById("calle-numero")?.value.trim() || "",
@@ -1203,7 +1215,6 @@ const btnPagar = document.getElementById("btn-pagar");
       }
     });
   }
-
   async function cargarDirecciones() {
     const user = auth.currentUser;
     if (!user) return;
@@ -1254,5 +1265,403 @@ const btnPagar = document.getElementById("btn-pagar");
       }
     });
   }
+
+
+
+
+
+
+
+
+const formTransferencia = document.getElementById("form-transferencia");
+
+if (formTransferencia) {
+  formTransferencia.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const nombreTitular = formTransferencia.nombre.value.trim();
+    const rutTitular = formTransferencia.rut.value.trim();
+    const banco = formTransferencia.banco.value;
+    const acepta = formTransferencia.acepta.checked;
+
+    if (!nombreTitular || !rutTitular || !banco || !acepta) {
+      alert("⚠️ Debes completar todos los campos y aceptar la validación manual.");
+      return;
+    }
+
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    if (carrito.length === 0) {
+      alert("⚠️ No hay productos en el carrito.");
+      return;
+    }
+
+    // Obtener tipo de entrega
+    const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value || "tienda";
+
+    // Calcular total base
+    let total = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+
+    // Sumar costo de envío si corresponde
+    const costoEnvio = tipoEntrega === "domicilio" ? 5000 : 0;
+    const totalFinal = total + costoEnvio;
+
+    // Capturar región y comuna si es retiro en tienda
+    let regionSucursal = "";
+    let comunaSucursal = "";
+    if (tipoEntrega === "tienda") {
+      regionSucursal = document.getElementById("region-sucursal")?.value || "";
+      comunaSucursal = document.getElementById("comuna-sucursal")?.value || "";
+      if (!regionSucursal || !comunaSucursal) {
+        alert("⚠️ Debes seleccionar una región y comuna para el retiro en tienda.");
+        return;
+      }
+    }
+
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Debes iniciar sesión para hacer esta solicitud.");
+        return;
+      }
+
+      const direccionesRef = collection(db, "direcciones", user.uid, "items");
+      const direccionesSnap = await getDocs(query(direccionesRef, orderBy("fechaGuardado", "desc"), limit(1)));
+
+      if (direccionesSnap.empty) {
+        alert("No se encontró dirección registrada para este usuario.");
+        return;
+      }
+
+      const datosDireccion = direccionesSnap.docs[0].data();
+      const nombreCliente = datosDireccion.nombre || "";
+      const rutCliente = datosDireccion.rut || "";
+
+      const ref = collection(db, "transferencias");
+      await addDoc(ref, {
+        nombreCliente,
+        rutCliente,
+        nombreTitular,
+        rutTitular,
+        banco,
+        correoCliente: user.email,
+        carrito,
+        tipoEntrega,
+        costoEnvio,
+        total: totalFinal,
+        regionSucursal: tipoEntrega === "tienda" ? regionSucursal : null,
+        comunaSucursal: tipoEntrega === "tienda" ? comunaSucursal : null,
+        estadoTransferencia: "En validación",
+        timestamp: Timestamp.now(),
+        uidCliente: user.uid
+      });
+
+      alert("✅ Gracias. Hemos recibido tu solicitud. Validaremos la transferencia una vez sea realizada.");
+      formTransferencia.reset();
+      localStorage.removeItem("carrito");
+      renderizarCarrito();
+
+    } catch (error) {
+      console.error("Error al guardar la solicitud de transferencia:", error);
+      alert("❌ Ocurrió un error al guardar tu solicitud. Intenta nuevamente.");
+    }
+  });
+}
+
+
+
+
+
+async function cargarTransferencias() {
+  const tabla = document.querySelector("#tabla-transferencias tbody");
+  const botonConfirmar = document.getElementById("btn-confirmar-cambios");
+  if (!tabla || !botonConfirmar) return;
+
+  try {
+    const snapshot = await getDocs(collection(db, "transferencias"));
+    tabla.innerHTML = "";
+
+    const cambiosPendientes = {};
+
+    snapshot.forEach(docSnap => {
+      const t = docSnap.data();
+      const id = docSnap.id;
+      const estado = t.estadoTransferencia || "En validación";
+
+      const cantidadTotal = Array.isArray(t.carrito)
+        ? t.carrito.reduce((acc, item) => acc + (item.cantidad || 0), 0)
+        : 0;
+
+      const totalPagar = typeof t.total === "number"
+        ? `$${t.total.toLocaleString('es-CL')}`
+        : "-";
+
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${t.rutCliente || "-"}</td>
+        <td>${t.nombreCliente || "-"}</td>
+        <td>${t.correoCliente || "-"}</td>
+        <td>${t.rutTitular || "-"}</td>
+        <td>${t.nombreTitular || "-"}</td>
+        <td>${t.banco || "-"}</td>
+        <td>${cantidadTotal}</td>
+        <td>${totalPagar}</td>
+        <td>
+          <select class="select-estado" data-id="${id}">
+            <option value="En validación" ${estado === "En validación" ? "selected" : ""}>En validación</option>
+            <option value="Transferencia aceptada" ${estado === "Transferencia aceptada" ? "selected" : ""}>Transferencia aceptada</option>
+            <option value="Problemas con tu pago" ${estado === "Problemas con tu pago" ? "selected" : ""}>Problemas con tu pago</option>
+          </select>
+        </td>
+      `;
+      tabla.appendChild(fila);
+    });
+
+    document.querySelectorAll(".select-estado").forEach(select => {
+      select.addEventListener("change", () => {
+        const id = select.getAttribute("data-id");
+        const nuevoEstado = select.value;
+        cambiosPendientes[id] = nuevoEstado;
+      });
+    });
+
+    botonConfirmar.addEventListener("click", async () => {
+      if (Object.keys(cambiosPendientes).length === 0) {
+        alert("No hay cambios pendientes.");
+        return;
+      }
+
+      const confirmar = confirm("¿Estás seguro de que quieres guardar todos los cambios?");
+      if (!confirmar) return;
+
+      try {
+        for (const id in cambiosPendientes) {
+          const nuevoEstado = cambiosPendientes[id];
+
+          // Actualizar estado en Firestore
+          await setDoc(doc(db, "transferencias", id), {
+            estadoTransferencia: nuevoEstado
+          }, { merge: true });
+
+          // Si fue aceptada, descontar stock y generar pedido
+          if (nuevoEstado === "Transferencia aceptada") {
+            const transferenciaSnap = await getDoc(doc(db, "transferencias", id));
+            const datosTransferencia = transferenciaSnap.data();
+            const carrito = datosTransferencia.carrito || [];
+
+            // Descontar stock
+            for (const item of carrito) {
+              if (!item.uid) continue;
+              const productoRef = doc(db, "productos", item.uid);
+              const productoSnap = await getDoc(productoRef);
+
+              if (productoSnap.exists()) {
+                const producto = productoSnap.data();
+                const stockActual = producto.stock || 0;
+                const nuevoStock = Math.max(0, stockActual - item.cantidad);
+                await setDoc(productoRef, { stock: nuevoStock }, { merge: true });
+              }
+            }
+
+            // Crear nuevo pedido en Firestore
+            const refPedidos = collection(db, "pedidos");
+            await addDoc(refPedidos, {
+              ...datosTransferencia,
+              estadoPedido: "Pendiente de preparación",
+              creadoEn: Timestamp.now(),
+              idTransferencia: id
+            });
+          }
+        }
+
+        alert("✅ Cambios guardados correctamente, stock actualizado y pedidos creados.");
+        Object.keys(cambiosPendientes).forEach(id => delete cambiosPendientes[id]);
+      } catch (error) {
+        console.error("Error al guardar cambios o actualizar stock:", error);
+        alert("❌ Hubo un problema al guardar los cambios o actualizar el stock.");
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Error al cargar transferencias:", error);
+    alert("No se pudieron cargar las transferencias.");
+  }
+}
+
+
+// Ejecutar función al cargar si hay tabla en la página
+if (document.querySelector("#tabla-transferencias")) {
+  cargarTransferencias();
+}
+
+
+
+    const tipoEntregaRadios = document.querySelectorAll('input[name="tipo_entrega"]');
+    const totalElemento = document.getElementById("total-pagar");
+
+    // Obtener el carrito del localStorage
+    let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+    function calcularTotal() {
+      let total = 0;
+      carrito.forEach(item => {
+        total += item.precio * item.cantidad;
+      });
+
+      const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value;
+      if (tipoEntrega === "domicilio") {
+        total += 5000;
+      }
+
+      if (totalElemento) { // <-- Agrega esta verificación
+        totalElemento.textContent = `$${total.toLocaleString("es-CL")}`;
+      }
+    }
+
+    // Calcular total al cargar la página
+    calcularTotal();
+
+    // Recalcular si cambia el tipo de entrega
+    tipoEntregaRadios.forEach(radio => {
+      radio.addEventListener("change", calcularTotal);
+    });
+
+
+
+
+
+async function cargarPedidos() {
+  const tablaSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
+  const tablaDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
+
+  if (!tablaSucursal || !tablaDomicilio) {
+    console.warn("No se encontraron una o ambas tablas de pedidos");
+    return;
+  }
+
+  try {
+    const snapshot = await getDocs(collection(db, "pedidos"));
+    tablaSucursal.innerHTML = "";
+    tablaDomicilio.innerHTML = "";
+
+    if (snapshot.empty) {
+      tablaSucursal.innerHTML = `<tr><td colspan="8">📭 No hay pedidos en sucursal.</td></tr>`;
+      tablaDomicilio.innerHTML = `<tr><td colspan="8">📭 No hay pedidos a domicilio.</td></tr>`;
+      return;
+    }
+
+    for (const docSnap of snapshot.docs) {
+      const p = docSnap.data();
+      const idPedido = docSnap.id;
+      const fecha = p.creadoEn?.toDate().toLocaleString("es-CL") || "-";
+      const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "-";
+      const codigoPedido = p.codigoPedido || idPedido;
+      const estaEnPreparacion = p.estadoPedido === "Preparando pedido";
+      const tipo = p.tipoEntrega;
+
+      // Obtener dirección
+      let direccion = "-";
+      if (tipo === "domicilio") {
+        direccion = p.direccionEnvio || p.direccion || "-";
+        if ((!direccion || direccion === "-") && p.uidCliente) {
+          const direccionesRef = collection(db, "direcciones", p.uidCliente, "items");
+          const direccionesSnap = await getDocs(query(direccionesRef, orderBy("fechaGuardado", "desc"), limit(1)));
+          if (!direccionesSnap.empty) {
+            const d = direccionesSnap.docs[0].data();
+            direccion = `${d.calleNumero || ""}, ${d.comuna || ""}, ${d.region || ""}`;
+          }
+        }
+      } else if (tipo === "tienda") {
+        direccion = `Sucursal: ${p.comunaSucursal || "-"}, ${p.regionSucursal || "-"}`;
+      }
+
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${codigoPedido}</td>
+        <td>${p.nombreCliente || "-"}</td>
+        <td>${p.correoCliente || "-"}</td>
+        <td>${fecha}</td>
+        <td>${total}</td>
+        <td class="estado-pedido">${p.estadoPedido || "-"}</td>
+        <td>${direccion}</td>
+        <td>
+          <button class="btn-tomar-pedido" data-id="${idPedido}" ${estaEnPreparacion ? "disabled" : ""}>
+            ${estaEnPreparacion ? "En preparación" : "Tomar pedido"}
+          </button>
+        </td>
+      `;
+
+      if (tipo === "domicilio") {
+        tablaDomicilio.appendChild(fila);
+      } else {
+        tablaSucursal.appendChild(fila);
+      }
+    }
+
+    // Evento para los botones de ambas tablas
+    document.querySelectorAll(".btn-tomar-pedido").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const fila = btn.closest("tr");
+        const estadoCelda = fila.querySelector(".estado-pedido");
+
+        try {
+          const pedidoRef = doc(db, "pedidos", id);
+          const pedidoSnap = await getDoc(pedidoRef);
+
+          if (!pedidoSnap.exists()) {
+            alert("❌ Este pedido ya no existe.");
+            return;
+          }
+
+          const estadoActual = pedidoSnap.data().estadoPedido;
+
+          if (estadoActual !== "Pendiente de preparación") {
+            alert("⚠️ Este pedido ya fue tomado por otro vendedor.");
+            btn.textContent = "Ya tomado";
+            btn.disabled = true;
+            estadoCelda.textContent = estadoActual;
+            return;
+          }
+
+          await setDoc(pedidoRef, { estadoPedido: "Preparando pedido" }, { merge: true });
+
+          btn.textContent = "En preparación";
+          btn.disabled = true;
+          estadoCelda.textContent = "Preparando pedido";
+
+        } catch (error) {
+          console.error("❌ Error al tomar pedido:", error);
+          alert("❌ Hubo un problema. Intenta nuevamente.");
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error("❌ Error al cargar pedidos:", error);
+    tablaSucursal.innerHTML = `<tr><td colspan="8">❌ Error al cargar pedidos.</td></tr>`;
+    tablaDomicilio.innerHTML = `<tr><td colspan="8">❌ Error al cargar pedidos.</td></tr>`;
+  }
+}
+
+
+
+
+
+if (
+  document.querySelector("#tabla-pedidos-domicilio") &&
+  document.querySelector("#tabla-pedidos-sucursal")
+) {
+  cargarPedidos();
+}
+
+
+
+
+
+
+
+
+
+
   
 });

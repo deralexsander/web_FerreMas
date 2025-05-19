@@ -36,6 +36,16 @@ def datos_personales(request):
     return render(request, 'web/datos_personales.html')
 
 
+def pedidos_realizados(request):
+    return render(request, 'web/pedidos.html')
+
+def trasferencias(request):
+    return render(request, 'web/transferencias.html')
+
+def historial_pedidos(request):
+    return render(request, 'web/historial_pedidos.html')
+
+
 # Vista para recibir la imagen desde el formulario y guardarla con el código UUID
 @csrf_exempt
 def subir_imagen(request):
@@ -57,9 +67,9 @@ def subir_imagen(request):
 
 # views.py
 
-import mercadopago
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import mercadopago
 import json
 
 @csrf_exempt
@@ -70,6 +80,8 @@ def crear_preferencia(request):
         sdk = mercadopago.SDK("APP_USR-3060994062731939-051521-21ad6cf9dbf496c7174f3213cbc90788-445521183")
 
         items = []
+
+        # Agregar productos
         for item in datos.get("items", []):
             items.append({
                 "title": item["nombre"],
@@ -78,15 +90,25 @@ def crear_preferencia(request):
                 "currency_id": "CLP"
             })
 
+        # Verificar si hay despacho a domicilio y agregar el ítem
+        if datos.get("tipo_entrega") == "domicilio":
+            items.append({
+                "title": "Despacho a domicilio",
+                "quantity": 1,
+                "unit_price": 5000.0,
+                "currency_id": "CLP"
+            })
+
         preferencia_data = {
             "items": items,
             "back_urls": {
-                "success": "https://www.google.com",         # Redirección si el pago fue exitoso
-                "failure": "https://www.youtube.com",        # Redirección si el pago fue rechazado
-                "pending": "https://www.mercadopago.cl"      # Redirección si el pago está pendiente
-                },
+                "success": "https://www.google.com",
+                "failure": "https://www.youtube.com",
+                "pending": "https://www.mercadopago.cl"
+            },
             "auto_return": "approved"
         }
 
         preferencia = sdk.preference().create(preferencia_data)
         return JsonResponse({"init_point": preferencia["response"]["init_point"]})
+

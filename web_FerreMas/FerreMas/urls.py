@@ -14,5 +14,8 @@ urlpatterns = [
     path('crear_producto/', views.crear_producto, name="crear_producto"),
     path('datos_personales/', views.datos_personales, name="datos_personales"),
     path('crear-preferencia/', views.crear_preferencia, name='crear_preferencia'),
+    path('pedidos_realizados/', views.pedidos_realizados, name="pedidos_realizados"),
+    path('trasferencias/', views.trasferencias, name="trasferencias"),
+    path('historial_pedidos/', views.historial_pedidos, name="historial_pedidos"),
 
 ]

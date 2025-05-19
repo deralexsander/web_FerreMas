@@ -1,0 +1,31 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block nombrePag %}
+<title>Transferencias</title>
+{% endblock %}
+
+{% block contenido %}
+
+<h2 style="margin-top: 40px;">Solicitudes de Transferencia</h2>
+
+<table id="tabla-transferencias" style="margin-top: 20px; width: 100%; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th>RUT Cliente</th>
+      <th>Nombre Cliente</th>
+      <th>Correo Cliente</th>
+      <th>RUT Titular</th>
+      <th>Nombre Titular</th>
+      <th>Banco</th>
+      <th>Cantidad</th>
+      <th>Total Carrito</th>
+      <th>Estado</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<button id="btn-confirmar-cambios" style="margin-top: 20px;">Confirmar cambios</button>
+
+{% endblock %}
