@@ -1968,11 +1968,23 @@ a {
 }
 
 
+.solo-trabajadores {
+  display: none;
+}
 
 
 
+.solo-vendedor {
+  display: none;
+}
 
+.solo-bodeguero {
+  display: none;
+}
 
+.solo-contador {
+  display: none;
+}
 
 
 

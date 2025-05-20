@@ -240,29 +240,29 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (!user || (trabajadorStorage && user.uid !== trabajadorStorage.id)) {
       sessionStorage.removeItem("trabajador");
     }
-  
+
     const botonAccesoLink = document.querySelector('a[href="/acceso/"]');
     if (botonAccesoLink) botonAccesoLink.setAttribute('href', user ? '/perfil/' : '/acceso/');
     if (user && pathActual === '/acceso/') window.location.href = '/perfil/';
     if (!user && pathActual === '/perfil/') window.location.href = '/acceso/';
-  
+
     const nombreUsuario = document.getElementById('nombre-usuario');
     const correoUsuario = document.getElementById('correo-usuario');
     const tipoUsuario = document.getElementById('rol-usuario');
-  
+
     let rol = "";
     let datosTrabajador = null;
-  
+
     try {
       if (user) {
         const docRef = doc(db, "trabajadores", user.uid);
         const docSnap = await getDoc(docRef);
-  
+
         if (docSnap.exists()) {
           datosTrabajador = docSnap.data();
           rol = (datosTrabajador?.rol || "").toLowerCase().trim();
           sessionStorage.setItem("trabajador", JSON.stringify({ ...datosTrabajador, id: user.uid }));
-  
+
           if (datosTrabajador?.cambiarContraseña === true) {
             const modal = document.getElementById("passwordChangeModal");
             if (modal) modal.style.display = "block";
@@ -273,13 +273,13 @@ window.addEventListener('DOMContentLoaded', async () => {
             where("correo", "==", user.email.toLowerCase())
           );
           const resultado = await getDocs(q);
-  
+
           if (!resultado.empty) {
             const data = resultado.docs[0].data();
             rol = (data?.rol || "").toLowerCase().trim();
             datosTrabajador = { ...data, id: resultado.docs[0].id };
             sessionStorage.setItem("trabajador", JSON.stringify(datosTrabajador));
-  
+
             if (data?.cambiarContraseña === true) {
               const modal = document.getElementById("passwordChangeModal");
               if (modal) modal.style.display = "block";
@@ -294,7 +294,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       console.error("Error obteniendo datos de trabajador:", e);
       rol = "";
     }
-  
+
     if (tipoUsuario) {
       const rolesDisplay = {
         admin: "Tipo: Admin",
@@ -305,7 +305,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       };
       tipoUsuario.textContent = rolesDisplay[rol] || rolesDisplay.cliente;
     }
-  
+
     const body = document.body;
     const roleClasses = [
       'usuario-admin',
@@ -316,46 +316,89 @@ window.addEventListener('DOMContentLoaded', async () => {
     ];
     body.classList.remove(...roleClasses);
     body.classList.add(`usuario-${rol || "cliente"}`);
-  
+
     if (nombreUsuario && correoUsuario && user) {
       const trabajadorCorreo = datosTrabajador?.correo || "";
-  
+
       await user.reload();
       const userRefrescado = auth.currentUser;
-  
+
       const sessionNombre = sessionStorage.getItem("nombreRegistroCliente") || "";
       const nombreBase = userRefrescado.displayName || sessionNombre || datosTrabajador?.nombre || "";
       const apellidoPaterno = datosTrabajador?.apellidoPaterno || "";
       const apellidoMaterno = datosTrabajador?.apellidoMaterno || "";
-  
+
       let nombreCompleto = `${nombreBase} ${apellidoPaterno} ${apellidoMaterno}`.trim();
       if (!nombreCompleto) {
         nombreCompleto = user.email.split("@")[0];
       }
-  
+
       nombreUsuario.textContent = nombreCompleto;
       correoUsuario.textContent = trabajadorCorreo || user.email;
-  
+
       // ✅ Mostrar región y comuna
       const regionUsuario = document.getElementById("region-trabajador");
       const comunaUsuario = document.getElementById("comuna-trabajador");
-  
+
       if (regionUsuario) regionUsuario.textContent = `Región: ${datosTrabajador?.regionSucursal || "No registrada"}`;
       if (comunaUsuario) comunaUsuario.textContent = `Comuna: ${datosTrabajador?.comunaSucursal || "No registrada"}`;
     }
-  
+
+    // Mostrar/ocultar botones según el rol
     if (rol === "admin") {
-      try {
-        const trabajadoresSnapshot = await getDocs(collection(db, "trabajadores"));
-        console.log("Documentos de trabajadores:");
-        trabajadoresSnapshot.forEach((doc) => {
-          console.log(doc.id, doc.data());
-        });
-      } catch (e) {
-        console.error("Error leyendo trabajadores como admin:", e);
+      document.querySelectorAll(".solo-trabajadores").forEach(btn => {
+        btn.style.display = "block";
+      });
+      document.querySelectorAll(".solo-admin").forEach(btn => {
+        btn.style.display = "block";
+      });
+      document.querySelectorAll(".solo-vendedor, .solo-bodeguero, .solo-contador .solo-vendedor").forEach(btn => {
+        btn.style.display = "block";
+      });
+      if (document.querySelector("#tabla-trabajadores tbody")) {
+        cargarTrabajadores();
       }
+    } else if (rol === "vendedor") {
+      document.querySelectorAll(".solo-trabajadores").forEach(btn => {
+        btn.style.display = "block";
+      });
+      document.querySelectorAll(".solo-vendedor").forEach(btn => {
+        btn.style.display = "block";
+      });
+      document.querySelectorAll(".solo-admin, .solo-bodeguero, .solo-contador").forEach(btn => {
+        btn.style.display = "none";
+      });
+    } else if (rol === "bodeguero") {
+      document.querySelectorAll(".solo-trabajadores").forEach(btn => {
+        btn.style.display = "block";
+      });
+      document.querySelectorAll(".solo-bodeguero").forEach(btn => {
+        btn.style.display = "block";
+      });
+      document.querySelectorAll(".solo-admin, .solo-vendedor, .solo-contador").forEach(btn => {
+        btn.style.display = "none";
+      });
+    } else if (rol === "contador") {
+      document.querySelectorAll(".solo-trabajadores").forEach(btn => {
+        btn.style.display = "block";
+      });
+      document.querySelectorAll(".solo-contador").forEach(btn => {
+        btn.style.display = "block";
+      });
+      document.querySelectorAll(".solo-admin, .solo-vendedor, .solo-bodeguero").forEach(btn => {
+        btn.style.display = "none";
+      });
+    } else if (rol === "cliente") {
+      document.querySelectorAll(".solo-trabajadores, .solo-admin, .solo-vendedor, .solo-bodeguero, .solo-contador").forEach(btn => {
+        btn.style.display = "none";
+      });
+    } else {
+      document.querySelectorAll(".solo-trabajadores, .solo-admin, .solo-vendedor, .solo-bodeguero, .solo-contador").forEach(btn => {
+        btn.style.display = "none";
+      });
     }
   });
+
   
   
 
@@ -672,8 +715,30 @@ window.addEventListener('DOMContentLoaded', async () => {
         `;
   
         tarjeta.addEventListener("click", () => {
-          // Aquí puedes copiar el mismo código del modal anterior si quieres mostrar los detalles también
+          document.getElementById("modal-nombre").textContent = producto.nombre || "Producto sin nombre";
+          document.getElementById("modal-categoria").textContent = producto.categoria || "Sin categoría";
+          document.getElementById("modal-descripcion").textContent = producto.descripcion || "Sin descripción";
+          document.getElementById("modal-marca").textContent = `Marca: ${producto.marca || "Sin marca"}`;
+          document.getElementById("modal-precio").textContent = `$${(producto.precio || 0).toLocaleString('es-CL')}`;
+          document.getElementById("modal-stock").textContent = `Disponibles: ${producto.stock || 0}`;
+          document.getElementById("modal-codigo").textContent = `Codigo: ${producto.codigo || "Sin código"}`;
+          document.getElementById("modal-potencia").textContent = producto.potencia || "N/A";
+          document.getElementById("modal-voltaje").textContent = producto.voltaje || "N/A";
+          document.getElementById("modal-color").textContent = producto.color || "N/A";
+          document.getElementById("modal-tamano").textContent = producto.tamano || "N/A";
+          document.getElementById("modal-material").textContent = producto.material || "N/A";
+          document.getElementById("modal-presentacion").textContent = producto.presentacion || "N/A";
+          document.getElementById("modal-garantia").textContent = producto.garantia || "N/A";
+          document.getElementById("modal-uso").textContent = producto.uso || "N/A";
+          document.getElementById("modal-peso").textContent = `${producto.peso || "N/A"} kg`;
+          document.getElementById("modal-dimensiones").textContent = producto.dimensiones || "N/A";
+          document.getElementById("modal-vencimiento").textContent = producto.vencimiento || "N/A";
+          document.getElementById("modal-imagen").src = imagenUrl;
+          document.getElementById("modal-producto").setAttribute("data-uid", doc.id);  
+          document.getElementById("modal-producto").style.display = "block";
+          document.getElementById("cantidad").value = 1;
         });
+
   
         contenedor.appendChild(tarjeta);
       });
@@ -694,23 +759,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
   // Modal: cerrar con botón, clic fuera o ESC
   const modalProducto = document.getElementById("modal-producto");
   const cerrarModalProducto = document.getElementById("cerrar-modal");
@@ -733,6 +781,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
   
+
+
+
+
+
+
+
+
+
+
 
 // ======= FUNCIONALIDAD DE CANTIDAD (+ / -) =======
 const inputCantidad = document.getElementById("cantidad");
@@ -1552,7 +1610,10 @@ async function cargarPedidos() {
       const fecha = p.creadoEn?.toDate().toLocaleString("es-CL") || "-";
       const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "-";
       const codigoPedido = p.codigoPedido || idPedido;
-      const estaEnPreparacion = p.estadoPedido === "Preparando pedido";
+      const estadoPedido = p.estadoPedido || "-";
+      const estaEnPreparacion = estadoPedido === "Preparando pedido";
+      const estaListoEnvio = estadoPedido === "Pedido listo para envío/entrega";
+      const estaConstruyendo = estadoPedido === "Construyendo pedido";
       const tipo = p.tipoEntrega;
 
       // Obtener dirección
@@ -1571,6 +1632,11 @@ async function cargarPedidos() {
         direccion = `Sucursal: ${p.comunaSucursal || "-"}, ${p.regionSucursal || "-"}`;
       }
 
+      // Deshabilitar botón si está en preparación, listo para envío/entrega o construyendo pedido
+      const deshabilitarBtn = estaEnPreparacion || estaListoEnvio || estaConstruyendo;
+      let btnTexto = "Tomar pedido";
+      if (estaEnPreparacion, estaListoEnvio, estaConstruyendo) btnTexto = "En preparación";
+
       const fila = document.createElement("tr");
       fila.innerHTML = `
         <td>${codigoPedido}</td>
@@ -1578,11 +1644,11 @@ async function cargarPedidos() {
         <td>${p.correoCliente || "-"}</td>
         <td>${fecha}</td>
         <td>${total}</td>
-        <td class="estado-pedido">${p.estadoPedido || "-"}</td>
+        <td class="estado-pedido">${estadoPedido}</td>
         <td>${direccion}</td>
         <td>
-          <button class="btn-tomar-pedido" data-id="${idPedido}" ${estaEnPreparacion ? "disabled" : ""}>
-            ${estaEnPreparacion ? "En preparación" : "Tomar pedido"}
+          <button class="btn-tomar-pedido" data-id="${idPedido}" ${deshabilitarBtn ? "disabled" : ""}>
+            ${btnTexto}
           </button>
         </td>
       `;
@@ -1613,9 +1679,18 @@ async function cargarPedidos() {
           const pedidoData = pedidoSnap.data();
           const estadoActual = pedidoData.estadoPedido;
 
-          if (estadoActual !== "Pendiente de preparación") {
-            alert("⚠️ Este pedido ya fue tomado por otro vendedor.");
-            btn.textContent = "Ya tomado";
+          if (
+            estadoActual !== "Pendiente de preparación"
+          ) {
+            alert("⚠️ Este pedido ya fue tomado por otro vendedor o está en otro estado.");
+            btn.textContent =
+              estadoActual === "Preparando pedido"
+                ? "En preparación"
+                : estadoActual === "Pedido listo para envío/entrega"
+                ? "Listo para envío/entrega"
+                : estadoActual === "Construyendo pedido"
+                ? "Construyendo pedido"
+                : "Ya tomado";
             btn.disabled = true;
             estadoCelda.textContent = estadoActual;
             return;
@@ -1689,6 +1764,132 @@ if (
   cargarPedidos();
 }
 
+
+
+
+
+
+
+
+
+
+async function cargarPedidosEnPreparacion() {
+  const tabla = document.querySelector("#tabla-preparacion-pedidos tbody");
+  if (!tabla) return;
+
+  tabla.innerHTML = "";
+
+  try {
+    const snapshot = await getDocs(collection(db, "pedidos"));
+
+    if (snapshot.empty) {
+      tabla.innerHTML = `<tr><td colspan="3">📭 No hay pedidos en preparación.</td></tr>`;
+      return;
+    }
+
+    snapshot.forEach(docSnap => {
+      const pedido = docSnap.data();
+      const idPedido = docSnap.id;
+
+      // Solo mostrar si está en preparación o construcción
+      if (pedido.estadoPedido === "Preparando pedido" || pedido.estadoPedido === "Construyendo pedido") {
+        const productos = Array.isArray(pedido.carrito)
+          ? pedido.carrito.map(item => `${item.nombre} x${item.cantidad}`).join("<br>")
+          : "-";
+
+        const estaConstruyendo = pedido.estadoPedido === "Construyendo pedido";
+        const estaEnPreparacion = pedido.estadoPedido === "Preparando pedido";
+
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${idPedido}</td>
+          <td>${productos}</td>
+          <td>
+            <button class="btn-tomar-construccion" data-id="${idPedido}" ${estaConstruyendo ? "disabled" : ""}>
+              ${estaConstruyendo ? "Construyendo pedido" : "Tomar pedido"}
+            </button>
+            <br><br>
+            <button class="btn-entregar-pedido" data-id="${idPedido}" ${estaEnPreparacion ? "disabled" : ""}>
+              Pedido entregado al vendedor
+            </button>
+          </td>
+        `;
+        tabla.appendChild(fila);
+      }
+    });
+
+    // === Botón TOMAR PEDIDO ===
+    document.querySelectorAll(".btn-tomar-construccion").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const fila = btn.closest("tr");
+        const btnEntregar = fila.querySelector(".btn-entregar-pedido");
+
+        try {
+          const pedidoRef = doc(db, "pedidos", id);
+          const pedidoSnap = await getDoc(pedidoRef);
+
+          if (!pedidoSnap.exists()) {
+            alert("❌ Este pedido ya no existe.");
+            return;
+          }
+
+          const pedidoData = pedidoSnap.data();
+
+          if (pedidoData.estadoPedido !== "Preparando pedido") {
+            alert("⚠️ Este pedido ya fue tomado por otro trabajador de bodega.");
+            btn.textContent = "Ya tomado";
+            btn.disabled = true;
+            return;
+          }
+
+          await setDoc(pedidoRef, { estadoPedido: "Construyendo pedido" }, { merge: true });
+
+          btn.textContent = "Construyendo pedido";
+          btn.disabled = true;
+
+          if (btnEntregar) {
+            btnEntregar.disabled = false;
+          }
+
+        } catch (error) {
+          console.error("❌ Error al tomar pedido:", error);
+          alert("❌ No se pudo tomar el pedido.");
+        }
+      });
+    });
+
+    // === Botón ENTREGAR A VENDEDOR ===
+    document.querySelectorAll(".btn-entregar-pedido").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+
+        try {
+          const pedidoRef = doc(db, "pedidos", id);
+          await setDoc(pedidoRef, { estadoPedido: "Pedido listo para envío/entrega" }, { merge: true });
+
+          alert("✅ Pedido marcado como listo para envío o entrega.");
+          cargarPedidosEnPreparacion();
+        } catch (error) {
+          console.error("❌ Error al entregar pedido:", error);
+          alert("❌ No se pudo actualizar el estado del pedido.");
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error("❌ Error al cargar pedidos:", error);
+    tabla.innerHTML = `<tr><td colspan="3">❌ Error al cargar pedidos.</td></tr>`;
+  }
+}
+
+
+
+
+
+if (document.querySelector("#tabla-preparacion-pedidos")) {
+  cargarPedidosEnPreparacion();
+}
 
 
 
