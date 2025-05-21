@@ -105,9 +105,9 @@ def crear_preferencia(request):
         preferencia_data = {
             "items": items,
             "back_urls": {
-                "success": "https://www.google.com",
-                "failure": "https://www.youtube.com",
-                "pending": "https://www.mercadopago.cl"
+                "success": "https://af4b-201-187-218-239.ngrok-free.app/carrito?status=success",
+                "failure": "https://af4b-201-187-218-239.ngrok-free.app/carrito?status=failure",
+                "pending": "https://af4b-201-187-218-239.ngrok-free.app/carrito?status=pending"
             },
             "auto_return": "approved"
         }

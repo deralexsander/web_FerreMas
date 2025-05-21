@@ -177,6 +177,25 @@
             </div>
         </div>
 
+                <!-- modal error para failure y pending -->
+        <div id="errorModal" class="modal">
+          <div class="contenedor_informacion" >
+            <div class="bloque_info">
+              <div class="columna_info">
+                <form class="form" >
+                  <div class="encabezado-formulario">
+                    <h1>OH Noo...</h1>
+                    <p>Creo que ha ocurrido algo con el proceso de compra, por favor inténtelo nuevamente.</p>
+                  </div>
+                  <div>
+                    <button  onclick="document.getElementById('modal-error').style.display='none'" class="button-submit">Cerrar</button>
+                  </div>
+              </form> 
+              </div>
+            </div>
+          </div>
+        </div>
+
 
         <!-- buscador para productos -->
         {% block buscador %}

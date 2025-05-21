@@ -916,49 +916,63 @@ if (btnAgregarCarrito) {
   }
 
 
-
 const btnPagar = document.getElementById("btn-pagar");
 
-  if (btnPagar) {
-    btnPagar.addEventListener("click", async () => {
-      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+if (btnPagar) {
+  btnPagar.addEventListener("click", async () => {
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
-      if (carrito.length === 0) {
-        alert("⚠️ Debes agregar al menos un producto.");
-        return;
-      }
+    if (carrito.length === 0) {
+      alert("⚠️ Debes agregar al menos un producto.");
+      return;
+    }
 
     // Obtener tipo de entrega seleccionado
     const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value || "tienda";
 
-      try {
-        const respuesta = await fetch("/crear-preferencia/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+    // Guardar tipo de entrega en localStorage
+    localStorage.setItem("tipo_entrega", tipoEntrega);
+
+    if (tipoEntrega === "tienda") {
+      const region = document.getElementById("region-sucursal")?.value || "";
+      const comuna = document.getElementById("comuna-sucursal")?.value || "";
+
+      if (!region || !comuna) {
+        alert("⚠️ Debes seleccionar una región y comuna para el retiro en tienda.");
+        return;
+      }
+
+      localStorage.setItem("region_sucursal", region);
+      localStorage.setItem("comuna_sucursal", comuna);
+    } else {
+      // Limpia si es despacho
+      localStorage.removeItem("region_sucursal");
+      localStorage.removeItem("comuna_sucursal");
+    }
+
+    try {
+      const respuesta = await fetch("/crear-preferencia/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: carrito,
           tipo_entrega: tipoEntrega
         })
-        });
+      });
 
-        const data = await respuesta.json();
+      const data = await respuesta.json();
 
-        if (data.init_point) {
+      if (data.init_point) {
         window.location.href = data.init_point;
-        } else {
-          alert("❌ Error al generar el pago.");
-        }
-      } catch (error) {
-        console.error("Error al conectar con el servidor:", error);
-        alert("❌ Hubo un problema al generar el pago.");
+      } else {
+        alert("❌ Error al generar el pago.");
       }
-    });
-  }
-
-
-  
-
-
+    } catch (error) {
+      console.error("Error al conectar con el servidor:", error);
+      alert("❌ Hubo un problema al generar el pago.");
+    }
+  });
+}
 
 
 
@@ -1326,6 +1340,64 @@ const btnPagar = document.getElementById("btn-pagar");
 
 
 
+
+// Cuando carga la página
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get("status");
+
+  if (status === "success") {
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      if (carrito.length === 0) return;
+
+      try {
+        const direccionesRef = collection(db, "direcciones", user.uid, "items");
+        const snap = await getDocs(query(direccionesRef, orderBy("fechaGuardado", "desc"), limit(1)));
+        if (snap.empty) {
+          console.warn("No hay dirección registrada.");
+          return;
+        }
+
+        const datosDireccion = snap.docs[0].data();
+        const nombreCliente = datosDireccion.nombre || "";
+        const rutCliente = datosDireccion.rut || "";
+
+        const tipoEntrega = localStorage.getItem("tipo_entrega") || "tienda";
+        const costoEnvio = tipoEntrega === "domicilio" ? 5000 : 0;
+        const regionSucursal = localStorage.getItem("region_sucursal") || null;
+        const comunaSucursal = localStorage.getItem("comuna_sucursal") || null;
+        const total = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0) + costoEnvio;
+
+        await addDoc(collection(db, "pedidos"), {
+          nombreCliente,
+          rutCliente,
+          correoCliente: user.email,
+          carrito,
+          tipoEntrega,
+          costoEnvio,
+          total,
+          regionSucursal: tipoEntrega === "tienda" ? regionSucursal : null,
+          comunaSucursal: tipoEntrega === "tienda" ? comunaSucursal : null,
+          estadoPedido: "Pagado",
+          creadoEn: Timestamp.now(),
+          uidCliente: user.uid
+        });
+
+        alert("✅ ¡Pago exitoso! Tu pedido ha sido registrado.");
+        localStorage.removeItem("carrito");
+        localStorage.removeItem("tipo_entrega");
+        localStorage.removeItem("region_sucursal");
+        localStorage.removeItem("comuna_sucursal");
+        renderizarCarrito?.();
+
+      } catch (err) {
+        console.error("Error al guardar pedido:", err);
+        alert("❌ Ocurrió un error al guardar tu pedido.");
+      }
+    });
+  }
 
 
 
@@ -1894,6 +1966,43 @@ if (document.querySelector("#tabla-preparacion-pedidos")) {
 
 
 
+
+  // Mostrar modal automáticamente si hay error o pendiente
+  const urlParams = new URLSearchParams(window.location.search);
+  const estado = urlParams.get("status");
+
+  const errorModal = document.getElementById("errorModal");
+
+  if ((estado === "failure" || estado === "pending") && errorModal) {
+    errorModal.style.display = "block";
+  }
+
+  // Para cerrar el modal de error al enviar el formulario
+  const errorForm = errorModal?.querySelector("form");
+
+  if (errorForm) {
+    errorForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      errorModal.style.display = "none";
+
+      // Opcional: limpiar el parámetro de la URL sin recargar
+      const nuevaUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, nuevaUrl);
+    });
+  }
+
+  // (Opcional extra) cerrar con ESC o clic fuera
+  window.addEventListener("click", (e) => {
+    if (e.target === errorModal) {
+      errorModal.style.display = "none";
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && errorModal?.style.display === "block") {
+      errorModal.style.display = "none";
+    }
+  });
 
 
 
