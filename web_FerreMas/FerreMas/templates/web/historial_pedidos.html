@@ -5,7 +5,78 @@
 <title>tus pedidos</title>
 {% endblock %}
 
+
+
 {% block contenido %}
+
+<style>
+  #tabla-datos-pedidos {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Segoe UI", sans-serif;
+    margin: 20px 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  #tabla-datos-pedidos thead {
+    background-color: #0a4a82;
+    color: white;
+    text-align: left;
+  }
+
+  #tabla-datos-pedidos th, #tabla-datos-pedidos td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  #tabla-datos-pedidos tr:hover {
+    background-color: #f1f9ff;
+  }
+
+  #tabla-datos-pedidos td {
+    font-size: 14px;
+    color: #333;
+  }
+
+  #tabla-datos-pedidos td:first-child {
+    font-weight: bold;
+    color: #0a4a82;
+  }
+
+  #tabla-datos-pedidos td:last-child {
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    #tabla-datos-pedidos {
+      font-size: 12px;
+    }
+
+    #tabla-datos-pedidos th, #tabla-datos-pedidos td {
+      padding: 8px 10px;
+    }
+  }
+</style>
+
+
+<table id="tabla-datos-pedidos">
+  <thead>
+    <tr>
+      <th>UID</th>
+      <th>Cliente</th>
+      <th>Correo</th>
+      <th>RUT</th>
+      <th>Total</th>
+      <th>Banco</th>
+      <th>Entrega</th>
+      <th>Estado Pedido</th>
+      <th>Estado Transferencia</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Se insertan los datos aquí -->
+  </tbody>
+</table>
 
 
 

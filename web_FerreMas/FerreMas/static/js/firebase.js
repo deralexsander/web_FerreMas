@@ -1650,8 +1650,6 @@ if (document.querySelector("#tabla-transferencias")) {
 
 
 
-
-
 async function cargarPedidos() {
   const tablaSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
   const tablaDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
@@ -1732,6 +1730,28 @@ async function cargarPedidos() {
       }
     }
 
+    // ✅ Tomar pedido
+    document.querySelectorAll(".btn-tomar-pedido").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+
+        try {
+          const pedidoRef = doc(db, "pedidos", id);
+          await setDoc(pedidoRef, {
+            estadoPedido: "Preparando pedido",
+            tomadoEn: new Date()
+          }, { merge: true });
+
+          btn.textContent = "En preparación";
+          btn.disabled = true;
+        } catch (error) {
+          console.error("❌ Error al tomar el pedido:", error);
+          alert("❌ No se pudo tomar el pedido.");
+        }
+      });
+    });
+
+    // ✅ Confirmar entrega
     document.querySelectorAll(".btn-confirmar-envio").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-id");
@@ -1773,6 +1793,25 @@ async function cargarPedidos() {
         }
       });
     });
+
+    // ✅ Generar boleta
+    document.querySelectorAll(".btn-boleta").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        try {
+          // Aquí puedes personalizar cómo se genera/descarga la boleta
+          alert(`📄 Generando boleta para el pedido ${id}...`);
+
+          // Ejemplo de abrir un archivo PDF generado:
+          // window.open(`/boletas/${id}.pdf`, "_blank");
+
+        } catch (error) {
+          console.error("❌ Error al generar la boleta:", error);
+          alert("❌ No se pudo generar la boleta.");
+        }
+      });
+    });
+
   } catch (error) {
     console.error("❌ Error al cargar pedidos:", error);
     tablaSucursal.innerHTML = `<tr><td colspan="8">❌ Error al cargar pedidos.</td></tr>`;
@@ -1780,22 +1819,95 @@ async function cargarPedidos() {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
 if (
   document.querySelector("#tabla-pedidos-domicilio") &&
   document.querySelector("#tabla-pedidos-sucursal")
 ) {
   cargarPedidos();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const uidCliente = user.uid;
+    mostrarPedidosDelCliente(uidCliente);
+  } else {
+    console.log("Usuario no autenticado");
+    document.querySelector("#tabla-datos-pedidos tbody").innerHTML =
+      "<tr><td colspan='9'>🔒 Debes iniciar sesión para ver tus pedidos.</td></tr>";
+  }
+});
+
+async function mostrarPedidosDelCliente(uidCliente) {
+  const tabla = document.querySelector("#tabla-datos-pedidos tbody");
+
+  if (!tabla) {
+    console.warn("No se encontró la tabla");
+    return;
+  }
+
+  tabla.innerHTML = "";
+
+  try {
+    const pedidosRef = collection(db, "pedidos");
+    const snapshot = await getDocs(pedidosRef);
+
+    const pedidosFiltrados = snapshot.docs.filter(docSnap => {
+      const p = docSnap.data();
+      return p.uidCliente === uidCliente;
+    });
+
+    if (pedidosFiltrados.length === 0) {
+      tabla.innerHTML = "<tr><td colspan='9'>📭 No tienes pedidos registrados.</td></tr>";
+      return;
+    }
+
+    pedidosFiltrados.forEach(docSnap => {
+      const p = docSnap.data();
+
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${docSnap.id}</td>
+        <td>${p.nombreCliente || "-"}</td>
+        <td>${p.correoCliente || "-"}</td>
+        <td>${p.rutCliente || "-"}</td>
+        <td>$${p.total?.toLocaleString("es-CL") || "0"}</td>
+        <td>${p.banco || "-"}</td>
+        <td>${p.tipoEntrega || "-"}</td>
+        <td>${p.estadoPedido || "-"}</td>
+        <td>${p.estadoTransferencia || "-"}</td>
+      `;
+      tabla.appendChild(fila);
+    });
+  } catch (error) {
+    console.error("Error al cargar los pedidos:", error);
+    tabla.innerHTML = "<tr><td colspan='9'>❌ Error al cargar los datos.</td></tr>";
+  }
+}
+
+
+
+obtenerTodosLosDatosDePedidos();
+
+
+
+
+
+
+
+
+
+
 
 
 
