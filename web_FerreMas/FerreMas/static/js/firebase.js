@@ -1500,7 +1500,6 @@ if (formTransferencia) {
 
 
 
-
 async function cargarTransferencias() {
   const tabla = document.querySelector("#tabla-transferencias tbody");
   const botonConfirmar = document.getElementById("btn-confirmar-cambios");
@@ -1567,32 +1566,16 @@ async function cargarTransferencias() {
         for (const id in cambiosPendientes) {
           const nuevoEstado = cambiosPendientes[id];
 
-          // Actualizar estado en Firestore
+          // Actualizar estado de la transferencia
           await setDoc(doc(db, "transferencias", id), {
             estadoTransferencia: nuevoEstado
           }, { merge: true });
 
-          // Si fue aceptada, descontar stock y generar pedido
+          // Crear pedido si fue aceptada la transferencia
           if (nuevoEstado === "Transferencia aceptada") {
             const transferenciaSnap = await getDoc(doc(db, "transferencias", id));
             const datosTransferencia = transferenciaSnap.data();
-            const carrito = datosTransferencia.carrito || [];
 
-            // Descontar stock
-            for (const item of carrito) {
-              if (!item.uid) continue;
-              const productoRef = doc(db, "productos", item.uid);
-              const productoSnap = await getDoc(productoRef);
-
-              if (productoSnap.exists()) {
-                const producto = productoSnap.data();
-                const stockActual = producto.stock || 0;
-                const nuevoStock = Math.max(0, stockActual - item.cantidad);
-                await setDoc(productoRef, { stock: nuevoStock }, { merge: true });
-              }
-            }
-
-            // Crear nuevo pedido en Firestore
             const refPedidos = collection(db, "pedidos");
             await addDoc(refPedidos, {
               ...datosTransferencia,
@@ -1603,11 +1586,11 @@ async function cargarTransferencias() {
           }
         }
 
-        alert("✅ Cambios guardados correctamente, stock actualizado y pedidos creados.");
+        alert("✅ Cambios guardados correctamente. Las transferencias aceptadas fueron añadidas a pedidos.");
         Object.keys(cambiosPendientes).forEach(id => delete cambiosPendientes[id]);
       } catch (error) {
-        console.error("Error al guardar cambios o actualizar stock:", error);
-        alert("❌ Hubo un problema al guardar los cambios o actualizar el stock.");
+        console.error("Error al guardar cambios o crear pedido:", error);
+        alert("❌ Hubo un problema al guardar los cambios.");
       }
     });
 
@@ -1616,6 +1599,8 @@ async function cargarTransferencias() {
     alert("No se pudieron cargar las transferencias.");
   }
 }
+
+
 
 
 // Ejecutar función al cargar si hay tabla en la página
@@ -1656,6 +1641,17 @@ if (document.querySelector("#tabla-transferencias")) {
     });
 
 
+
+
+
+
+
+
+
+
+
+
+
 async function cargarPedidos() {
   const tablaSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
   const tablaDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
@@ -1682,13 +1678,16 @@ async function cargarPedidos() {
       const fecha = p.creadoEn?.toDate().toLocaleString("es-CL") || "-";
       const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "-";
       const codigoPedido = p.codigoPedido || idPedido;
-      const estadoPedido = p.estadoPedido || "-";
+
+      const estadoRaw = p.estadoPedido || "-";
+      const estadoPedido = (estadoRaw === "Pagado") ? "Pendiente de preparación" : estadoRaw;
+
       const estaEnPreparacion = estadoPedido === "Preparando pedido";
       const estaListoEnvio = estadoPedido === "Pedido listo para envío/entrega";
       const estaConstruyendo = estadoPedido === "Construyendo pedido";
+      const estaEntregado = estadoPedido === "Entregado";
       const tipo = p.tipoEntrega;
 
-      // Obtener dirección
       let direccion = "-";
       if (tipo === "domicilio") {
         direccion = p.direccionEnvio || p.direccion || "-";
@@ -1704,10 +1703,11 @@ async function cargarPedidos() {
         direccion = `Sucursal: ${p.comunaSucursal || "-"}, ${p.regionSucursal || "-"}`;
       }
 
-      // Deshabilitar botón si está en preparación, listo para envío/entrega o construyendo pedido
-      const deshabilitarBtn = estaEnPreparacion || estaListoEnvio || estaConstruyendo;
+      const deshabilitarBtn = estaEnPreparacion || estaListoEnvio || estaConstruyendo || estaEntregado;
+      const mostrarBoleta = estadoPedido === "Pedido listo para envío/entrega";
       let btnTexto = "Tomar pedido";
-      if (estaEnPreparacion, estaListoEnvio, estaConstruyendo) btnTexto = "En preparación";
+      if (estadoPedido === "Preparando pedido") btnTexto = "En preparación";
+      if (estadoPedido === "Entregado") btnTexto = "Entregado";
 
       const fila = document.createElement("tr");
       fila.innerHTML = `
@@ -1719,9 +1719,9 @@ async function cargarPedidos() {
         <td class="estado-pedido">${estadoPedido}</td>
         <td>${direccion}</td>
         <td>
-          <button class="btn-tomar-pedido" data-id="${idPedido}" ${deshabilitarBtn ? "disabled" : ""}>
-            ${btnTexto}
-          </button>
+          <button class="btn-tomar-pedido" data-id="${idPedido}" ${deshabilitarBtn ? "disabled" : ""}>${btnTexto}</button>
+          <button class="btn-rechazar-pedido" data-id="${idPedido}" ${deshabilitarBtn ? "disabled" : ""}>Rechazar</button>
+          ${mostrarBoleta && !estaEntregado ? `<button class="btn-boleta" data-id="${idPedido}">📄 Generar Boleta</button><button class="btn-confirmar-envio" data-id="${idPedido}">📬 Confirmar Entrega</button>` : ""}
         </td>
       `;
 
@@ -1732,96 +1732,57 @@ async function cargarPedidos() {
       }
     }
 
-    // Evento para los botones de ambas tablas
-    document.querySelectorAll(".btn-tomar-pedido").forEach(btn => {
+    document.querySelectorAll(".btn-confirmar-envio").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-id");
-        const fila = btn.closest("tr");
-        const estadoCelda = fila.querySelector(".estado-pedido");
-
         try {
           const pedidoRef = doc(db, "pedidos", id);
           const pedidoSnap = await getDoc(pedidoRef);
+          if (!pedidoSnap.exists()) return alert("❌ No se encontró el pedido.");
 
-          if (!pedidoSnap.exists()) {
-            alert("❌ Este pedido ya no existe.");
-            return;
+          const p = pedidoSnap.data();
+          const nombreCliente = p.nombreCliente || "Cliente";
+          const correoCliente = p.correoCliente || "-";
+          const tipoEntrega = p.tipoEntrega;
+          const codigoPedido = p.codigoPedido || id;
+          const comuna = p.comunaSucursal || "";
+          const region = p.regionSucursal || "";
+
+          let asunto = "";
+          let cuerpo = "";
+
+          if (tipoEntrega === "tienda") {
+            asunto = `🛍️ Tu pedido está listo para retirar – Ferremas`;
+            cuerpo = `Hola ${nombreCliente},\n\n¡Tu pedido ya está listo para ser retirado! Puedes acercarte a nuestra sucursal ubicada en:\n\n📍 ${comuna}, ${region}\n\nRecuerda traer tu comprobante de compra o mencionar tu código de pedido: ${codigoPedido}.\n\nHorario de atención: lunes a viernes de 9:00 a 17:30 hrs.\n\nGracias por tu compra 🙌\nEquipo Ferremas`;
+          } else {
+            asunto = `📦 Tu pedido fue despachado – Ferremas`;
+            cuerpo = `Hola ${nombreCliente},\n\nTe informamos que tu pedido fue despachado hoy y está en camino a la dirección que nos indicaste.\n\n🆔 Código de pedido: ${codigoPedido}\n🚚 Tipo de entrega: Despacho a domicilio\n📍 Destino: ${p.comuna || "-"}, ${p.region || "-"}\n\n⏱️ El tiempo estimado de entrega es entre 2 a 3 días hábiles.\n\nGracias por preferirnos 🙌\nEquipo Ferremas`;
           }
 
-          const pedidoData = pedidoSnap.data();
-          const estadoActual = pedidoData.estadoPedido;
+          await setDoc(pedidoRef, {
+            estadoPedido: "Entregado",
+            entregadoEn: new Date()
+          }, { merge: true });
 
-          if (
-            estadoActual !== "Pendiente de preparación"
-          ) {
-            alert("⚠️ Este pedido ya fue tomado por otro vendedor o está en otro estado.");
-            btn.textContent =
-              estadoActual === "Preparando pedido"
-                ? "En preparación"
-                : estadoActual === "Pedido listo para envío/entrega"
-                ? "Listo para envío/entrega"
-                : estadoActual === "Construyendo pedido"
-                ? "Construyendo pedido"
-                : "Ya tomado";
-            btn.disabled = true;
-            estadoCelda.textContent = estadoActual;
-            return;
-          }
+          window.open(`mailto:${correoCliente}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`, "_blank");
 
-          await setDoc(pedidoRef, { estadoPedido: "Preparando pedido" }, { merge: true });
-
-          btn.textContent = "En preparación";
           btn.disabled = true;
-          estadoCelda.textContent = "Preparando pedido";
-
-          // ========== MAILTO ==========
-          const correoCliente = pedidoData.correoCliente || "";
-          const nombreCliente = pedidoData.nombreCliente || "Cliente";
-          const tipoEntrega = pedidoData.tipoEntrega === "domicilio" ? "Despacho a domicilio" : "Retiro en tienda";
-          const total = typeof pedidoData.total === "number" ? `$${pedidoData.total.toLocaleString("es-CL")}` : "-";
-          const codigoPedido = pedidoData.codigoPedido || id;
-
-          let nombresProductos = [];
-          if (Array.isArray(pedidoData.carrito)) {
-            nombresProductos = pedidoData.carrito.map(p => `${p.nombre || "Producto"} x${p.cantidad || 1}`);
-          }
-
-          const asunto = `🧺 Tu pedido ${codigoPedido} está en preparación`;
-          const cuerpo = `
-Hola ${nombreCliente},
-
-Te contamos que tu pedido ha sido tomado por nuestro equipo y ya está en preparación. Aquí tienes los detalles:
-
-🆔 Código del Pedido: ${codigoPedido}
-🛍️ Productos:
-${nombresProductos.join("\n")}
-
-💰 Total: ${total}
-🚚 Entrega: ${tipoEntrega}
-
-Te avisaremos cuando esté listo para el despacho o retiro.
-
-Gracias por tu compra 🙌
-
-Equipo Ferremas
-          `;
-
-          const mailtoLink = `mailto:${correoCliente}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
-          window.open(mailtoLink, '_blank');
-
         } catch (error) {
-          console.error("❌ Error al tomar pedido:", error);
-          alert("❌ Hubo un problema. Intenta nuevamente.");
+          console.error("❌ Error al confirmar entrega:", error);
+          alert("❌ No se pudo confirmar la entrega.");
         }
       });
     });
-
   } catch (error) {
     console.error("❌ Error al cargar pedidos:", error);
     tablaSucursal.innerHTML = `<tr><td colspan="8">❌ Error al cargar pedidos.</td></tr>`;
     tablaDomicilio.innerHTML = `<tr><td colspan="8">❌ Error al cargar pedidos.</td></tr>`;
   }
 }
+
+
+
+
 
 
 
