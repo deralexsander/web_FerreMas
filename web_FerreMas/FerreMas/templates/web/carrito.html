@@ -78,20 +78,29 @@
           <p id="total-pagar">$0</p>
         </div>
       </div>
-    </div>
+
+      
 
       <!-- 💳 Botones de método de pago -->
-      <div class="form">
-          <div class="titulo-form">
-            <h1>¿Cómo deseas pagar?</h1>
-          </div>
-        <button class="btn" id="btn-pagar">💳 Pagar con tarjeta</button>
-        <button class="btn" id="btn-mostrar-transferencia">💳 Pagar con transferencia</button>
-      </div>
+<div class="contenedor-botones">
+  <button class="btn" id="btn-pagar">
+    <i class="fas fa-credit-card"></i> Pagar con tarjeta
+  </button>
+  <button class="btn" id="btn-mostrar-transferencia">
+    <i class="fas fa-money-check-alt"></i> Pagar con transferencia
+  </button>
+</div>
+
+
+    </div>
+
+
 
       <!-- 💳 Formulario transferencia (oculto al inicio) -->
       <div class="form oculto" id="formulario-transferencia">
-        <h3>Pago por transferencia bancaria</h3>
+          <div class="titulo-form">
+            <h1>Pago por transferencia bancaria</h1>
+          </div>
         <form id="form-transferencia">
             <div class="flex-column">
               <label>Nombre completo del titular</label>

@@ -2159,6 +2159,12 @@ select option {
   color: white;
 }
 
+.titulo-form-center{
+  color: white;
+  text-align: center;
+  margin: 20px;
+} 
+
 .texto-form{
   color: white;
   font-size: 16px;
@@ -2248,6 +2254,13 @@ hr {
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   margin-top: 10px;
 }
+
+.contenedor-botones {
+  display: flex;
+  justify-content: start; /* puedes usar center o space-between según tu diseño */
+  gap: 12px;
+}
+
 
 
 

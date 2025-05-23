@@ -863,7 +863,7 @@ function renderizarCarrito() {
   if (!contenedor || !totalPagar || !btnPagar) return;
 
   if (carrito.length === 0) {
-    contenedor.innerHTML = "<p>No hay productos en el carrito. Debes tener al menos un producto para continuar con la compra.</p>";
+    contenedor.innerHTML = "<h1 class='titulo-form-center'>No hay productos en el carrito. Debes tener al menos un producto para continuar con la compra.</h1>";
     btnPagar.disabled = true;
     totalPagar.textContent = "$0";
     return;
@@ -1269,7 +1269,7 @@ async function cargarDirecciones() {
     contenedor.innerHTML = "";
 
     if (snapshot.empty) {
-      contenedor.innerHTML = "<p class='titulo-form'>⚠️ Aún no tienes direcciones registradas.</p>";
+      contenedor.innerHTML = "<h1 class='titulo-form mensaje-info'>⚠️ Aún no tienes direcciones registradas.</h1>";
       return;
     }
 
@@ -1623,7 +1623,6 @@ if (document.querySelector("#tabla-transferencias")) {
 
 
 
-    const tipoEntregaRadios = document.querySelectorAll('input[name="tipo_entrega"]');
     const totalElemento = document.getElementById("total-pagar");
 
     // Obtener el carrito del localStorage
@@ -1648,10 +1647,6 @@ if (document.querySelector("#tabla-transferencias")) {
     // Calcular total al cargar la página
     calcularTotal();
 
-    // Recalcular si cambia el tipo de entrega
-    tipoEntregaRadios.forEach(radio => {
-      radio.addEventListener("change", calcularTotal);
-    });
 
 
 
