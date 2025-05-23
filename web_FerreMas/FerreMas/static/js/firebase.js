@@ -857,25 +857,24 @@ function obtenerCostoEnvio() {
 function renderizarCarrito() {
   const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
   const contenedor = document.getElementById("carrito-contenido");
-  const btnPagar = document.getElementById("btn-pagar");
   const totalPagar = document.getElementById("total-pagar");
+  const btnPagar = document.getElementById("btn-pagar");
 
-  if (!contenedor) return;
+  if (!contenedor || !totalPagar || !btnPagar) return;
 
   if (carrito.length === 0) {
     contenedor.innerHTML = "<p>No hay productos en el carrito. Debes tener al menos un producto para continuar con la compra.</p>";
-    if (btnPagar) btnPagar.disabled = true;
-    if (totalPagar) totalPagar.textContent = "$0";
+    btnPagar.disabled = true;
+    totalPagar.textContent = "$0";
     return;
   }
 
-  if (btnPagar) btnPagar.disabled = false;
-  let total = 0;
+  btnPagar.disabled = false;
 
+  let total = 0;
   const html = carrito.map((item, index) => {
     const subtotal = item.precio * item.cantidad;
     total += subtotal;
-
     return `
       <div class="producto-carrito">
         <img src="${item.imagen}" width="80">
@@ -886,16 +885,20 @@ function renderizarCarrito() {
           <span class="cantidad">${item.cantidad}</span>
           <button class="btn-cantidad-mayor" data-index="${index}">+</button>
         </div>
-        <p>Precio unidad: $${item.precio.toLocaleString('es-CL')}</p>
-        <p>Subtotal: $${subtotal.toLocaleString('es-CL')}</p>
+        <p>Precio unidad: $${item.precio.toLocaleString("es-CL")}</p>
+        <p>Subtotal: $${subtotal.toLocaleString("es-CL")}</p>
         <button class="btn-eliminar" data-index="${index}">❌ Eliminar</button>
-        <hr>
       </div>
     `;
   }).join("");
 
   contenedor.innerHTML = html;
 
+  const costoEnvio = obtenerCostoEnvio();
+  const totalFinal = total + costoEnvio;
+  totalPagar.textContent = `$${totalFinal.toLocaleString("es-CL")}`;
+
+  // Reasignar eventos
   document.querySelectorAll(".btn-cantidad-mayor").forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -916,13 +919,6 @@ function renderizarCarrito() {
       eliminarProducto(btn.dataset.index);
     });
   });
-
-  const costoEnvio = obtenerCostoEnvio();
-  const totalConEnvio = total + costoEnvio;
-
-  if (totalPagar) {
-    totalPagar.textContent = `$${totalConEnvio.toLocaleString("es-CL")}`;
-  }
 }
 
 function modificarCantidad(index, delta) {
@@ -1235,7 +1231,7 @@ async function cargarDirecciones() {
     contenedor.innerHTML = "";
 
     if (snapshot.empty) {
-      contenedor.innerHTML = "<p class='mensaje-info'>⚠️ Aún no tienes direcciones registradas.</p>";
+      contenedor.innerHTML = "<p class='titulo-form'>⚠️ Aún no tienes direcciones registradas.</p>";
       return;
     }
 
@@ -1256,12 +1252,60 @@ async function cargarDirecciones() {
           <button onclick="eliminarDireccion('${docSnap.id}')">🗑 Eliminar</button>
         </div>
       `;
-
       contenedor.appendChild(div);
     });
   } catch (error) {
     console.error("❌ Error al cargar direcciones:", error);
   }
+}
+
+async function cargarUltimaDireccion() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const contenedor = document.getElementById("lista-ultimas-direcciones");
+  if (!contenedor) return;
+
+  try {
+    const ref = collection(db, "direcciones", user.uid, "items");
+    const q = query(ref, orderBy("fechaGuardado", "desc"), limit(1));
+    const snapshot = await getDocs(q);
+
+    contenedor.innerHTML = "";
+
+    if (snapshot.empty) {
+      contenedor.innerHTML = "<p class='mensaje-info'>⚠️ Aún no tienes direcciones registradas.</p>";
+      return;
+    }
+
+    const docSnap = snapshot.docs[0];
+    const datos = docSnap.data();
+
+    const div = document.createElement("div");
+    div.classList.add("direccion-guardada");
+
+    div.innerHTML = `
+      <div class="direccion-info">
+        <p class="nombre">👤 <strong>${datos.nombre}</strong></p>
+        <p class="texto">📍 ${datos.calleNumero}${datos.departamento ? ', ' + datos.departamento : ''}</p>
+        <p class="texto">🏙️ ${datos.comuna}, ${datos.region}</p>
+        <p class="texto">📞 ${datos.telefono}</p>
+        <p class="texto">📧 ${datos.correo}</p>
+      </div>
+    `;
+
+    contenedor.appendChild(div);
+  } catch (error) {
+    console.error("❌ Error al cargar la última dirección:", error);
+  }
+}
+
+if (document.getElementById("lista-ultimas-direcciones")) {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      cargarUltimaDireccion();  // 👉 esta función debe estar definida antes
+    }
+  });
 }
 
 
@@ -1578,9 +1622,6 @@ if (document.querySelector("#tabla-transferencias")) {
 
 
 
-
-
-
 async function cargarPedidos() {
   const tablaSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
   const tablaDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
@@ -1660,6 +1701,65 @@ async function cargarPedidos() {
         tablaSucursal.appendChild(fila);
       }
     }
++
+      // ✅ Rechazar pedido
+      document.querySelectorAll(".btn-rechazar-pedido").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          const motivo = prompt("⚠️ Ingresa el motivo del rechazo (esto será enviado al cliente):");
+
+          if (!motivo) {
+            alert("❌ Debes ingresar un motivo para rechazar el pedido.");
+            return;
+          }
+
+          try {
+            const pedidoRef = doc(db, "pedidos", id);
+            const pedidoSnap = await getDoc(pedidoRef);
+
+            if (!pedidoSnap.exists()) {
+              alert("❌ No se encontró el pedido.");
+              return;
+            }
+
+            const pedido = pedidoSnap.data();
+            const nombreCliente = pedido.nombreCliente || "Cliente";
+            const correoCliente = pedido.correoCliente || "";
+            const carrito = Array.isArray(pedido.carrito) ? pedido.carrito : [];
+            const productosTexto = carrito.map(p => `- ${p.nombre} x${p.cantidad}`).join("\n") || "(sin detalle)";
+
+            // Cambiar estado en Firestore
+            await setDoc(pedidoRef, {
+              estadoPedido: "Rechazado",
+              rechazadoEn: new Date(),
+              motivoRechazo: motivo
+            }, { merge: true });
+
+            // Enviar correo
+            const asunto = "🚫 Tu pedido fue rechazado – Ferremas";
+            const cuerpo = `Hola ${nombreCliente},\n\nLamentamos informarte que tu pedido ha sido rechazado por el siguiente motivo:\n\n📄 ${motivo}\n\n🔹 Detalle del pedido:\n${productosTexto}\n\nSi tienes dudas o deseas una solución alternativa, puedes responder a este mismo correo y te ayudaremos a la brevedad.\n\nGracias por tu comprensión,\nEquipo Ferremas`;
+
+            window.open(`mailto:${correoCliente}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`, "_blank");
+
+            // Desactivar botones de la fila
+            const fila = btn.closest("tr");
+            if (fila) {
+              fila.querySelectorAll("button").forEach(b => {
+                b.disabled = true;
+                if (b.classList.contains("btn-rechazar-pedido")) b.textContent = "Rechazado";
+              });
+              fila.querySelector(".estado-pedido").textContent = "Rechazado";
+            }
+
+            alert("✅ Pedido rechazado correctamente.");
+          } catch (error) {
+            console.error("❌ Error al rechazar pedido:", error);
+            alert("❌ No se pudo rechazar el pedido.");
+          }
+        });
+      });
+
+
 
     // ✅ Tomar pedido
     document.querySelectorAll(".btn-tomar-pedido").forEach(btn => {
@@ -1726,22 +1826,36 @@ async function cargarPedidos() {
     });
 
     // ✅ Generar boleta
-    document.querySelectorAll(".btn-boleta").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.getAttribute("data-id");
-        try {
-          // Aquí puedes personalizar cómo se genera/descarga la boleta
-          alert(`📄 Generando boleta para el pedido ${id}...`);
+      document.querySelectorAll(".btn-boleta").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
 
-          // Ejemplo de abrir un archivo PDF generado:
-          // window.open(`/boletas/${id}.pdf`, "_blank");
+          try {
+            if (!window.jspdf) {
+              alert("❌ jsPDF no está cargado. Verifica que el script esté bien importado.");
+              return;
+            }
 
-        } catch (error) {
-          console.error("❌ Error al generar la boleta:", error);
-          alert("❌ No se pudo generar la boleta.");
-        }
+            const { jsPDF } = window.jspdf;
+            const pedidoRef = doc(db, "pedidos", id);
+            const pedidoSnap = await getDoc(pedidoRef);
+            const pedido = pedidoSnap.data();
+
+            const doc = new jsPDF();
+            doc.text("🧾 Boleta de Compra – Ferremas", 20, 20);
+            doc.text(`ID Pedido: ${id}`, 20, 30);
+            doc.text(`Cliente: ${pedido.nombreCliente}`, 20, 40);
+            doc.text(`Correo: ${pedido.correoCliente}`, 20, 50);
+            doc.text(`Total: $${pedido.total.toLocaleString("es-CL")}`, 20, 60);
+
+            doc.save(`Boleta_${id}.pdf`);
+          } catch (error) {
+            console.error("❌ Error al generar la boleta:", error);
+            alert("❌ No se pudo generar la boleta.");
+          }
+        });
       });
-    });
+
 
   } catch (error) {
     console.error("❌ Error al cargar pedidos:", error);
@@ -1756,95 +1870,6 @@ if (
 ) {
   cargarPedidos();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    const uidCliente = user.uid;
-    mostrarPedidosDelCliente(uidCliente);
-  } else {
-    console.log("Usuario no autenticado");
-    document.querySelector("#tabla-datos-pedidos tbody").innerHTML =
-      "<tr><td colspan='9'>🔒 Debes iniciar sesión para ver tus pedidos.</td></tr>";
-  }
-});
-
-async function mostrarPedidosDelCliente(uidCliente) {
-  const tabla = document.querySelector("#tabla-datos-pedidos tbody");
-
-  if (!tabla) {
-    console.warn("No se encontró la tabla");
-    return;
-  }
-
-  tabla.innerHTML = "";
-
-  try {
-    const pedidosRef = collection(db, "pedidos");
-    const snapshot = await getDocs(pedidosRef);
-
-    const pedidosFiltrados = snapshot.docs.filter(docSnap => {
-      const p = docSnap.data();
-      return p.uidCliente === uidCliente;
-    });
-
-    if (pedidosFiltrados.length === 0) {
-      tabla.innerHTML = "<tr><td colspan='9'>📭 No tienes pedidos registrados.</td></tr>";
-      return;
-    }
-
-    pedidosFiltrados.forEach(docSnap => {
-      const p = docSnap.data();
-
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${docSnap.id}</td>
-        <td>${p.nombreCliente || "-"}</td>
-        <td>${p.correoCliente || "-"}</td>
-        <td>${p.rutCliente || "-"}</td>
-        <td>$${p.total?.toLocaleString("es-CL") || "0"}</td>
-        <td>${p.banco || "-"}</td>
-        <td>${p.tipoEntrega || "-"}</td>
-        <td>${p.estadoPedido || "-"}</td>
-        <td>${p.estadoTransferencia || "-"}</td>
-      `;
-      tabla.appendChild(fila);
-    });
-  } catch (error) {
-    console.error("Error al cargar los pedidos:", error);
-    tabla.innerHTML = "<tr><td colspan='9'>❌ Error al cargar los datos.</td></tr>";
-  }
-}
-
-
-
-obtenerTodosLosDatosDePedidos();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1959,14 +1984,9 @@ async function cargarPedidosEnPreparacion() {
   }
 }
 
-
-
-
-
 if (document.querySelector("#tabla-preparacion-pedidos")) {
   cargarPedidosEnPreparacion();
 }
-
 
 
 
@@ -2008,6 +2028,71 @@ if (document.querySelector("#tabla-preparacion-pedidos")) {
     }
   });
 
+
+
+
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const uidCliente = user.uid;
+    mostrarPedidosDelCliente(uidCliente);
+  } else {
+    console.log("Usuario no autenticado");
+    document.querySelector("#tabla-datos-pedidos tbody").innerHTML =
+      "<tr><td colspan='9'>🔒 Debes iniciar sesión para ver tus pedidos.</td></tr>";
+  }
+});
+
+async function mostrarPedidosDelCliente(uidCliente) {
+  const tabla = document.querySelector("#tabla-datos-pedidos tbody");
+
+  if (!tabla) {
+    console.warn("No se encontró la tabla");
+    return;
+  }
+
+  tabla.innerHTML = "";
+
+  try {
+    const pedidosRef = collection(db, "pedidos");
+    const snapshot = await getDocs(pedidosRef);
+
+    const pedidosFiltrados = snapshot.docs.filter(docSnap => {
+      const p = docSnap.data();
+      return p.uidCliente === uidCliente;
+    });
+
+    if (pedidosFiltrados.length === 0) {
+      tabla.innerHTML = "<tr><td colspan='9'>📭 No tienes pedidos registrados.</td></tr>";
+      return;
+    }
+
+    pedidosFiltrados.forEach(docSnap => {
+      const p = docSnap.data();
+
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${docSnap.id}</td>
+        <td>${p.nombreCliente || "-"}</td>
+        <td>${p.correoCliente || "-"}</td>
+        <td>${p.rutCliente || "-"}</td>
+        <td>$${p.total?.toLocaleString("es-CL") || "0"}</td>
+        <td>${p.banco || "-"}</td>
+        <td>${p.tipoEntrega || "-"}</td>
+        <td>${p.estadoPedido || "-"}</td>
+        <td>${p.estadoTransferencia || "-"}</td>
+      `;
+      tabla.appendChild(fila);
+    });
+  } catch (error) {
+    console.error("Error al cargar los pedidos:", error);
+    tabla.innerHTML = "<tr><td colspan='9'>❌ Error al cargar los datos.</td></tr>";
+  }
+}
+
+
+
+obtenerTodosLosDatosDePedidos();
 
 
 
