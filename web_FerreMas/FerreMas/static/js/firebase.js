@@ -1237,106 +1237,161 @@ if (btnPagar) {
 
 
 
-  const formEnvio = document.getElementById("formulario-direccion");
+const formEnvio = document.getElementById("formulario-direccion");
 
-  if (formEnvio) {
-    formEnvio.addEventListener("submit", async (e) => {
-      e.preventDefault();
+if (formEnvio) {
+  formEnvio.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      const user = auth.currentUser;
-      if (!user) {
-        alert("Debes iniciar sesión");
-        return;
-      }
-
-      const direccion = {
-        nombre: document.getElementById("nombre")?.value.trim() || "",
-        rut: document.getElementById("rut")?.value.trim() || "",
-        telefono: document.getElementById("telefono")?.value.trim() || "",
-        correo: document.getElementById("correo")?.value.trim() || "",
-        calleNumero: document.getElementById("calle-numero")?.value.trim() || "",
-        departamento: document.getElementById("departamento")?.value.trim() || "",
-        comuna: document.getElementById("comuna")?.value || "",
-        region: document.getElementById("region")?.value || "",
-        codigoPostal: document.getElementById("codigo-postal")?.value.trim() || "",
-        fechaGuardado: new Date()
-      };
-
-      if (!direccion.region || !direccion.comuna) {
-        alert("Debe seleccionar región y comuna.");
-        return;
-      }
-
-      const guardar = document.getElementById("guardar-envio")?.checked;
-
-      if (guardar) {
-        try {
-          const ref = collection(db, "direcciones", user.uid, "items");
-          await addDoc(ref, direccion);
-          alert("✅ Dirección guardada");
-          formEnvio.reset();
-          document.getElementById("comuna").innerHTML = '<option value="">Seleccione una comuna</option>';
-          document.getElementById("comuna").disabled = true;
-          cargarDirecciones();
-        } catch (error) {
-          console.error("❌ Error al guardar dirección:", error);
-          alert("Ocurrió un error al guardar la dirección");
-        }
-      } else {
-        alert("✅ Dirección utilizada solo para esta compra (no guardada)");
-      }
-    });
-  }
-  async function cargarDirecciones() {
     const user = auth.currentUser;
-    if (!user) return;
-
-    const contenedor = document.getElementById("lista-direcciones");
-    if (!contenedor) return;
-
-    try {
-      const ref = collection(db, "direcciones", user.uid, "items");
-      const snapshot = await getDocs(ref);
-
-      contenedor.innerHTML = "";
-
-      snapshot.forEach((docSnap) => {
-        const datos = docSnap.data();
-        const div = document.createElement("div");
-        div.innerHTML = `
-          <p><strong>${datos.nombre}</strong><br>
-          ${datos.calleNumero}, ${datos.comuna}, ${datos.region}<br>
-          <button onclick="eliminarDireccion('${docSnap.id}')">Eliminar</button>
-          </p>
-          <hr>
-        `;
-        contenedor.appendChild(div);
-      });
-    } catch (error) {
-      console.error("❌ Error al cargar direcciones:", error);
+    if (!user) {
+      alert("⚠️ Debes iniciar sesión para guardar tu dirección.");
+      return;
     }
-  }
 
-  window.eliminarDireccion = async function(idDireccion) {
-    const user = auth.currentUser;
-    if (!user) return;
+    const direccion = {
+      nombre: document.getElementById("nombre")?.value.trim() || "",
+      rut: document.getElementById("rut")?.value.trim() || "",
+      telefono: document.getElementById("telefono")?.value.trim() || "",
+      correo: document.getElementById("correo")?.value.trim() || "",
+      calleNumero: document.getElementById("calle-numero")?.value.trim() || "",
+      departamento: document.getElementById("departamento")?.value.trim() || "",
+      comuna: document.getElementById("comuna")?.value || "",
+      region: document.getElementById("region")?.value || "",
+      codigoPostal: document.getElementById("codigo-postal")?.value.trim() || "",
+      fechaGuardado: new Date()
+    };
 
-    try {
-      await deleteDoc(doc(db, "direcciones", user.uid, "items", idDireccion));
-      alert("🗑️ Dirección eliminada correctamente");
-      cargarDirecciones();
-    } catch (error) {
-      console.error("❌ Error al eliminar dirección:", error);
+    if (!direccion.region || !direccion.comuna) {
+      alert("📍 Debes seleccionar región y comuna.");
+      return;
     }
-  };
 
-  if (document.getElementById("lista-direcciones")) {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
+    const guardar = document.getElementById("guardar-envio")?.checked;
+
+    if (guardar) {
+      try {
+        const ref = collection(db, "direcciones", user.uid, "items");
+        await addDoc(ref, direccion);
+
+        alert("✅ Dirección guardada exitosamente.");
+
+        formEnvio.reset();
+        document.getElementById("comuna").innerHTML = '<option value="">Seleccione una comuna</option>';
+        document.getElementById("comuna").disabled = true;
         cargarDirecciones();
+      } catch (error) {
+        console.error("❌ Error al guardar dirección:", error);
+        alert("🚫 Ocurrió un error al guardar tu dirección. Intenta nuevamente.");
       }
+    } else {
+      alert("ℹ️ Dirección utilizada solo para esta compra. No será guardada.");
+    }
+  });
+}
+
+
+
+async function cargarDirecciones() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const contenedor = document.getElementById("lista-direcciones");
+  if (!contenedor) return;
+
+  try {
+    const ref = collection(db, "direcciones", user.uid, "items");
+    const snapshot = await getDocs(ref);
+
+    contenedor.innerHTML = "";
+
+    if (snapshot.empty) {
+      contenedor.innerHTML = "<p class='mensaje-info'>⚠️ Aún no tienes direcciones registradas.</p>";
+      return;
+    }
+
+    snapshot.forEach((docSnap) => {
+      const datos = docSnap.data();
+      const div = document.createElement("div");
+      div.classList.add("direccion-guardada");
+      div.innerHTML = `
+        <p><strong>📍 ${datos.nombre}</strong></p>
+        <p>${datos.calleNumero}${datos.departamento ? ', Depto. ' + datos.departamento : ''}</p>
+        <p>${datos.comuna}, ${datos.region}</p>
+        <p class="acciones-direccion">
+          <button onclick="eliminarDireccion('${docSnap.id}')">🗑 Eliminar</button>
+        </p>
+        <hr>
+      `;
+      contenedor.appendChild(div);
     });
+  } catch (error) {
+    console.error("❌ Error al cargar direcciones:", error);
   }
+}
+
+
+window.eliminarDireccion = async function(idDireccion) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  try {
+    await deleteDoc(doc(db, "direcciones", user.uid, "items", idDireccion));
+    alert("🗑️ Dirección eliminada correctamente.");
+    cargarDirecciones();
+  } catch (error) {
+    console.error("❌ Error al eliminar dirección:", error);
+    alert("🚫 No se pudo eliminar la dirección. Intenta nuevamente.");
+  }
+};
+
+
+if (document.getElementById("lista-direcciones")) {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      cargarDirecciones();
+    }
+  });
+}
+
+
+
+  
+  const radiosEntrega = document.querySelectorAll('input[name="tipo_entrega"]');
+  const regionSucursal = document.getElementById("region-sucursal");
+  const comunaSucursal = document.getElementById("comuna-sucursal");
+  const grupoDespacho = document.getElementById("grupo-despacho");
+  const contenedorDireccion = document.getElementById("contenedor-direccion");
+
+  function actualizarVistaEntrega() {
+    const tipo = document.querySelector('input[name="tipo_entrega"]:checked')?.value;
+
+    if (tipo === "tienda") {
+      // Mostrar grupo de selección de sucursales y ocultar dirección
+      grupoDespacho.classList.remove("oculto");
+      regionSucursal.disabled = false;
+      comunaSucursal.disabled = false;
+
+      contenedorDireccion.classList.add("oculto");
+    } else if (tipo === "domicilio") {
+      // Ocultar grupo de sucursales y mostrar dirección de envío
+      grupoDespacho.classList.add("oculto");
+      regionSucursal.disabled = true;
+      comunaSucursal.disabled = true;
+
+      contenedorDireccion.classList.remove("oculto");
+    }
+  }
+
+  // Asignar evento a los radios
+  radiosEntrega.forEach(radio => {
+    radio.addEventListener("change", actualizarVistaEntrega);
+  });
+
+  // Aplicar el estado inicial
+  actualizarVistaEntrega();
+
+
 
 
 

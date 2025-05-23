@@ -77,10 +77,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     }, 400);
   }
 
-
-
-
-
   const categoriaInput = document.querySelector('select[name="categoria"]');
 
   const campos = {
@@ -93,12 +89,13 @@ window.addEventListener('DOMContentLoaded', async () => {
   const desactivarTodos = () => {
     for (let campo in campos) {
       campos[campo].disabled = true;
-      campos[campo].value = ""; // Limpia el valor al desactivar
+      campos[campo].value = "";
     }
   };
 
   const manejarCategoria = () => {
-    const cat = categoriaInput.value;
+    const cat = categoriaInput ? categoriaInput.value : null;
+    if (!cat) return;
     desactivarTodos();
 
     if (cat === "herramientas_electricas") {
@@ -108,53 +105,64 @@ window.addEventListener('DOMContentLoaded', async () => {
       campos.voltaje.disabled = false;
     } else if (cat === "pinturas") {
       campos.vencimiento.disabled = false;
-    } else if (["accesorios", "seguridad"].includes(cat)) {
     }
-    // herramientas_manual no habilita ningún campo extra
   };
 
-  // Ejecutar al inicio y al cambiar categoría
-  categoriaInput.addEventListener("change", manejarCategoria);
-  manejarCategoria(); // para el estado inicial
+  if (categoriaInput) {
+    categoriaInput.addEventListener("change", manejarCategoria);
+    manejarCategoria();
+  }
 
+  // Mostrar/ocultar formulario de transferencia y secciones de pago
+  const btnTransferencia = document.getElementById("btn-mostrar-transferencia");
+  const formTransferencia = document.getElementById("formulario-transferencia");
+  const btnPagar = document.getElementById("btn-pagar");
+  const seccionMetodosPago = btnPagar?.closest(".form");
 
+  const volverMetodoPago = document.createElement("button");
+  volverMetodoPago.textContent = "⬅ Volver a métodos de pago";
+  volverMetodoPago.className = "btn";
+  volverMetodoPago.type = "button";
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const inputCantidad = document.getElementById("cantidad");
-    const btnAumentar = document.querySelector(".btn-aumentar");
-    const btnDisminuir = document.querySelector(".btn-disminuir");
-  
-    if (!inputCantidad || !btnAumentar || !btnDisminuir) return;
-  
+  if (formTransferencia) {
+    formTransferencia.appendChild(volverMetodoPago);
+  }
+
+  if (btnTransferencia && formTransferencia && seccionMetodosPago) {
+    btnTransferencia.addEventListener("click", (e) => {
+      e.preventDefault();
+      seccionMetodosPago.classList.add("oculto");
+      formTransferencia.classList.remove("oculto");
+    });
+
+    volverMetodoPago.addEventListener("click", () => {
+      formTransferencia.classList.add("oculto");
+      seccionMetodosPago.classList.remove("oculto");
+    });
+  }
+
+  if (btnPagar && formTransferencia && seccionMetodosPago) {
+    btnPagar.addEventListener("click", (e) => {
+      e.preventDefault();
+      formTransferencia.classList.add("oculto");
+      seccionMetodosPago.classList.remove("oculto");
+    });
+  }
+
+  const inputCantidad = document.getElementById("cantidad");
+  const btnAumentar = document.querySelector(".btn-aumentar");
+  const btnDisminuir = document.querySelector(".btn-disminuir");
+
+  if (inputCantidad && btnAumentar && btnDisminuir) {
     btnAumentar.addEventListener("click", () => {
       inputCantidad.value = parseInt(inputCantidad.value) + 1;
     });
-  
+
     btnDisminuir.addEventListener("click", () => {
       const actual = parseInt(inputCantidad.value);
       if (actual > 1) {
         inputCantidad.value = actual - 1;
       }
     });
-  });
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
+  }
 });

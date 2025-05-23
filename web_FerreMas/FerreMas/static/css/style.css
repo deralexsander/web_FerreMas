@@ -1791,6 +1791,7 @@ select option {
 
 
 
+
   .modal-producto {
     display: none;
     position: fixed;
@@ -1908,12 +1909,174 @@ select option {
   margin: 0px 0px 0px 0px; /* arriba derecha abajo izquierda */
 }
 
-.btn.orizontal {
+.cantidad-productos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: 'Poppins', sans-serif;
+  color: white;
 }
 
-.btn-agregar-carrito {
-  
+.input-cantidad-container {
+  display: flex;
+  align-items: center;
+  background-color: #0a4a829c;
+  backdrop-filter: blur(10px);
+  border: 1.5px solid hsla(201, 84%, 67%, 0.6);
+  border-radius: 15px;
+  overflow: hidden;
+  width: fit-content;
+  padding: 4px;
 }
+
+.input-cantidad-container input[type="number"] {
+  width: 50px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.input-cantidad-container input:focus {
+  outline: none;
+}
+
+.btn-cantidad {
+  background-color: hsla(194, 89%, 45%, 1);
+  color: white;
+  border: none;
+  font-size: 18px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+  border-radius: 10px;
+}
+
+.btn-cantidad:hover {
+  background-color: hsla(186, 88%, 46%, 1);
+}
+
+
+
+
+
+
+.producto-carrito {
+  background-color: #0a4a829c;
+  backdrop-filter: blur(10px);
+  border: 1.5px solid hsla(201, 84%, 67%, 0.6);
+  border-radius: 15px;
+  padding: 20px;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 0 10px rgba(0,0,0,0.15);
+  margin-bottom: 20px;
+}
+
+.producto-carrito img {
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.producto-carrito h4 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.cantidad-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.cantidad-control span.cantidad {
+  min-width: 20px;
+  text-align: center;
+}
+
+.btn-cantidad-mayor,
+.btn-cantidad-menor,
+.btn-eliminar {
+  background-color: hsla(194, 89%, 45%, 1);
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.btn-eliminar {
+  background-color: #e74c3c;
+}
+
+.btn-cantidad-mayor:hover,
+.btn-cantidad-menor:hover {
+  background-color: hsla(186, 88%, 46%, 1);
+}
+
+.btn-eliminar:hover {
+  background-color: #c0392b;
+}
+
+.producto-carrito hr {
+  margin-top: 15px;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+
+/* Estilo del botón vaciar carrito */
+.btn-vaciar-carrito {
+  background-color: transparent;
+  border: 1.5px solid hsla(0, 0%, 100%, 0.4);
+  color: white;
+  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 15px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-vaciar-carrito:hover {
+  background-color: hsla(0, 80%, 55%, 0.7);
+  border-color: transparent;
+}
+
+
+
+
+
+
+
+
+
+  .btn-agregar-carrito {
+    margin: 16px 0 8px 0;
+    background-color: hsla(194, 89%, 45%, 1); /* Azul petróleo */
+    border: none;
+    color: white;
+    font-size: 20px;
+    font-weight: 500;
+    border-radius: 15px;
+    height: 60px;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .btn-agregar-carrito:hover {
+    background-color: hsla(186, 88%, 46%, 1); /* Verde azulado */
+  }
 
 .modal-titulo-izquierdo {
   display: flex;
@@ -1992,6 +2155,106 @@ select option {
 .solo-contador {
   display: none;
 }
+.titulo-form{
+  color: white;
+}
+
+.texto-form{
+  color: white;
+  font-size: 16px;
+}
+
+.total-pago{
+  color: white;
+  font-size: 30px;
+
+}
+
+.opciones-entrega {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+  color: white;
+}
+
+.grupo-despacho {
+  margin-top: 10px;
+  padding: 15px;
+  border: 1px solid hsla(201, 84%, 67%, 0.5);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.aclaracion {
+  font-size: 13px;
+  color: hsla(190, 100%, 85%, 0.8);
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+
+#lista-direcciones {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.direccion-guardada {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 16px;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.direccion-guardada p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.direccion-guardada strong {
+  font-size: 16px;
+  color: white;
+}
+
+.acciones-direccion {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.acciones-direccion button {
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 12px;
+  border-radius: 12px;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.acciones-direccion button:hover {
+  background-color: rgba(255, 100, 100, 0.3);
+  transform: scale(1.02);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  margin-top: 10px;
+}
+
+
+
+
+
+
+
 
 
 

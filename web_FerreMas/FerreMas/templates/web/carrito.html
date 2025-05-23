@@ -6,87 +6,127 @@
 {% endblock %}
 
 {% block contenido %}
-
 <div class="contenedor_informacion">
-
   <div class="bloque_info">
+    <!-- 🛒 Columna izquierda: Productos en el carrito -->
     <div class="columna_info">
       <div id="carrito-contenido"></div>
+      <button id="btn-vaciar-carrito" class="btn-vaciar-carrito">🗑 Vaciar carrito</button>
     </div>
+
+    <!-- 📦 Columna derecha: Entrega y pago -->
     <div class="columna_info">
-      <div class="acciones-carrito">
-        <button id="btn-vaciar-carrito">🗑 Vaciar carrito</button>
-        <button id="btn-pagar">💳 Pagar</button>
-      </div>
-
-      <!-- Nuevo bloque de selección -->
+    <div class="form">
+      <!-- 🚚 Tipo de entrega -->
       <div class="metodo-entrega">
-        <h3>¿Cómo deseas recibir tu pedido?</h3>
-        <label>
-          <input type="radio" name="tipo_entrega" value="tienda" checked>
-          Retiro en tienda
-        </label><br>
-          <div class="flex-column">
-      <label>Regiones disponibles</label>
-      <select id="region-sucursal" class="input" >
-        <option value="">Seleccione una región</option>
-      </select>
-    </div>
-
-    <div class="flex-column">
-      <label>Comunas</label>
-      <select id="comuna-sucursal" class="input" required>
-        <option value="">Seleccione una comuna</option>
-      </select>
-    </div>
-
-        <label>
-          <input type="radio" name="tipo_entrega" value="domicilio">
-          Despacho a domicilio
-        </label>
-
-        <!-- En la columna derecha donde va el total -->
-        <div class="total-pago">
-          <h4>Total a pagar:</h4>
-          <p id="total-pagar" style="font-weight: bold;">$0</p>
+        <div class="titulo-form">
+          <h1>¿Cómo deseas recibir tu pedido?</h1>
         </div>
 
-      </div>
-
-      <!-- Formulario de transferencia -->
-      <div>
-        <h3>Pago por transferencia bancaria</h3>
-
-        <form id="form-transferencia">
-          <label>Nombre completo del titular</label>
-          <input type="text" name="nombre" required>
-
-          <label>RUT del titular (sin puntos, con guion)</label>
-          <input type="text" name="rut" required pattern="\d{7,8}-[\dkK]">
-
-          <label>Banco desde el cual transferirá</label>
-          <select name="banco" required>
-            <option value="">Selecciona tu banco</option>
-            <option>BancoEstado</option>
-            <option>Santander</option>
-            <option>BCI</option>
-            <option>Scotiabank</option>
-            <option>Banco de Chile</option>
-            <option>Otro</option>
-          </select>
-
+        <div class="opciones-entrega">
           <label>
-            <input type="checkbox" name="acepta" required>
-            Acepto que mi pago será validado manualmente por Ferremas antes de que se confirme el pedido.
+            <input type="radio" name="tipo_entrega" value="tienda" checked>
+            Retiro en tienda
           </label>
 
-          <button type="submit">💳 Transferencia</button>
-        </form>
+          <label>
+            <input type="radio" name="tipo_entrega" value="domicilio">
+            Despacho a domicilio
+          </label>
+        </div>
+
+        <div class="grupo-despacho" id="grupo-despacho">
+          <p class="aclaracion">Selecciona región y comuna solo si eliges retiro en tienda:</p>
+
+          <div class="flex-column">
+            <label for="region-sucursal">Región</label>
+            <select id="region-sucursal" class="input" >
+              <option value="">Seleccione una región</option>
+            </select>
+          </div>
+
+          <div class="flex-column">
+            <label for="comuna-sucursal">Comuna</label>
+            <select id="comuna-sucursal" class="input" disabled>
+              <option value="">Seleccione una comuna</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 🏠 Dirección para despacho a domicilio -->
+        <div id="contenedor-direccion" class="oculto">
+          <div class="titulo-form">
+            <h1>📬 Dirección de envío</h1>
+          </div>
+          <div id="lista-direcciones"></div>
+          <a href="{% url 'datos_personales' %}">
+            <button class="btn">agregar direccion</button>
+          </a>
+          
+
+        </div>
       </div>
 
+      <!-- 💰 Total a pagar -->
+      <div class="texto-form">
+        <h1>Total a pagar:</h1>
+        <div class="total-pago">
+          <p id="total-pagar" style="font-weight: bold;">$0</p>
+        </div>
+      </div>
+    </div>
+
+      <!-- 💳 Botones de método de pago -->
+      <div class="form">
+          <div class="titulo-form">
+            <h1>¿Cómo deseas pagar?</h1>
+          </div>
+        <button class="btn" id="btn-pagar">💳 Pagar con tarjeta</button>
+        <button class="btn" id="btn-mostrar-transferencia">💳 Pagar con transferencia</button>
+      </div>
+
+      <!-- 💳 Formulario transferencia (oculto al inicio) -->
+      <div class="form oculto" id="formulario-transferencia">
+        <h3>Pago por transferencia bancaria</h3>
+        <form id="form-transferencia">
+            <div class="flex-column">
+              <label>Nombre completo del titular</label>
+            </div>
+            <div class="inputForm">
+              <input type="text" class="input" name="nombre" required placeholder="Ingresa nombre del titular" />
+            </div>
+
+            <div class="flex-column">
+              <label>RUT del titular (sin puntos, con guion)</label>
+            </div>
+            <div class="inputForm">
+              <input type="text" class="input" name="rut" required pattern="\d{7,8}-[\dkK]" placeholder="Ingresa rut del titular" />
+            </div>
+
+            <div class="flex-column">
+              <label>Banco desde el cual transferirá</label>
+              <select name="banco" required class="input">
+                <option value="">Selecciona tu banco</option>
+                <option>BancoEstado</option>
+                <option>Santander</option>
+                <option>BCI</option>
+                <option>Scotiabank</option>
+                <option>Banco de Chile</option>
+                <option>Otro</option>
+              </select>
+            </div>
+
+            <div class="flex-column">
+              <label>
+                <input type="checkbox" name="acepta" required />
+                Acepto que mi pago será validado manualmente por Ferremas antes de que se confirme el pedido.
+              </label>
+            </div>
+
+          <button type="submit" class="button-submit">💳 Confirmar transferencia</button>
+        </form>
+      </div>
     </div>
   </div>
-
 </div>
-
 {% endblock %}
