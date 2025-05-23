@@ -906,6 +906,8 @@ function renderizarCarrito() {
     });
   });
 
+  
+
   document.querySelectorAll(".btn-cantidad-menor").forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -919,6 +921,42 @@ function renderizarCarrito() {
       eliminarProducto(btn.dataset.index);
     });
   });
+
+
+
+  if (btnPagar) {
+    btnPagar.addEventListener("click", async () => {
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      if (carrito.length === 0) {
+        alert("⚠️ No hay productos en el carrito.");
+        return;
+      }
+
+      const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value || "tienda";
+
+      try {
+        const response = await fetch("/crear_preferencia/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: carrito,
+            tipo_entrega: tipoEntrega
+          })
+        });
+
+        const data = await response.json();
+        if (data.init_point) {
+          window.location.href = data.init_point; // Redirige al checkout de Mercado Pago
+        } else {
+          alert("❌ No se pudo iniciar el pago. Intenta más tarde.");
+        }
+      } catch (error) {
+        console.error("❌ Error al iniciar el pago:", error);
+        alert("❌ Error al conectar con el servidor.");
+      }
+    });
+  }
+
 }
 
 function modificarCantidad(index, delta) {

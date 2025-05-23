@@ -18,5 +18,5 @@ urlpatterns = [
     path('trasferencias/', views.trasferencias, name="trasferencias"),
     path('historial_pedidos/', views.historial_pedidos, name="historial_pedidos"),
     path('armado_pedidos/', views.armado_pedidos, name="armado_pedidos"),
-
+    path('crear_preferencia/', views.crear_preferencia, name='crear_preferencia'),
 ]
