@@ -782,31 +782,26 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   
 
-
-
-
-
-
-
-
-
-
-
-// ======= FUNCIONALIDAD DE CANTIDAD (+ / -) =======
-const inputCantidad = document.getElementById("cantidad");
-const btnIncrementar = document.querySelector(".btn-aumentar");
-const btnDecrementar = document.querySelector(".btn-disminuir");
-
-if (inputCantidad && btnIncrementar && btnDecrementar) {
-  btnIncrementar.addEventListener("click", () => {
-    inputCantidad.value = parseInt(inputCantidad.value) + 1;
-  });
-
-  btnDecrementar.addEventListener("click", () => {
-    const actual = parseInt(inputCantidad.value);
-    if (actual > 1) inputCantidad.value = actual - 1;
-  });
+// ======= CONTADOR DE PRODUCTOS DIFERENTES =======
+function actualizarContadorProductosDiferentes() {
+  const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  const badgeContador = document.getElementById("contador-productos");
+  if (badgeContador) {
+    badgeContador.textContent = carrito.length;
+  }
 }
+
+// ======= ACTUALIZAR AL CARGAR LA PÁGINA =======
+actualizarContadorProductosDiferentes();
+
+
+
+
+
+
+
+
+
 
 // ======= CONTADOR DE PRODUCTOS DIFERENTES =======
 function actualizarContadorProductosDiferentes() {
@@ -829,7 +824,7 @@ if (btnAgregarCarrito) {
     const precioTexto = document.getElementById("modal-precio").textContent.trim().replace(/\$/g, "").replace(/\./g, "").replace(",", ".");
     const precio = parseFloat(precioTexto);
     const cantidad = parseInt(document.getElementById("cantidad").value) || 1;
-    const uid = document.getElementById("modal-producto").getAttribute("data-uid"); // ✅ Usar uid del producto
+    const uid = document.getElementById("modal-producto").getAttribute("data-uid");
     const imagen = document.getElementById("modal-imagen").src;
 
     if (!uid) {
@@ -837,14 +832,7 @@ if (btnAgregarCarrito) {
       return;
     }
 
-    const nuevoItem = {
-      uid,
-      nombre,
-      precio,
-      cantidad,
-      imagen
-    };
-
+    const nuevoItem = { uid, nombre, precio, cantidad, imagen };
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     const productoExistente = carrito.find(item => item.uid === nuevoItem.uid);
 
@@ -855,175 +843,116 @@ if (btnAgregarCarrito) {
     }
 
     localStorage.setItem("carrito", JSON.stringify(carrito));
-    actualizarContadorProductosDiferentes(); // 🔁 Refresca el contador
+    actualizarContadorProductosDiferentes();
+    renderizarCarrito();
   });
 }
 
+function obtenerCostoEnvio() {
+  const inputSeleccionado = document.querySelector('input[name="tipo_entrega"]:checked');
+  const tipoEntrega = inputSeleccionado ? inputSeleccionado.value : localStorage.getItem("tipo_entrega") || "tienda";
+  return tipoEntrega === "domicilio" ? 5000 : 0;
+}
 
+function renderizarCarrito() {
+  const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  const contenedor = document.getElementById("carrito-contenido");
+  const btnPagar = document.getElementById("btn-pagar");
+  const totalPagar = document.getElementById("total-pagar");
 
+  if (!contenedor) return;
 
-  function renderizarCarrito() {
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    const contenedor = document.getElementById("carrito-contenido");
-    const btnPagar = document.getElementById("btn-pagar");
-  
-    if (!contenedor || !btnPagar) return;
-  
-    if (carrito.length === 0) {
-      contenedor.innerHTML = "<p>No hay productos en el carrito. Debes tener al menos un producto para continuar con la compra.</p>";
-    btnPagar.disabled = true;
-      return;
-    }
-  
-  btnPagar.disabled = false;
-  
-    let total = 0;
-  
-    const html = carrito.map((item, index) => {
-      const subtotal = item.precio * item.cantidad;
-      total += subtotal;
-  
-      return `
-        <div class="producto-carrito">
-          <img src="${item.imagen}" width="80">
-          <h4>${item.nombre}</h4>
-          <p>Código: ${item.codigo}</p>
-          <div class="cantidad-control">
-            <button class="btn-cantidad-menor" data-index="${index}">-</button>
-            <span class="cantidad">${item.cantidad}</span>
-            <button class="btn-cantidad-mayor" data-index="${index}">+</button>
-          </div>
-          <p>Precio unidad: $${item.precio.toLocaleString('es-CL')}</p>
-          <p>Subtotal: $${subtotal.toLocaleString('es-CL')}</p>
-          <button class="btn-eliminar" data-index="${index}">❌ Eliminar</button>
-          <hr>
+  if (carrito.length === 0) {
+    contenedor.innerHTML = "<p>No hay productos en el carrito. Debes tener al menos un producto para continuar con la compra.</p>";
+    if (btnPagar) btnPagar.disabled = true;
+    if (totalPagar) totalPagar.textContent = "$0";
+    return;
+  }
+
+  if (btnPagar) btnPagar.disabled = false;
+  let total = 0;
+
+  const html = carrito.map((item, index) => {
+    const subtotal = item.precio * item.cantidad;
+    total += subtotal;
+
+    return `
+      <div class="producto-carrito">
+        <img src="${item.imagen}" width="80">
+        <h4>${item.nombre}</h4>
+        <p>Código: ${item.codigo || item.uid}</p>
+        <div class="cantidad-control">
+          <button class="btn-cantidad-menor" data-index="${index}">-</button>
+          <span class="cantidad">${item.cantidad}</span>
+          <button class="btn-cantidad-mayor" data-index="${index}">+</button>
         </div>
-      `;
-    }).join("");
-  
-  // Ya no se muestra el total
+        <p>Precio unidad: $${item.precio.toLocaleString('es-CL')}</p>
+        <p>Subtotal: $${subtotal.toLocaleString('es-CL')}</p>
+        <button class="btn-eliminar" data-index="${index}">❌ Eliminar</button>
+        <hr>
+      </div>
+    `;
+  }).join("");
+
   contenedor.innerHTML = html;
-  
-    document.querySelectorAll(".btn-cantidad-mayor").forEach(btn => {
-      btn.addEventListener("click", () => modificarCantidad(btn.dataset.index, 1));
+
+  document.querySelectorAll(".btn-cantidad-mayor").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      modificarCantidad(btn.dataset.index, 1);
     });
-    document.querySelectorAll(".btn-cantidad-menor").forEach(btn => {
-      btn.addEventListener("click", () => modificarCantidad(btn.dataset.index, -1));
-    });
-    document.querySelectorAll(".btn-eliminar").forEach(btn => {
-      btn.addEventListener("click", () => eliminarProducto(btn.dataset.index));
-    });
-  }
-
-
-const btnPagar = document.getElementById("btn-pagar");
-
-if (btnPagar) {
-  btnPagar.addEventListener("click", async () => {
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-
-    if (carrito.length === 0) {
-      alert("⚠️ Debes agregar al menos un producto.");
-      return;
-    }
-
-    // Obtener tipo de entrega seleccionado
-    const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value || "tienda";
-
-    // Guardar tipo de entrega en localStorage
-    localStorage.setItem("tipo_entrega", tipoEntrega);
-
-    if (tipoEntrega === "tienda") {
-      const region = document.getElementById("region-sucursal")?.value || "";
-      const comuna = document.getElementById("comuna-sucursal")?.value || "";
-
-      if (!region || !comuna) {
-        alert("⚠️ Debes seleccionar una región y comuna para el retiro en tienda.");
-        return;
-      }
-
-      localStorage.setItem("region_sucursal", region);
-      localStorage.setItem("comuna_sucursal", comuna);
-    } else {
-      // Limpia si es despacho
-      localStorage.removeItem("region_sucursal");
-      localStorage.removeItem("comuna_sucursal");
-    }
-
-    try {
-      const respuesta = await fetch("/crear-preferencia/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: carrito,
-          tipo_entrega: tipoEntrega
-        })
-      });
-
-      const data = await respuesta.json();
-
-      if (data.init_point) {
-        window.location.href = data.init_point;
-      } else {
-        alert("❌ Error al generar el pago.");
-      }
-    } catch (error) {
-      console.error("Error al conectar con el servidor:", error);
-      alert("❌ Hubo un problema al generar el pago.");
-    }
   });
+
+  document.querySelectorAll(".btn-cantidad-menor").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      modificarCantidad(btn.dataset.index, -1);
+    });
+  });
+
+  document.querySelectorAll(".btn-eliminar").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      eliminarProducto(btn.dataset.index);
+    });
+  });
+
+  const costoEnvio = obtenerCostoEnvio();
+  const totalConEnvio = total + costoEnvio;
+
+  if (totalPagar) {
+    totalPagar.textContent = `$${totalConEnvio.toLocaleString("es-CL")}`;
+  }
 }
 
+function modificarCantidad(index, delta) {
+  const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  if (!carrito[index]) return;
 
+  carrito[index].cantidad += delta;
+  if (carrito[index].cantidad < 1) carrito[index].cantidad = 1;
 
-
-
-
-
-
-
-  function modificarCantidad(index, delta) {
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    if (!carrito[index]) return;
-  
-    carrito[index].cantidad += delta;
-    if (carrito[index].cantidad < 1) carrito[index].cantidad = 1;
-  
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-    if (document.getElementById("carrito-contenido")) {
-      renderizarCarrito();
+  localStorage.setItem("carrito", JSON.stringify(carrito));
+  renderizarCarrito();
 }
-  }
-  
-  function eliminarProducto(index) {
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    carrito.splice(index, 1);
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-    if (document.getElementById("carrito-contenido")) {
-      renderizarCarrito();
+
+function eliminarProducto(index) {
+  const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  carrito.splice(index, 1);
+  localStorage.setItem("carrito", JSON.stringify(carrito));
+  renderizarCarrito();
 }
-  }
-  
-  function vaciarCarrito() {
-    localStorage.removeItem("carrito");
-    if (document.getElementById("carrito-contenido")) {
-      renderizarCarrito();
-    } 
-  }
-  
-    if (document.getElementById("carrito-contenido")) {
-      renderizarCarrito();
-    }
-  
-    const btnVaciar = document.getElementById("btn-vaciar-carrito");
-    if (btnVaciar) {
-      btnVaciar.addEventListener("click", vaciarCarrito);
-    }
-  
 
-  
+if (document.getElementById("carrito-contenido")) {
+  renderizarCarrito();
+}
 
-
+// ======= Recalcular total cuando se cambia tipo de entrega =======
+document.querySelectorAll('input[name="tipo_entrega"]').forEach(radio => {
+  radio.addEventListener("change", () => {
+    renderizarCarrito();
+  });
+});
 
 
 
@@ -1314,15 +1243,20 @@ async function cargarDirecciones() {
       const datos = docSnap.data();
       const div = document.createElement("div");
       div.classList.add("direccion-guardada");
+
       div.innerHTML = `
-        <p><strong>📍 ${datos.nombre}</strong></p>
-        <p>${datos.calleNumero}${datos.departamento ? ', Depto. ' + datos.departamento : ''}</p>
-        <p>${datos.comuna}, ${datos.region}</p>
-        <p class="acciones-direccion">
+        <div class="direccion-info">
+          <p class="nombre">👤 <strong>${datos.nombre}</strong></p>
+          <p class="texto">📍 ${datos.calleNumero}${datos.departamento ? ', ' + datos.departamento : ''}</p>
+          <p class="texto">🏙️ ${datos.comuna}, ${datos.region}</p>
+          <p class="texto">📞 ${datos.telefono}</p>
+          <p class="texto">📧 ${datos.correo}</p>
+        </div>
+        <div class="acciones-direccion">
           <button onclick="eliminarDireccion('${docSnap.id}')">🗑 Eliminar</button>
-        </p>
-        <hr>
+        </div>
       `;
+
       contenedor.appendChild(div);
     });
   } catch (error) {
@@ -1346,14 +1280,13 @@ window.eliminarDireccion = async function(idDireccion) {
 };
 
 
-if (document.getElementById("lista-direcciones")) {
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      cargarDirecciones();
-    }
-  });
-}
-
+  if (document.getElementById("lista-direcciones")) {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        cargarDirecciones();
+      }
+    });
+  }
 
 
   
@@ -1396,63 +1329,6 @@ if (document.getElementById("lista-direcciones")) {
 
 
 
-// Cuando carga la página
-  const params = new URLSearchParams(window.location.search);
-  const status = params.get("status");
-
-  if (status === "success") {
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
-
-      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-      if (carrito.length === 0) return;
-
-      try {
-        const direccionesRef = collection(db, "direcciones", user.uid, "items");
-        const snap = await getDocs(query(direccionesRef, orderBy("fechaGuardado", "desc"), limit(1)));
-        if (snap.empty) {
-          console.warn("No hay dirección registrada.");
-          return;
-        }
-
-        const datosDireccion = snap.docs[0].data();
-        const nombreCliente = datosDireccion.nombre || "";
-        const rutCliente = datosDireccion.rut || "";
-
-        const tipoEntrega = localStorage.getItem("tipo_entrega") || "tienda";
-        const costoEnvio = tipoEntrega === "domicilio" ? 5000 : 0;
-        const regionSucursal = localStorage.getItem("region_sucursal") || null;
-        const comunaSucursal = localStorage.getItem("comuna_sucursal") || null;
-        const total = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0) + costoEnvio;
-
-        await addDoc(collection(db, "pedidos"), {
-          nombreCliente,
-          rutCliente,
-          correoCliente: user.email,
-          carrito,
-          tipoEntrega,
-          costoEnvio,
-          total,
-          regionSucursal: tipoEntrega === "tienda" ? regionSucursal : null,
-          comunaSucursal: tipoEntrega === "tienda" ? comunaSucursal : null,
-          estadoPedido: "Pagado",
-          creadoEn: Timestamp.now(),
-          uidCliente: user.uid
-        });
-
-        alert("✅ ¡Pago exitoso! Tu pedido ha sido registrado.");
-        localStorage.removeItem("carrito");
-        localStorage.removeItem("tipo_entrega");
-        localStorage.removeItem("region_sucursal");
-        localStorage.removeItem("comuna_sucursal");
-        renderizarCarrito?.();
-
-      } catch (err) {
-        console.error("Error al guardar pedido:", err);
-        alert("❌ Ocurrió un error al guardar tu pedido.");
-      }
-    });
-  }
 
 
 

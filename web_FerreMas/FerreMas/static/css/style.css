@@ -2201,7 +2201,7 @@ select option {
 }
 
 .direccion-guardada {
-  background: rgba(255, 255, 255, 0.04);
+  background: #0a4a82bb;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 16px;

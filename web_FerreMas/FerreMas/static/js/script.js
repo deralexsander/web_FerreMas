@@ -149,6 +149,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+
+  
+  // === Modal de producto: un solo input con id "cantidad" ===
   const inputCantidad = document.getElementById("cantidad");
   const btnAumentar = document.querySelector(".btn-aumentar");
   const btnDisminuir = document.querySelector(".btn-disminuir");
@@ -165,4 +168,29 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
+
+  // === Carrito: múltiples controles por producto ===
+  document.querySelectorAll(".btn-cantidad-mayor").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const span = btn.parentElement.querySelector(".cantidad");
+      let cantidad = parseInt(span.textContent);
+      cantidad++;
+      span.textContent = cantidad;
+      // aquí puedes actualizar el localStorage o Firebase si quieres
+    });
+  });
+
+  document.querySelectorAll(".btn-cantidad-menor").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const span = btn.parentElement.querySelector(".cantidad");
+      let cantidad = parseInt(span.textContent);
+      if (cantidad > 1) {
+        cantidad--;
+        span.textContent = cantidad;
+        // actualizar también si es necesario
+      }
+    });
+  });
+
+
 });

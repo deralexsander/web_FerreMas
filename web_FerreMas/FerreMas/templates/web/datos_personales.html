@@ -6,74 +6,108 @@
 {% endblock %}
 
 {% block contenido %}
-<form id="formulario-direccion" class="form"  id="direcciones">
-  <h3>Agregar dirección de envío</h3>
+<div class="contenedor_informacion" >
+    <div class="bloque_info">
 
-  <div class="flex-column">
-    <label>Nombre completo</label>
-    <input type="text" id="nombre" class="input" placeholder="Nombre completo" required>
-  </div>
+      <div class="columna_info">
+        <div class="titulo-form">
+          <h1>Tus direcciones</h1>
+        </div>
+        <div id="lista-direcciones">
+          <!-- Aquí se mostrarán las direcciones guardadas del cliente -->
+        </div>
+      </div>
 
-  <div class="flex-column">
-    <label>Teléfono</label>
-    <input type="text" id="telefono" class="input" placeholder="Ej: +56912345678" required>
-  </div>
 
-  <div class="flex-column">
-    <label>Correo electrónico</label>
-    <input type="email" id="correo" class="input" placeholder="correo@ejemplo.com" required>
-  </div>
 
-  <div class="flex-column">
-    <label>rut</label>
-    <input type="text" id="rut" name="rut" placeholder="RUT (Ej: 12.345.678-9)" class="input" required>
-  </div>
+      <div class="columna_info">
 
-  <div class="flex-column">
-    <label>Calle y número</label>
-    <input type="text" id="calle-numero" class="input" placeholder="Ej: Los Álamos 1234" required>
-  </div>
+        <div class="titulo-form">
+          <h1>📬 Agregar dirección de envío</h1>
+        </div>
+        <form id="formulario-direccion" class="form">
 
-  <div class="flex-column">
-    <label>Departamento/Casa (opcional)</label>
-    <input type="text" id="departamento" class="input" placeholder="Depto 101 / Casa B">
-  </div>
 
-  <div class="flex-column">
-    <label>Región</label>
-    <select id="region" class="input" required>
-      <option value="">Seleccione una región</option>
-    </select>
-  </div>
+                <div class="flex-column">
+                  <label for="nombre">Nombre completo</label>
+                </div>
+                <div class="inputForm">
+                  <input type="text" id="nombre" class="input" placeholder="Nombre completo" required>
+                </div>
 
-  <div class="flex-column">
-    <label>Comuna</label>
-    <select id="comuna" class="input" disabled required>
-      <option value="">Seleccione una comuna</option>
-    </select>
-  </div>
+                <div class="flex-column">
+                  <label for="telefono">Teléfono</label>
+                </div>
+                <div class="inputForm">
+                  <input type="text" id="telefono" class="input" placeholder="Ej: +56912345678" required>
+                </div>
 
-  <div class="flex-column">
-    <label>Código postal (opcional)</label>
-    <input type="text" id="codigo-postal" class="input" placeholder="Ej: 1230000">
-  </div>
+                <div class="flex-column">
+                  <label for="correo">Correo electrónico</label>
+                </div>
+                <div class="inputForm">
+                  <input type="email" id="correo" class="input" placeholder="correo@ejemplo.com" required>
+                </div>
 
-  <div class="flex-column" style="margin-top: 10px;">
-    <label style="display: flex; align-items: center; gap: 5px;">
-      <input type="checkbox" id="guardar-envio" checked disabled>
-      ¿Guardar esta dirección para futuras compras?
-    </label>
-  </div>
+                <div class="flex-column">
+                  <label for="rut">RUT</label>
+                </div>
+                <div class="inputForm">
+                  <input type="text" id="rut" class="input" placeholder="12.345.678-9" required>
+                </div>
 
-  <button type="submit" id="btn-guardar-direccion" class="button-submit">Guardar dirección</button>
-</form>
+                <div class="flex-column">
+                  <label for="calle-numero">Calle y número</label>
+                </div>
+                <div class="inputForm">
+                  <input type="text" id="calle-numero" class="input" placeholder="Ej: Los Álamos 1234" required>
+                </div>
 
-<hr style="margin: 30px 0;">
+                <div class="flex-column">
+                  <label for="departamento">Departamento/Casa (opcional)</label>
+                </div>
+                <div class="inputForm">
+                  <input type="text" id="departamento" class="input" placeholder="Depto 101 / Casa B">
+                </div>
 
-<h3>Mis direcciones guardadas</h3>
-<div id="lista-direcciones">
-  <!-- Aquí se mostrarán las direcciones guardadas del cliente -->
+                <div class="flex-column">
+                  <label for="region">Región</label>
+                </div>
+                <div class="inputForm">
+                  <select id="region" class="input" required>
+                    <option value="">Seleccione una región</option>
+                  </select>
+                </div>
+
+                <div class="flex-column">
+                  <label for="comuna">Comuna</label>
+                </div>
+                <div class="inputForm">
+                  <select id="comuna" class="input" disabled required>
+                    <option value="">Seleccione una comuna</option>
+                  </select>
+                </div>
+
+                <div class="flex-column">
+                  <label for="codigo-postal">Código postal (opcional)</label>
+                </div>
+                <div class="inputForm">
+                  <input type="text" id="codigo-postal" class="input" placeholder="Ej: 1230000">
+                </div>
+
+                <div class="flex-column" style="margin-top: 10px;">
+                  <label style="display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="guardar-envio" checked disabled>
+                    ¿Guardar esta dirección para futuras compras?
+                  </label>
+                </div>
+
+                <button type="submit" id="btn-guardar-direccion" class="button-submit">Guardar dirección</button>
+        </form>
+      </div>
+    </div>
 </div>
+
 
 
 {% endblock %}

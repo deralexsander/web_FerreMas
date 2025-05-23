@@ -31,7 +31,7 @@
 
           <label>
             <input type="radio" name="tipo_entrega" value="domicilio">
-            Despacho a domicilio
+            Despacho a domicilio + 5.000 CLP
           </label>
         </div>
 
@@ -40,16 +40,20 @@
 
           <div class="flex-column">
             <label for="region-sucursal">Región</label>
-            <select id="region-sucursal" class="input" >
-              <option value="">Seleccione una región</option>
-            </select>
+            <div class="inputForm">
+              <select id="region-sucursal" class="input" >
+          <option value="">Seleccione una región</option>
+              </select>
+            </div>
           </div>
 
           <div class="flex-column">
             <label for="comuna-sucursal">Comuna</label>
-            <select id="comuna-sucursal" class="input" disabled>
-              <option value="">Seleccione una comuna</option>
-            </select>
+            <div class="inputForm">
+              <select id="comuna-sucursal" class="input" >
+          <option value="">Seleccione una comuna</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -71,7 +75,7 @@
       <div class="texto-form">
         <h1>Total a pagar:</h1>
         <div class="total-pago">
-          <p id="total-pagar" style="font-weight: bold;">$0</p>
+          <p id="total-pagar">$0</p>
         </div>
       </div>
     </div>
@@ -103,16 +107,26 @@
               <input type="text" class="input" name="rut" required pattern="\d{7,8}-[\dkK]" placeholder="Ingresa rut del titular" />
             </div>
 
-            <div class="flex-column">
-              <label>Banco desde el cual transferirá</label>
-              <select name="banco" required class="input">
-                <option value="">Selecciona tu banco</option>
-                <option>BancoEstado</option>
-                <option>Santander</option>
-                <option>BCI</option>
-                <option>Scotiabank</option>
-                <option>Banco de Chile</option>
-                <option>Otro</option>
+           <div class="flex-column">
+              <label>Ingrese banco del titular</label>
+            </div>           
+            
+
+            <div class="inputForm">
+              <select id="banco" class="input" required>
+                <option value="">Seleccione un banco</option>
+                <option value="banco_chile">Banco de Chile</option>
+                <option value="banco_estado">BancoEstado</option>
+                <option value="banco_santander">Banco Santander</option>
+                <option value="banco_bci">BCI</option>
+                <option value="banco_itau">Itaú</option>
+                <option value="banco_scotiabank">Scotiabank</option>
+                <option value="banco_security">Banco Security</option>
+                <option value="banco_falabella">Banco Falabella</option>
+                <option value="banco_ripley">Banco Ripley</option>
+                <option value="banco_internacional">Banco Internacional</option>
+                <option value="banco_consorcio">Banco Consorcio</option>
+                <option value="otro">Otro</option>
               </select>
             </div>
 
