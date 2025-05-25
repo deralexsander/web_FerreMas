@@ -16,7 +16,7 @@
 
     <!-- 📦 Columna derecha: Entrega y pago -->
     <div class="columna_info">
-    <div class="form">
+    <div class="form animacion-entrada" novalidate>
       <!-- 🚚 Tipo de entrega -->
       <div class="metodo-entrega">
         <div class="titulo-form">
@@ -50,7 +50,7 @@
           <div class="flex-column">
             <label for="comuna-sucursal">Comuna</label>
             <div class="inputForm">
-              <select id="comuna-sucursal" class="input" >
+              <select id="comuna-sucursal" class="input" disabled>
           <option value="">Seleccione una comuna</option>
               </select>
             </div>
@@ -101,7 +101,7 @@
           <div class="titulo-form">
             <h1>Pago por transferencia bancaria</h1>
           </div>
-        <form id="form-transferencia">
+        <form id="form-transferencia" novalidate>
             <div class="flex-column">
               <label>Nombre completo del titular</label>
             </div>
@@ -146,7 +146,7 @@
               </label>
             </div>
 
-          <button type="submit" class="button-submit">💳 Confirmar transferencia</button>
+            <button class="btn" ><i class="fas fa-money-check-alt"></i>Confirmar transferencia</button>
         </form>
       </div>
     </div>

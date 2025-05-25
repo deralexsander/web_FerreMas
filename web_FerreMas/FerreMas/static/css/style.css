@@ -1154,6 +1154,7 @@ a {
 
   /* Animaciones */
   .animacion-salida {
+    opacity: 0;
     animation: popOut 0.4s ease forwards;
   }
   
@@ -1161,21 +1162,6 @@ a {
     animation: popIn 0.4s ease forwards;
   }
   
-
-
-
-
-
-  
-
-  
-
-
-
-
-
-
-
 
 
   .form {
@@ -1187,11 +1173,9 @@ a {
     -webkit-backdrop-filter: blur(10px); /* para Safari */
     padding: 30px;
     width: 450px;
-    opacity: 0;
     border-radius: 15px;
     font: poppins;
-    animation: 
-    popIn 1.6s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards
+
   }
   
   ::placeholder {
@@ -1703,18 +1687,28 @@ select option {
 
 
 
-
 #contenedor-mensaje {
-  position: absolute;
-  top: 80px;
-  left: 80%;
-  transform: translateX(-80%);
-  z-index: 1;
+  position: fixed;
+  top: 12vh;
+  left: 37%;
+  transform: translateX(-37%);
+  z-index: 10000;
+  width: 90vw;
+  max-width: 420px;
+  min-width: 220px;
+  box-sizing: border-box;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
 }
+
+
 
 .error {
   font-family: 'Poppins', sans-serif;
-  width: 320px;
+  width: 100%;
+  max-width: 420px;
+  min-width: 220px;
   padding: 12px;
   display: flex;
   flex-direction: row;
@@ -1724,8 +1718,11 @@ select option {
   background: linear-gradient(to right, #f45c43, #eb3349);
   box-shadow: 0 0px 10px #de1c3280;
   pointer-events: auto;
-  animation: popIn 1.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
 }
+
 
 .error__icon,
 .error__close {
@@ -1745,10 +1742,6 @@ select option {
   display: none;
 }
 
-
-.ocultar-pop {
-  animation: popOutError 0.4s ease forwards;
-}
 
 
 

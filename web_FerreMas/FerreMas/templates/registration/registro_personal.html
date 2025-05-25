@@ -2,73 +2,91 @@
 {% load static %}
 
 {% block nombrePag %}
-<title>registro personal</title>
+<title>Registro Personal</title>
 {% endblock %}
 
 {% block contenido %}
 <div id="formulario-trabajador" class="form">
   <h3>Crear nuevo trabajador</h3>
 
-  <div class="flex-column">
-    <label>Correo electrónico</label>
-    <input type="email" id="correo-trabajador" class="input" placeholder="correo@empresa.cl">
-  </div>
-
-  <div class="flex-column">
-    <label>Nombre</label>
-    <input type="text" id="nombre-trabajador" class="input" placeholder="Nombre del trabajador">
-  </div>
-
-  <div class="flex-column">
-    <label>Apellido paterno</label>
-    <input type="text" id="apellido-paterno-trabajador" class="input" placeholder="Apellido paterno">
-  </div>
-
-  <div class="flex-column">
-    <label>Apellido materno</label>
-    <input type="text" id="apellido-materno-trabajador" class="input" placeholder="Apellido materno">
-  </div>
-
-  <div class="flex-column">
-    <label>RUT</label>
-    <input type="text" id="rut-trabajador" class="input" placeholder="12.345.678-9">
-  </div>
-
-  <div class="flex-column">
-    <label>Región de la sucursal donde trabaja</label>
-    <select id="region-sucursal" class="input" >
-      <option value="">Seleccione una región</option>
-    </select>
-  </div>
-
-  <div class="flex-column">
-    <label>Comuna de la sucursal donde trabaja</label>
-    <select id="comuna-sucursal" class="input" required>
-      <option value="">Seleccione una comuna</option>
-    </select>
-  </div>
-
-  
-
-  <div class="flex-column">
-    <label>Rol</label>
-    <select id="rol-trabajador" class="input">
-      <option value="admin">Administrador</option>
-      <option value="vendedor">Vendedor</option>
-      <option value="contador">Contador</option>
-      <option value="bodeguero">Bodeguero</option>
-    </select>
-  </div>
-
-  <div class="flex-column">
-    <label>Contraseña generada automáticamente</label>
-    <div style="display: flex; gap: 10px; align-items: center;">
-      <input type="text" id="password-trabajador" class="input" readonly>
-      <button type="button" onclick="copiarPassword()" style="padding: 6px 12px; cursor: pointer;">📋 Copiar</button>
+  <form id="form-crear-trabajador" onsubmit="event.preventDefault(); crearTrabajador();">
+    
+    <div class="flex-column">
+      <label>Correo electrónico</label>
     </div>
-  </div>
+    <div class="inputForm">
+      <input type="email" id="correo-trabajador" name="correo" class="input" placeholder="correo@empresa.cl" required>
+    </div>
 
-  <button type="button" onclick="crearTrabajador()" class="button-submit">Crear trabajador</button>
+    <div class="flex-column">
+      <label>Nombre</label>
+    </div>
+    <div class="inputForm">
+      <input type="text" id="nombre-trabajador" name="nombre" class="input" placeholder="Nombre del trabajador" required>
+    </div>
+
+    <div class="flex-column">
+      <label>Apellido paterno</label>
+    </div>
+    <div class="inputForm">
+      <input type="text" id="apellido-paterno-trabajador" name="apellido_paterno" class="input" placeholder="Apellido paterno" required>
+    </div>
+
+    <div class="flex-column">
+      <label>Apellido materno</label>
+    </div>
+    <div class="inputForm">
+      <input type="text" id="apellido-materno-trabajador" name="apellido_materno" class="input" placeholder="Apellido materno" required>
+    </div>
+
+    <div class="flex-column">
+      <label>RUT</label>
+    </div>
+    <div class="inputForm">
+      <input type="text" id="rut-trabajador" name="rut" class="input" placeholder="12.345.678-9" required pattern="\d{7,8}-[\dkK]">
+    </div>
+
+    <div class="flex-column">
+      <label>Región de la sucursal donde trabaja</label>
+    </div>
+    <div class="inputForm">
+      <select id="region-sucursal" name="region" class="input" required>
+        <option value="">Seleccione una región</option>
+        <!-- Se cargan dinámicamente -->
+      </select>
+    </div>
+
+    <div class="flex-column">
+      <label>Comuna de la sucursal donde trabaja</label>
+    </div>
+    <div class="inputForm">
+      <select id="comuna-sucursal" name="comuna" class="input" required>
+        <option value="">Seleccione una comuna</option>
+      </select>
+    </div>
+
+    <div class="flex-column">
+      <label>Rol</label>
+    </div>
+    <div class="inputForm">
+      <select id="rol-trabajador" name="rol" class="input" required>
+        <option value="admin">Administrador</option>
+        <option value="vendedor">Vendedor</option>
+        <option value="contador">Contador</option>
+        <option value="bodeguero">Bodeguero</option>
+      </select>
+    </div>
+
+    <div class="flex-column">
+      <label>Contraseña generada automáticamente</label>
+    </div>
+    <div class="inputForm" style="display: flex; gap: 10px; align-items: center;">
+      <input type="text" id="password-trabajador" name="password" class="input" readonly required>
+      <button type="button" onclick="copiarPassword()">📋 Copiar</button>
+    </div>
+
+    <button type="submit" class="button-submit">Crear trabajador</button>
+  </form>
 
   <div id="contenedor-mensaje" class="oculto" style="margin-top: 15px; background: #eef; border: 1px solid #99c; padding: 10px;">
     <div id="mensaje-texto"></div>
@@ -106,6 +124,14 @@
     input.setSelectionRange(0, 99999);
     document.execCommand('copy');
     mostrarMensaje('Contraseña copiada al portapapeles');
+  }
+
+  function mostrarMensaje(texto) {
+    const contenedor = document.getElementById('contenedor-mensaje');
+    const mensaje = document.getElementById('mensaje-texto');
+    mensaje.textContent = texto;
+    contenedor.classList.remove('oculto');
+    setTimeout(() => contenedor.classList.add('oculto'), 3000);
   }
 </script>
 {% endblock %}
