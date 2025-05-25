@@ -597,6 +597,12 @@
       console.error("Error al cargar productos:", e);
     }
   }
+
+
+
+
+
+
   
   async function cargarProductosPorCategoria(nombreCategoria, idContenedor) {
     const contenedor = document.getElementById(idContenedor);
@@ -685,6 +691,14 @@
   cargarProductosPorCategoria("seguridad", "categoria-seguridad");
 
   
+
+
+
+
+  
+
+
+
 
   // Modal: cerrar con botón, clic fuera o ESC
   const modalProducto = document.getElementById("modal-producto");

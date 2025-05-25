@@ -1,41 +1,19 @@
-// --------------------------
-// SCRIPT FIREBASE (AUTH + DB) - Versión consolidada
-// --------------------------
-
 window.addEventListener('DOMContentLoaded', async () => {
-  // Importaciones de Firebase
-  
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
-  const { getAnalytics } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js");
   const {
     getAuth,
-    onAuthStateChanged,
-    signOut,
-    createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
-    sendPasswordResetEmail,
+    createUserWithEmailAndPassword,
     updateProfile,
-    EmailAuthProvider,
-    reauthenticateWithCredential,
-    updatePassword
+    sendPasswordResetEmail
   } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+
   const {
     getFirestore,
-    doc,
-    setDoc,
-    getDoc,
-    addDoc,
     collection,
-    getDocs,
-    query,
-    where,
-    Timestamp,
-    orderBy, 
-    limit,
-    deleteDoc
+    getDocs
   } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
 
-  // Configuración de Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyCOsIJF-ywgaQPqT5ApyodIcRRBCiU-mtI",
     authDomain: "ferremas-1a2c4.firebaseapp.com",
@@ -45,14 +23,22 @@ window.addEventListener('DOMContentLoaded', async () => {
     appId: "1:427152375883:web:f3dc467e589520bbf44dce"
   };
 
-  // Inicialización de Firebase
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const auth = getAuth();
+
+  // 🔐 Autenticación
+  window.firebaseAuth = getAuth(app);
+  window.firebaseSignIn = signInWithEmailAndPassword;
+  window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+  window.updateProfile = updateProfile;
+  window.sendPasswordResetEmail = sendPasswordResetEmail;
+
+  // 🗂️ Base de datos
   const db = getFirestore(app);
+  window.firebaseDB = db;
 
-  const { v4: uuidv4 } = await import("https://jspm.dev/uuid");
-
-
-  
+  // 🌐 Export Firestore utils (para productos.js)
+  window.firebaseFirestore = {
+    collection,
+    getDocs
+  };
 });

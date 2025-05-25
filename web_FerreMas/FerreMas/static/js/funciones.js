@@ -187,90 +187,177 @@ if (btnPagar) {
     }
   };
 
+//---------------------------------
+//
+// función de validación de formulario de inicio de sesión
+//
+//---------------------------------
+const formularioLogin = centrarLogin?.querySelector('form');
 
-  //---------------------------------
-  //
-  // funcion de validación de formularios
-  //
-  //---------------------------------
-  const formularioLogin = centrarLogin?.querySelector('form');
+if (formularioLogin) {
+  formularioLogin.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  if (formularioLogin) {
-    formularioLogin.addEventListener('submit', (e) => {
-      e.preventDefault();
+    const inputs = formularioLogin.querySelectorAll('.input');
+    const email = inputs[0]?.value.trim();
+    const password = inputs[1]?.value.trim();
 
-      const inputs = formularioLogin.querySelectorAll('.input');
-      const email = inputs[0]?.value.trim();
-      const password = inputs[1]?.value.trim();
+    if (!email) {
+      mostrarMensaje("Por favor ingresa tu correo.");
+      return;
+    }
 
-      if (!email) {
-        mostrarMensaje("Por favor ingresa tu correo.");
-        return;
+    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regexCorreo.test(email)) {
+      mostrarMensaje("El correo ingresado no es válido.");
+      return;
+    }
+
+    if (!password) {
+      mostrarMensaje("Por favor ingresa tu contraseña.");
+      return;
+    }
+
+    // Autenticación con Firebase
+    try {
+      const userCredential = await firebaseSignIn(firebaseAuth, email, password);
+      const user = userCredential.user;
+      console.log("Inicio de sesión exitoso:", user);
+      window.location.href = "/perfil/"; // Cambia esta URL según tu sistema
+    } catch (error) {
+      console.error("Error de autenticación:", error);
+
+      // Muestra errores comunes con mensajes claros
+      if (error.code === "auth/too-many-requests") {
+        mostrarMensaje("Demasiados intentos fallidos, Intenta más tarde.");
+      } else {
+        mostrarMensaje("Correo o contraseña son incorrectos.");
       }
+    }
+  });
+}
 
-      const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!regexCorreo.test(email)) {
-        mostrarMensaje("El correo ingresado no es válido.");
-        return;
-      }
-
-      if (!password) {
-        mostrarMensaje("Por favor ingresa tu contraseña.");
-        return;
-      }
-
-      console.log("Formulario válido. Puedes continuar con la autenticación...");
-    });
-  }
 
   //---------------------------------
   //
   // Validación del formulario de registro
   //
   //---------------------------------
-  const formularioRegistro = document.querySelector('.centrar-registro-cliente form');
-  if (formularioRegistro) {
-    formularioRegistro.addEventListener('submit', (e) => {
-      e.preventDefault();
+const formularioRegistro = document.querySelector('.centrar-registro-cliente form');
 
-      const inputs = formularioRegistro.querySelectorAll('.input');
-      const email = inputs[0]?.value.trim();
-      const usuario = inputs[1]?.value.trim();
-      const password = inputs[2]?.value.trim();
-      const confirmPassword = inputs[3]?.value.trim();
+if (formularioRegistro) {
+  formularioRegistro.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const inputs = formularioRegistro.querySelectorAll('.input');
+    const email = inputs[0]?.value.trim();
+    const usuario = inputs[1]?.value.trim();
+    const password = inputs[2]?.value.trim();
+    const confirmPassword = inputs[3]?.value.trim();
 
-      if (!email) return mostrarMensaje("Por favor ingresa tu correo.");
-      if (!regexCorreo.test(email)) return mostrarMensaje("El correo ingresado no es válido.");
-      if (!usuario) return mostrarMensaje("Por favor ingresa tu nombre de usuario.");
-      if (!password) return mostrarMensaje("Por favor ingresa tu contraseña.");
-      if (!confirmPassword) return mostrarMensaje("Confirma tu contraseña.");
-      if (password !== confirmPassword) return mostrarMensaje("Las contraseñas no coinciden.");
+    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-      console.log("Registro válido. Aquí puedes continuar con tu lógica.");
-    });
-  }
+    if (!email) {
+      mostrarMensaje("Por favor ingresa tu correo.");
+      return;
+    }
+
+    if (!regexCorreo.test(email)) {
+      mostrarMensaje("El correo ingresado no es válido.");
+      return;
+    }
+
+    if (!usuario) {
+      mostrarMensaje("Por favor ingresa tu nombre de usuario.");
+      return;
+    }
+
+    if (!password) {
+      mostrarMensaje("Por favor ingresa tu contraseña.");
+      return;
+    }
+
+    if (!confirmPassword) {
+      mostrarMensaje("Confirma tu contraseña.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      mostrarMensaje("Las contraseñas no coinciden.");
+      return;
+    }
+
+    // Registro en Firebase
+    try {
+      const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+      const user = userCredential.user;
+
+      await window.updateProfile(user, { displayName: usuario });
+
+      console.log("Registro exitoso:", user);
+      window.location.href = "/perfil/"; // Ajusta la URL según tu sistema
+
+    } catch (error) {
+      console.error("Error al registrar:", error);
+
+      if (error.code === "auth/email-already-in-use") {
+        mostrarMensaje("Este correo ya está registrado.");
+      } else if (error.code === "auth/weak-password") {
+        mostrarMensaje("La contraseña debe tener al menos 6 caracteres.");
+      } else {
+        mostrarMensaje("Ocurrió un error al registrarte. Intenta nuevamente.");
+      }
+    }
+  });
+}
+
 
   //---------------------------------
   //
   // Validación del formulario de recuperación de contraseña
   //
   //---------------------------------
-  const formularioRecuperar = document.querySelector('.centrar-recuperar form');
-  if (formularioRecuperar) {
-    formularioRecuperar.addEventListener('submit', (e) => {
-      e.preventDefault();
+const formularioRecuperar = document.querySelector('.centrar-recuperar form');
 
-      const email = formularioRecuperar.querySelector('.input')?.value.trim();
-      const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+if (formularioRecuperar) {
+  formularioRecuperar.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      if (!email) return mostrarMensaje("Por favor ingresa tu correo.");
-      if (!regexCorreo.test(email)) return mostrarMensaje("El correo ingresado no es válido.");
+    const email = formularioRecuperar.querySelector('.input')?.value.trim();
+    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-      console.log("Correo válido. Aquí puedes enviar la solicitud de recuperación.");
-    });
-  }
+    if (!email) {
+      mostrarMensaje("Por favor ingresa tu correo.");
+      return;
+    }
+
+    if (!regexCorreo.test(email)) {
+      mostrarMensaje("El correo ingresado no es válido.");
+      return;
+    }
+
+    try {
+      // Verificar si existe una cuenta con este correo
+      const { fetchSignInMethodsForEmail } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+      const methods = await fetchSignInMethodsForEmail(firebaseAuth, email);
+
+      // Enviar correo de recuperación
+      await sendPasswordResetEmail(firebaseAuth, email);
+      mostrarMensaje("📬 Te hemos enviado un correo para restablecer tu contraseña.");
+      formularioRecuperar.reset();
+    } catch (error) {
+      console.error("Error al procesar la recuperación:", error);
+
+      if (error.code === "auth/too-many-requests") {
+        mostrarMensaje("Demasiados intentos. Intenta más tarde.");
+      } else {
+        mostrarMensaje("Ocurrió un error. Intenta nuevamente.");
+      }
+    }
+  });
+}
+
+
 
   //---------------------------------
   //

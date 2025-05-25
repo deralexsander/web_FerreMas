@@ -2359,7 +2359,6 @@ hr {
     background-color: #0a4a829c; /* Azul profundo con transparencia */
     backdrop-filter: blur(10px); /* (opcional) efecto glass elegante */
     -webkit-backdrop-filter: blur(10px); /* para Safari */
-    padding: 20px;
     width: 259px;
     opacity: 0;
     border-radius: 15px;
