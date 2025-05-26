@@ -1,3 +1,5 @@
+let db, collection, getDocs;
+
 window.addEventListener('DOMContentLoaded', async () => {
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
   const {
@@ -5,14 +7,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     updateProfile,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    onAuthStateChanged
   } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
 
-  const {
-    getFirestore,
-    collection,
-    getDocs
-  } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+  const { getFirestore, collection: _collection, getDocs: _getDocs } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
 
   const firebaseConfig = {
     apiKey: "AIzaSyCOsIJF-ywgaQPqT5ApyodIcRRBCiU-mtI",
@@ -24,8 +23,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   };
 
   const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  collection = _collection;
+  getDocs = _getDocs;
 
-  // 🔐 Autenticación
+  // 🌐 Autenticación
   window.firebaseAuth = getAuth(app);
   window.firebaseSignIn = signInWithEmailAndPassword;
   window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
@@ -33,12 +35,23 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.sendPasswordResetEmail = sendPasswordResetEmail;
 
   // 🗂️ Base de datos
-  const db = getFirestore(app);
   window.firebaseDB = db;
 
-  // 🌐 Export Firestore utils (para productos.js)
-  window.firebaseFirestore = {
-    collection,
-    getDocs
+  // 👉 Ahora sí, define la función global
+  window.getProductos = async function() {
+    const productosCol = collection(db, "productos");
+    const productosSnapshot = await getDocs(productosCol);
+    return productosSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   };
+
+  // Exponer función para escuchar cambios de autenticación desde funciones.js
+  window.onFirebaseAuthStateChanged = function(callback) {
+    return onAuthStateChanged(window.firebaseAuth, callback);
+  };
+
+  
+  
 });

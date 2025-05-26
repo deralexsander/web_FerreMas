@@ -587,6 +587,17 @@ body {
     z-index: 1; /* Asegura que esté encima del body */
 }
 
+.fondo-blanco-productos {
+    width: 100%; /* Ajusta el ancho al 100% del ancho de la pantalla */
+    min-height: 100vh; /* Ajusta la altura mínima al 100% de la pantalla */
+    background-color: rgb(255, 255, 255); /* Fondo blanco */
+    margin: 0; /* Elimina todos los márgenes */
+    position: absolute; /* Posición absoluta */
+    top: 0%; /* Alinea con la parte superior */
+    left: 0; /* Alinea con la parte izquierda */
+    z-index: 1; /* Asegura que esté encima del body */
+}
+
 /* <reset-style> ============================ */
 a {
   text-decoration: none;
@@ -697,6 +708,18 @@ a {
     align-items: center;
     text-align: left;
     gap: 1.5vh; /* Reduce el espacio entre elementos dentro de la columna */
+}
+
+.columna_form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* en vez de center */
+  text-align: left;
+  gap: 1.5vh;
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
 }
   
   /* Título y texto */
@@ -1146,6 +1169,11 @@ a {
     display: none !important;
   }
 
+  /* Oculta pasos por defecto */
+  #paso-2, #paso-3, #paso-4 {
+    display: none;
+  }
+
 
   .centrar-recuperar {
     display: none;
@@ -1200,7 +1228,7 @@ a {
     align-items: center;
     padding-left: 10px;
     transition: 0.2s ease-in-out;
-    background-color: hsla(197, 78%, 56%, 0.05); /* fondo input leve */
+    background-color: #0a4a829c; /* fondo input leve */
   }
   
   .input {
@@ -2108,6 +2136,47 @@ select option {
   z-index: 10000;
   margin-top: 0; /* Elimina cualquier espacio superior */
 }
+
+
+
+
+
+.vertical-align {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.vertical-align {
+  flex: 1; /* Que cada columna tome el mismo ancho */
+  display: flex;
+  flex-direction: column;
+}
+
+.contenedor_boton_volver {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  z-index: 1000; /* asegura que esté por encima del resto */
+}
+
+.button-volver {
+  backdrop-filter: blur(10px); /* Added blur effect */
+  background-color: #0a4a82bb; /* Set color to #0a4a82 */
+  color: white;
+  padding: 10px 20px ;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.button-volver:hover {
+  background-color: #083a67;
+}
+
+
+
+
 
 
 

@@ -31,6 +31,42 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  
+  // hacer que el navbar aparesca solo una vez
+
+  const boton = document.querySelector('.button-container'); // o navbar animado
+
+  if (!boton) return;
+
+  if (localStorage.getItem("activarAnimacionNavbar") === "true") {
+    boton.classList.add("button-animada");
+    localStorage.removeItem("activarAnimacionNavbar"); // evitar que se repita
+  } else {
+    boton.style.opacity = 1; // mostrar sin animación
+  }
+
+
+  //---------------------------------
+  //
+  // animacion de animación unificada
+  //
+  //---------------------------------
+  function cambiarFormulario(formularioActual, formularioDestino) {
+    if (!formularioActual || !formularioDestino) return;
+    formularioActual.classList.remove('oculto', 'animacion-salida', 'animacion-entrada');
+    void formularioActual.offsetWidth; // Forzar reflow
+    formularioActual.classList.add('animacion-salida');
+    setTimeout(() => {
+      formularioActual.classList.add('oculto');
+      formularioActual.classList.remove('animacion-salida');
+      formularioDestino.classList.remove('oculto');
+      formularioDestino.classList.add('visible', 'animacion-entrada');
+      setTimeout(() => {
+        formularioDestino.classList.remove('animacion-entrada');
+      }, 400);
+    }, 400);
+  }
+
+  // Hacer la función global para poder usarla en otros archivos JS
+  window.cambiarFormulario = cambiarFormulario;
 
 });

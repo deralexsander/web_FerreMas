@@ -52,26 +52,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     formTransferencia.appendChild(volverMetodoPago);
   }
 
-  //---------------------------------
-  //
-  // Función de animación unificada
-  //
-  //---------------------------------
-  function cambiarFormulario(formularioActual, formularioDestino) {
-    if (!formularioActual || !formularioDestino) return;
-    formularioActual.classList.remove('oculto', 'animacion-salida', 'animacion-entrada');
-    void formularioActual.offsetWidth; // Forzar reflow
-    formularioActual.classList.add('animacion-salida');
-    setTimeout(() => {
-      formularioActual.classList.add('oculto');
-      formularioActual.classList.remove('animacion-salida');
-      formularioDestino.classList.remove('oculto');
-      formularioDestino.classList.add('visible', 'animacion-entrada');
-      setTimeout(() => {
-        formularioDestino.classList.remove('animacion-entrada');
-      }, 400);
-    }, 400);
-  }
 
   //---------------------------------
   //
@@ -187,55 +167,55 @@ if (btnPagar) {
     }
   };
 
-//---------------------------------
-//
-// función de validación de formulario de inicio de sesión
-//
-//---------------------------------
-const formularioLogin = centrarLogin?.querySelector('form');
+  //---------------------------------
+  //
+  // función de validación de formulario de inicio de sesión
+  //
+  //---------------------------------
+  const formularioLogin = centrarLogin?.querySelector('form');
 
-if (formularioLogin) {
-  formularioLogin.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (formularioLogin) {
+    formularioLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    const inputs = formularioLogin.querySelectorAll('.input');
-    const email = inputs[0]?.value.trim();
-    const password = inputs[1]?.value.trim();
+      const inputs = formularioLogin.querySelectorAll('.input');
+      const email = inputs[0]?.value.trim();
+      const password = inputs[1]?.value.trim();
 
-    if (!email) {
-      mostrarMensaje("Por favor ingresa tu correo.");
-      return;
-    }
-
-    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!regexCorreo.test(email)) {
-      mostrarMensaje("El correo ingresado no es válido.");
-      return;
-    }
-
-    if (!password) {
-      mostrarMensaje("Por favor ingresa tu contraseña.");
-      return;
-    }
-
-    // Autenticación con Firebase
-    try {
-      const userCredential = await firebaseSignIn(firebaseAuth, email, password);
-      const user = userCredential.user;
-      console.log("Inicio de sesión exitoso:", user);
-      window.location.href = "/perfil/"; // Cambia esta URL según tu sistema
-    } catch (error) {
-      console.error("Error de autenticación:", error);
-
-      // Muestra errores comunes con mensajes claros
-      if (error.code === "auth/too-many-requests") {
-        mostrarMensaje("Demasiados intentos fallidos, Intenta más tarde.");
-      } else {
-        mostrarMensaje("Correo o contraseña son incorrectos.");
+      if (!email) {
+        mostrarMensaje("Por favor ingresa tu correo.");
+        return;
       }
-    }
-  });
-}
+
+      const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!regexCorreo.test(email)) {
+        mostrarMensaje("El correo ingresado no es válido.");
+        return;
+      }
+
+      if (!password) {
+        mostrarMensaje("Por favor ingresa tu contraseña.");
+        return;
+      }
+
+      // Autenticación con Firebase
+      try {
+        const userCredential = await firebaseSignIn(firebaseAuth, email, password);
+        const user = userCredential.user;
+        console.log("Inicio de sesión exitoso:", user);
+        window.location.href = "/perfil/"; // Cambia esta URL según tu sistema
+      } catch (error) {
+        console.error("Error de autenticación:", error);
+
+        // Muestra errores comunes con mensajes claros
+        if (error.code === "auth/too-many-requests") {
+          mostrarMensaje("Demasiados intentos fallidos, Intenta más tarde.");
+        } else {
+          mostrarMensaje("Correo o contraseña son incorrectos.");
+        }
+      }
+    });
+  }
 
 
   //---------------------------------
@@ -243,73 +223,73 @@ if (formularioLogin) {
   // Validación del formulario de registro
   //
   //---------------------------------
-const formularioRegistro = document.querySelector('.centrar-registro-cliente form');
+  const formularioRegistro = document.querySelector('.centrar-registro-cliente form');
 
-if (formularioRegistro) {
-  formularioRegistro.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (formularioRegistro) {
+    formularioRegistro.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    const inputs = formularioRegistro.querySelectorAll('.input');
-    const email = inputs[0]?.value.trim();
-    const usuario = inputs[1]?.value.trim();
-    const password = inputs[2]?.value.trim();
-    const confirmPassword = inputs[3]?.value.trim();
+      const inputs = formularioRegistro.querySelectorAll('.input');
+      const email = inputs[0]?.value.trim();
+      const usuario = inputs[1]?.value.trim();
+      const password = inputs[2]?.value.trim();
+      const confirmPassword = inputs[3]?.value.trim();
 
-    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email) {
-      mostrarMensaje("Por favor ingresa tu correo.");
-      return;
-    }
-
-    if (!regexCorreo.test(email)) {
-      mostrarMensaje("El correo ingresado no es válido.");
-      return;
-    }
-
-    if (!usuario) {
-      mostrarMensaje("Por favor ingresa tu nombre de usuario.");
-      return;
-    }
-
-    if (!password) {
-      mostrarMensaje("Por favor ingresa tu contraseña.");
-      return;
-    }
-
-    if (!confirmPassword) {
-      mostrarMensaje("Confirma tu contraseña.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      mostrarMensaje("Las contraseñas no coinciden.");
-      return;
-    }
-
-    // Registro en Firebase
-    try {
-      const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
-      const user = userCredential.user;
-
-      await window.updateProfile(user, { displayName: usuario });
-
-      console.log("Registro exitoso:", user);
-      window.location.href = "/perfil/"; // Ajusta la URL según tu sistema
-
-    } catch (error) {
-      console.error("Error al registrar:", error);
-
-      if (error.code === "auth/email-already-in-use") {
-        mostrarMensaje("Este correo ya está registrado.");
-      } else if (error.code === "auth/weak-password") {
-        mostrarMensaje("La contraseña debe tener al menos 6 caracteres.");
-      } else {
-        mostrarMensaje("Ocurrió un error al registrarte. Intenta nuevamente.");
+      if (!email) {
+        mostrarMensaje("Por favor ingresa tu correo.");
+        return;
       }
-    }
-  });
-}
+
+      if (!regexCorreo.test(email)) {
+        mostrarMensaje("El correo ingresado no es válido.");
+        return;
+      }
+
+      if (!usuario) {
+        mostrarMensaje("Por favor ingresa tu nombre de usuario.");
+        return;
+      }
+
+      if (!password) {
+        mostrarMensaje("Por favor ingresa tu contraseña.");
+        return;
+      }
+
+      if (!confirmPassword) {
+        mostrarMensaje("Confirma tu contraseña.");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        mostrarMensaje("Las contraseñas no coinciden.");
+        return;
+      }
+
+      // Registro en Firebase
+      try {
+        const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+        const user = userCredential.user;
+
+        await window.updateProfile(user, { displayName: usuario });
+
+        console.log("Registro exitoso:", user);
+        window.location.href = "/perfil/"; // Ajusta la URL según tu sistema
+
+      } catch (error) {
+        console.error("Error al registrar:", error);
+
+        if (error.code === "auth/email-already-in-use") {
+          mostrarMensaje("Este correo ya está registrado.");
+        } else if (error.code === "auth/weak-password") {
+          mostrarMensaje("La contraseña debe tener al menos 6 caracteres.");
+        } else {
+          mostrarMensaje("Ocurrió un error al registrarte. Intenta nuevamente.");
+        }
+      }
+    });
+  }
 
 
   //---------------------------------
@@ -317,45 +297,45 @@ if (formularioRegistro) {
   // Validación del formulario de recuperación de contraseña
   //
   //---------------------------------
-const formularioRecuperar = document.querySelector('.centrar-recuperar form');
+  const formularioRecuperar = document.querySelector('.centrar-recuperar form');
 
-if (formularioRecuperar) {
-  formularioRecuperar.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (formularioRecuperar) {
+    formularioRecuperar.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    const email = formularioRecuperar.querySelector('.input')?.value.trim();
-    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const email = formularioRecuperar.querySelector('.input')?.value.trim();
+      const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email) {
-      mostrarMensaje("Por favor ingresa tu correo.");
-      return;
-    }
-
-    if (!regexCorreo.test(email)) {
-      mostrarMensaje("El correo ingresado no es válido.");
-      return;
-    }
-
-    try {
-      // Verificar si existe una cuenta con este correo
-      const { fetchSignInMethodsForEmail } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-      const methods = await fetchSignInMethodsForEmail(firebaseAuth, email);
-
-      // Enviar correo de recuperación
-      await sendPasswordResetEmail(firebaseAuth, email);
-      mostrarMensaje("📬 Te hemos enviado un correo para restablecer tu contraseña.");
-      formularioRecuperar.reset();
-    } catch (error) {
-      console.error("Error al procesar la recuperación:", error);
-
-      if (error.code === "auth/too-many-requests") {
-        mostrarMensaje("Demasiados intentos. Intenta más tarde.");
-      } else {
-        mostrarMensaje("Ocurrió un error. Intenta nuevamente.");
+      if (!email) {
+        mostrarMensaje("Por favor ingresa tu correo.");
+        return;
       }
-    }
-  });
-}
+
+      if (!regexCorreo.test(email)) {
+        mostrarMensaje("El correo ingresado no es válido.");
+        return;
+      }
+
+      try {
+        // Verificar si existe una cuenta con este correo
+        const { fetchSignInMethodsForEmail } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+        const methods = await fetchSignInMethodsForEmail(firebaseAuth, email);
+
+        // Enviar correo de recuperación
+        await sendPasswordResetEmail(firebaseAuth, email);
+        mostrarMensaje("📬 Te hemos enviado un correo para restablecer tu contraseña.");
+        formularioRecuperar.reset();
+      } catch (error) {
+        console.error("Error al procesar la recuperación:", error);
+
+        if (error.code === "auth/too-many-requests") {
+          mostrarMensaje("Demasiados intentos. Intenta más tarde.");
+        } else {
+          mostrarMensaje("Ocurrió un error. Intenta nuevamente.");
+        }
+      }
+    });
+  }
 
 
 
@@ -421,5 +401,201 @@ if (formularioRecuperar) {
       // Aquí puedes continuar con la lógica de guardado en Firestore, envío, etc.
     });
   }
+
+  //---------------------------------
+  //
+  // Funcion para desloguear con el botón de logout
+  //
+  //---------------------------------
+
+    const botonLogout = document.getElementById('boton-logout');
+  if (botonLogout) {
+    botonLogout.addEventListener('click', async () => {
+      try {
+        await window.firebaseAuth.signOut();
+        // Redirige al usuario a la página de inicio o login
+        window.location.href = '/acceso/';
+      } catch (error) {
+        alert('Error al cerrar sesión');
+        console.error(error);
+      }
+    });
+  }
+
+  //---------------------------------
+  //
+  // funcion para bloquear paguinas si no hay usuario autenticado
+  //
+  //---------------------------------
+
+
+  function esperarOnFirebaseAuthStateChanged() {
+    if (typeof window.onFirebaseAuthStateChanged === "function") {
+      const pathActual = window.location.pathname;
+      window.onFirebaseAuthStateChanged(async (user) => {
+        // 🔐 Si NO hay usuario o no tiene correo, redirige a /acceso/
+        if (!user || !user.email) {
+          if (pathActual === '/perfil/' || pathActual.startsWith('/perfil')) {
+            window.location.href = '/acceso/';
+            return;
+          }
+        }
+
+        // ✅ Si hay usuario con correo y está en /acceso/, lo redirige al perfil
+        if (user?.email && pathActual === '/acceso/') {
+          window.location.href = '/perfil/';
+          return;
+        }
+
+        // Enlace dinámico del botón
+        const botonAccesoLink = document.querySelector('a[href="/acceso/"]');
+        if (botonAccesoLink) {
+          botonAccesoLink.setAttribute('href', user ? '/perfil/' : '/acceso/');
+        }
+
+        // (Opcional) Mostrar en consola
+        if (user?.email) {
+          console.log("Usuario autenticado con correo:", user.email);
+        } else {
+          console.log("No hay usuario autenticado");
+        }
+      });
+    } else {
+      setTimeout(esperarOnFirebaseAuthStateChanged, 100); // Intenta de nuevo en 100ms
+    }
+  }
+
+  esperarOnFirebaseAuthStateChanged();
+
+
+  //---------------------------------
+  //
+  // funcion para generar contraseña de trabajador 
+  //
+  //---------------------------------
+
+  // 👉 Vincular inputs para generación automática de contraseña
+  document.getElementById('rut-trabajador')?.addEventListener('input', generarPassword);
+  document.getElementById('nombre-trabajador')?.addEventListener('input', generarPassword);
+  document.getElementById('apellido-paterno-trabajador')?.addEventListener('input', generarPassword);
+
+  // 👉 Vincular botón para copiar contraseña (más moderno)
+  const botonCopiar = document.querySelector('button[onclick="copiarPassword()"]');
+  if (botonCopiar) {
+    botonCopiar.addEventListener("click", copiarPassword);
+  }
+
+  function generarPassword() {
+    const rut = document.getElementById('rut-trabajador').value.trim();
+    const nombre = document.getElementById('nombre-trabajador').value.trim().toLowerCase();
+    const apellido = document.getElementById('apellido-paterno-trabajador').value.trim().toLowerCase();
+    const passInput = document.getElementById('password-trabajador');
+
+    if (rut && nombre && apellido) {
+      const rutClean = rut.replace(/\./g, '').replace(/-/g, '');
+      const simbolos = ['!', '@', '#', '$', '%'];
+      const simbolo = simbolos[Math.floor(Math.random() * simbolos.length)];
+      const parte1 = nombre.slice(0, 2);
+      const parte2 = apellido.slice(0, 2);
+      const parte3 = nombre.slice(2, 4);
+      const password = `${parte1}${rutClean.slice(0, 3)}${parte2}${simbolo}${rutClean.slice(-3)}${parte3}`;
+      passInput.value = password;
+    } else {
+      passInput.value = "";
+    }
+  }
+
+  function copiarPassword() {
+    const input = document.getElementById('password-trabajador');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    mostrarMensaje('Contraseña copiada al portapapeles');
+  }
+
+  function mostrarMensaje(texto) {
+    const contenedor = document.getElementById('contenedor-mensaje');
+    const mensaje = document.getElementById('mensaje-texto');
+    mensaje.textContent = texto;
+    contenedor.classList.remove('oculto');
+    setTimeout(() => contenedor.classList.add('oculto'), 3000);
+  }
+
+
+  //---------------------------------
+  //
+  // funcion para hacer los pasos de registro de trabajador
+  //
+  //---------------------------------
+
+  const pasos = ["paso-1", "paso-2", "paso-3", "paso-4"];
+  let pasoActual = 0;
+
+  function mostrarPaso(index) {
+    const actual = document.getElementById(pasos[pasoActual]);
+    const destino = document.getElementById(pasos[index]);
+    if (actual !== destino) {
+      // Usa la animación unificada
+      if (typeof window.cambiarFormulario === "function") {
+        window.cambiarFormulario(actual, destino);
+      } else {
+        // Fallback por si no está cargada la función
+        actual.style.display = "none";
+        destino.style.display = "block";
+      }
+    }
+    pasoActual = index;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function validarFormulario(form) {
+    const inputs = form.querySelectorAll("input, select");
+    for (let input of inputs) {
+      if (!input.disabled && !input.checkValidity()) {
+        input.reportValidity();
+        // Mostrar mensaje de error personalizado si quieres
+        mostrarMensaje(input.validationMessage || "Completa correctamente este campo.");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Configura cada paso
+  pasos.forEach((id, index) => {
+    const contenedor = document.getElementById(id);
+    const form = contenedor.querySelector("form");
+    const btnVolver = contenedor.querySelector(".volver-atras");
+
+    // Botón continuar
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (validarFormulario(form)) {
+        if (index + 1 < pasos.length) {
+          mostrarPaso(index + 1);
+        }
+      } else {
+        // Mensaje de error general si la validación falla
+        mostrarMensaje("Por favor, completa correctamente todos los campos obligatorios.");
+      }
+    });
+
+    // Botón volver
+    if (btnVolver) {
+      btnVolver.addEventListener("click", () => {
+        if (index > 0) {
+          mostrarPaso(index - 1);
+        }
+      });
+    }
+  });
+
+  // Mostrar primer paso al cargar
+  mostrarPaso(0);
+
+
+
+
+
 
 });
