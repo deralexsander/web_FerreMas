@@ -191,6 +191,20 @@
 }
 
 /* -------------------------------------------------------------
+  Animación: popOut
+  Descripción:
+  Hace que un elemento desaparezca suavemente
+------------------------------------------------------------- */
+@keyframes popOutFade {
+  0% {
+   opacity: 1;
+  }
+  100% {
+   opacity: 0;
+  }
+}
+
+/* -------------------------------------------------------------
    Animación: moveRight
    Descripción:
    Desplaza un elemento hacia la derecha de forma horizontal 
@@ -380,6 +394,23 @@ body {
   background-color: #0a4a82bb; /* Set color to #0a4a82 */
   padding-right: 20px; /* Add space to the right */
 }
+
+
+/* Animación para ocultar */
+.pop-out {
+  animation: popOutFade 0.5s forwards;
+  animation-delay: 1.5s;
+  animation-timing-function: ease-in-out;
+  
+}
+
+/* Animación para mostrar */
+.pop-in {
+  animation: pop 0.5s forwards;
+  animation-delay: 1s;
+  animation-timing-function: ease-in-out;
+}
+
 
 
   
@@ -2153,8 +2184,9 @@ select option {
 }
 
 .contenedor_boton_volver {
+  opacity: 0;
   position: fixed;
-  top: 80px;
+  top: 2vh;
   left: 20px;
   z-index: 1000; /* asegura que esté por encima del resto */
 }
@@ -2168,6 +2200,7 @@ select option {
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
+  animation: pop 0.5s ease-in-out 2s forwards;
 }
 
 .button-volver:hover {
@@ -2325,6 +2358,39 @@ hr {
 
 
 
+
+
+
+
+
+
+.segmented-control {
+  display: flex;
+  gap: 1rem;
+  background-color: #e0e0e0;
+  padding: 6px;
+  border-radius: 8px;
+  justify-content: center;
+}
+
+.segment {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: transparent;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.segment:hover {
+  background-color: #d0d0d0;
+}
+
+.segment.active {
+  background-color: #0a4a82;
+  color: white;
+}
 
 
 

@@ -5,8 +5,11 @@
 //---------------------------------
 let centrarLogin;
 let mostrarMensaje;
+let correoTrabajadorActual = "";
+let passwordTrabajadorActual = "";
 
 window.addEventListener('DOMContentLoaded', async () => {
+  aplicarAnimacionSiEsRegistroPersonal();
 
   //---------------------------------
   //
@@ -505,93 +508,161 @@ if (btnPagar) {
     }
   }
 
+  // Modifica la función copiarPassword para copiar ambos datos
   function copiarPassword() {
-    const input = document.getElementById('password-trabajador');
-    input.select();
-    input.setSelectionRange(0, 99999);
-    document.execCommand('copy');
-    mostrarMensaje('Contraseña copiada al portapapeles');
-  }
-
-  function mostrarMensaje(texto) {
-    const contenedor = document.getElementById('contenedor-mensaje');
-    const mensaje = document.getElementById('mensaje-texto');
-    mensaje.textContent = texto;
-    contenedor.classList.remove('oculto');
-    setTimeout(() => contenedor.classList.add('oculto'), 3000);
-  }
-
-
-  //---------------------------------
-  //
-  // funcion para hacer los pasos de registro de trabajador
-  //
-  //---------------------------------
-
-  const pasos = ["paso-1", "paso-2", "paso-3", "paso-4"];
-  let pasoActual = 0;
-
-  function mostrarPaso(index) {
-    const actual = document.getElementById(pasos[pasoActual]);
-    const destino = document.getElementById(pasos[index]);
-    if (actual !== destino) {
-      // Usa la animación unificada
-      if (typeof window.cambiarFormulario === "function") {
-        window.cambiarFormulario(actual, destino);
-      } else {
-        // Fallback por si no está cargada la función
-        actual.style.display = "none";
-        destino.style.display = "block";
-      }
-    }
-    pasoActual = index;
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function validarFormulario(form) {
-    const inputs = form.querySelectorAll("input, select");
-    for (let input of inputs) {
-      if (!input.disabled && !input.checkValidity()) {
-        input.reportValidity();
-        // Mostrar mensaje de error personalizado si quieres
-        mostrarMensaje(input.validationMessage || "Completa correctamente este campo.");
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // Configura cada paso
-  pasos.forEach((id, index) => {
-    const contenedor = document.getElementById(id);
-    const form = contenedor.querySelector("form");
-    const btnVolver = contenedor.querySelector(".volver-atras");
-
-    // Botón continuar
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (validarFormulario(form)) {
-        if (index + 1 < pasos.length) {
-          mostrarPaso(index + 1);
-        }
-      } else {
-        // Mensaje de error general si la validación falla
-        mostrarMensaje("Por favor, completa correctamente todos los campos obligatorios.");
-      }
-    });
-
-    // Botón volver
-    if (btnVolver) {
-      btnVolver.addEventListener("click", () => {
-        if (index > 0) {
-          mostrarPaso(index - 1);
-        }
+    const texto = `Correo trabajador: ${correoTrabajadorActual}, contraseña de un solo uso de cuenta: ${passwordTrabajadorActual}`;
+    // Copiar al portapapeles
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(texto).then(() => {
+        mostrarMensaje('Correo y contraseña copiados al portapapeles');
       });
+    } else {
+      // Fallback para navegadores antiguos
+      const tempInput = document.createElement("input");
+      tempInput.value = texto;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      mostrarMensaje('Correo y contraseña copiados al portapapeles');
     }
-  });
+  }
 
-  // Mostrar primer paso al cargar
-  mostrarPaso(0);
+  //---------------------------------
+  //
+  // función para hacer los pasos de registro de trabajador
+  //
+  //---------------------------------
+  if (window.location.pathname === "/registro_personal/") {
+    const pasos = ["paso-1", "paso-2", "paso-3", "paso-4"];
+    let pasoActual = 0;
+
+    function mostrarPaso(index) {
+      const actual = document.getElementById(pasos[pasoActual]);
+      const destino = document.getElementById(pasos[index]);
+      if (actual !== destino) {
+        if (typeof window.cambiarFormulario === "function") {
+          window.cambiarFormulario(actual, destino);
+        } else {
+          actual.style.display = "none";
+          destino.style.display = "block";
+        }
+      }
+      pasoActual = index;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      if (index === 3) {
+        const correoInput = document.querySelector('#paso-2 #correo-trabajador');
+        const passwordInput = document.getElementById('password-trabajador');
+        correoTrabajadorActual = correoInput?.value || "";
+        passwordTrabajadorActual = passwordInput?.value || "";
+        const infoDiv = document.getElementById('info-cuenta-trabajador');
+        if (infoDiv) {
+          infoDiv.textContent = `Correo trabajador: ${correoTrabajadorActual}, contraseña de un solo uso de cuenta: ${passwordTrabajadorActual}`;
+        }
+        const correoPaso4 = document.querySelector('#paso-4 #correo-trabajador-final');
+        if (correoPaso4) correoPaso4.value = correoTrabajadorActual;
+      }
+    }
+    window.mostrarPaso = mostrarPaso;
+
+    async function validarFormulario(form, index) {
+      let valido = true;
+
+      if (index === 0) {
+        const nombre = form.querySelector('#nombre-trabajador');
+        const apellidoP = form.querySelector('#apellido-paterno-trabajador');
+        const apellidoM = form.querySelector('#apellido-materno-trabajador');
+        if (!nombre.value.trim()) {
+          mostrarMensaje("Por favor ingresa el nombre del trabajador.");
+          valido = false;
+        } else if (!apellidoP.value.trim()) {
+          mostrarMensaje("Por favor ingresa el apellido paterno.");
+          valido = false;
+        } else if (!apellidoM.value.trim()) {
+          mostrarMensaje("Por favor ingresa el apellido materno.");
+          valido = false;
+        }
+      } else if (index === 1) {
+        const correo = form.querySelector('#correo-trabajador');
+        const rut = form.querySelector('#rut-trabajador');
+        const rol = form.querySelector('#rol-trabajador');
+        const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const regexRut = /^\d{7,8}-[\dkK]$/;
+        if (!correo.value.trim()) {
+          mostrarMensaje("Por favor ingresa el correo del trabajador.");
+          valido = false;
+        } else if (!regexCorreo.test(correo.value.trim())) {
+          mostrarMensaje("El correo ingresado no es válido.");
+          valido = false;
+        } else if (!rut.value.trim()) {
+          mostrarMensaje("Por favor ingresa el RUT del trabajador.");
+          valido = false;
+        } else if (!regexRut.test(rut.value.trim())) {
+          mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9");
+          valido = false;
+        } else if (!rol.value) {
+          mostrarMensaje("Debes seleccionar un rol para el trabajador.");
+          valido = false;
+        }
+      }
+
+      return valido;
+    }
+
+
+  }
+
+
+
+//---------------------------------
+//
+// función para mostrar la ruta actual
+//
+//---------------------------------
+function mostrarRutaActual() {
+  const pathActual = window.location.pathname.replace(/\/+$/, "") + "/";
+  console.log("Ruta actual:", pathActual);
+  return pathActual;
+}
+
+//---------------------------------
+//
+// función para mostrar/ocultar navbar o contenedor
+//
+//---------------------------------
+function aplicarAnimacionSiEsRegistroPersonal() {
+  const path = mostrarRutaActual();
+  const contenedor = document.querySelector(".button-container");
+
+  if (!contenedor) return;
+
+  contenedor.classList.remove("pop-in", "pop-out");
+
+  // Si estamos en la página de registro
+  if (path === "/registro_personal/") {
+    contenedor.classList.add("pop-out");
+
+    // Marcamos que debe ejecutarse pop-in en la siguiente vista
+    localStorage.setItem("animar_popin", "true");
+
+  } else {
+    // Verificamos si se debe ejecutar pop-in
+    const debeAnimarPopIn = localStorage.getItem("animar_popin") === "true";
+
+    if (debeAnimarPopIn) {
+      contenedor.style.opacity = 0;
+      contenedor.classList.add("pop-in");
+
+      // Evita que se repita
+      localStorage.removeItem("animar_popin");
+
+      setTimeout(() => {
+        contenedor.style.opacity = "";
+      }, 3500); // Duración de la animación
+    }
+  }
+}
 
 
 
