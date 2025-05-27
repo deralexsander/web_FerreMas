@@ -527,91 +527,114 @@ if (btnPagar) {
       mostrarMensaje('Correo y contraseña copiados al portapapeles');
     }
   }
+//---------------------------------
+//
+// función para hacer los pasos de registro de trabajador
+//
+//---------------------------------
+if (window.location.pathname === "/registro_personal/") {
+  const pasos = ["paso-1", "paso-2", "paso-3", "paso-4"];
+  let pasoActual = 0;
 
-  //---------------------------------
-  //
-  // función para hacer los pasos de registro de trabajador
-  //
-  //---------------------------------
-  if (window.location.pathname === "/registro_personal/") {
-    const pasos = ["paso-1", "paso-2", "paso-3", "paso-4"];
-    let pasoActual = 0;
-
-    function mostrarPaso(index) {
-      const actual = document.getElementById(pasos[pasoActual]);
-      const destino = document.getElementById(pasos[index]);
-      if (actual !== destino) {
-        if (typeof window.cambiarFormulario === "function") {
-          window.cambiarFormulario(actual, destino);
-        } else {
-          actual.style.display = "none";
-          destino.style.display = "block";
-        }
-      }
-      pasoActual = index;
-      window.scrollTo({ top: 0, behavior: "smooth" });
-
-      if (index === 3) {
-        const correoInput = document.querySelector('#paso-2 #correo-trabajador');
-        const passwordInput = document.getElementById('password-trabajador');
-        correoTrabajadorActual = correoInput?.value || "";
-        passwordTrabajadorActual = passwordInput?.value || "";
-        const infoDiv = document.getElementById('info-cuenta-trabajador');
-        if (infoDiv) {
-          infoDiv.textContent = `Correo trabajador: ${correoTrabajadorActual}, contraseña de un solo uso de cuenta: ${passwordTrabajadorActual}`;
-        }
-        const correoPaso4 = document.querySelector('#paso-4 #correo-trabajador-final');
-        if (correoPaso4) correoPaso4.value = correoTrabajadorActual;
+  function mostrarPaso(index) {
+    const actual = document.getElementById(pasos[pasoActual]);
+    const destino = document.getElementById(pasos[index]);
+    if (actual !== destino) {
+      if (typeof window.cambiarFormulario === "function") {
+        window.cambiarFormulario(actual, destino);
+      } else {
+        actual.style.display = "none";
+        destino.style.display = "block";
       }
     }
-    window.mostrarPaso = mostrarPaso;
+    pasoActual = index;
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
-    async function validarFormulario(form, index) {
-      let valido = true;
-
-      if (index === 0) {
-        const nombre = form.querySelector('#nombre-trabajador');
-        const apellidoP = form.querySelector('#apellido-paterno-trabajador');
-        const apellidoM = form.querySelector('#apellido-materno-trabajador');
-        if (!nombre.value.trim()) {
-          mostrarMensaje("Por favor ingresa el nombre del trabajador.");
-          valido = false;
-        } else if (!apellidoP.value.trim()) {
-          mostrarMensaje("Por favor ingresa el apellido paterno.");
-          valido = false;
-        } else if (!apellidoM.value.trim()) {
-          mostrarMensaje("Por favor ingresa el apellido materno.");
-          valido = false;
-        }
-      } else if (index === 1) {
-        const correo = form.querySelector('#correo-trabajador');
-        const rut = form.querySelector('#rut-trabajador');
-        const rol = form.querySelector('#rol-trabajador');
-        const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const regexRut = /^\d{7,8}-[\dkK]$/;
-        if (!correo.value.trim()) {
-          mostrarMensaje("Por favor ingresa el correo del trabajador.");
-          valido = false;
-        } else if (!regexCorreo.test(correo.value.trim())) {
-          mostrarMensaje("El correo ingresado no es válido.");
-          valido = false;
-        } else if (!rut.value.trim()) {
-          mostrarMensaje("Por favor ingresa el RUT del trabajador.");
-          valido = false;
-        } else if (!regexRut.test(rut.value.trim())) {
-          mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9");
-          valido = false;
-        } else if (!rol.value) {
-          mostrarMensaje("Debes seleccionar un rol para el trabajador.");
-          valido = false;
-        }
+    if (index === 3) {
+      const correoInput = document.querySelector('#paso-2 #correo-trabajador');
+      const passwordInput = document.getElementById('password-trabajador');
+      correoTrabajadorActual = correoInput?.value || "";
+      passwordTrabajadorActual = passwordInput?.value || "";
+      const infoDiv = document.getElementById('info-cuenta-trabajador');
+      if (infoDiv) {
+        infoDiv.textContent = `Correo trabajador: ${correoTrabajadorActual}, contraseña de un solo uso de cuenta: ${passwordTrabajadorActual}`;
       }
-
-      return valido;
+      const correoPaso4 = document.querySelector('#paso-4 #correo-trabajador-final');
+      if (correoPaso4) correoPaso4.value = correoTrabajadorActual;
     }
-
-
   }
+  window.mostrarPaso = mostrarPaso;
+
+  async function validarFormulario(form, index) {
+    let valido = true;
+
+    if (index === 0) {
+      const nombre = form.querySelector('#nombre-trabajador');
+      const apellidoP = form.querySelector('#apellido-paterno-trabajador');
+      const apellidoM = form.querySelector('#apellido-materno-trabajador');
+      if (!nombre.value.trim()) {
+        mostrarMensaje("Por favor ingresa el nombre del trabajador.");
+        valido = false;
+      } else if (!apellidoP.value.trim()) {
+        mostrarMensaje("Por favor ingresa el apellido paterno.");
+        valido = false;
+      } else if (!apellidoM.value.trim()) {
+        mostrarMensaje("Por favor ingresa el apellido materno.");
+        valido = false;
+      }
+    } else if (index === 1) {
+      const correo = form.querySelector('#correo-trabajador');
+      const rut = form.querySelector('#rut-trabajador');
+      const rol = form.querySelector('#rol-trabajador');
+      const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const regexRut = /^\d{7,8}-[\dkK]$/;
+      if (!correo.value.trim()) {
+        mostrarMensaje("Por favor ingresa el correo del trabajador.");
+        valido = false;
+      } else if (!regexCorreo.test(correo.value.trim())) {
+        mostrarMensaje("El correo ingresado no es válido.");
+        valido = false;
+      } else if (!rut.value.trim()) {
+        mostrarMensaje("Por favor ingresa el RUT del trabajador.");
+        valido = false;
+      } else if (!regexRut.test(rut.value.trim())) {
+        mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9");
+        valido = false;
+      } else if (!rol.value) {
+        mostrarMensaje("Debes seleccionar un rol para el trabajador.");
+        valido = false;
+      }
+    }
+
+    return valido;
+  }
+
+  // Manejo de formularios paso 1 y paso 2
+  const formularioPaso1 = document.querySelector('#paso-1 form');
+  if (formularioPaso1) {
+    formularioPaso1.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const valido = await validarFormulario(formularioPaso1, 0);
+      if (valido) mostrarPaso(1);
+    });
+  }
+
+  const formularioPaso2 = document.querySelector('#paso-2 form');
+  if (formularioPaso2) {
+    formularioPaso2.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const valido = await validarFormulario(formularioPaso2, 1);
+      if (valido) mostrarPaso(2);
+    });
+  }
+
+  // Botones "Volver" entre pasos
+  document.querySelectorAll('.volver-atras').forEach((boton) => {
+    boton.addEventListener('click', () => {
+      if (pasoActual > 0) mostrarPaso(pasoActual - 1);
+    });
+  });
+}
 
 
 
@@ -646,6 +669,12 @@ if (btnPagar) {
       // Marcamos que debe ejecutarse pop-in en la siguiente vista
       localStorage.setItem("animar_popin", "true");
 
+    } else if (path === "/crear_producto/"){
+      contenedor.classList.add("pop-out");
+
+      // Marcamos que debe ejecutarse pop-in en la siguiente vista
+      localStorage.setItem("animar_popin", "true");
+
     } else {
       // Verificamos si se debe ejecutar pop-in
       const debeAnimarPopIn = localStorage.getItem("animar_popin") === "true";
@@ -670,49 +699,74 @@ if (btnPagar) {
   //
   //---------------------------------
 
-  function alternarFormularioTablaAnimado() {
-    const btnCrear = document.getElementById("btn-crear");
-    const btnTabla = document.getElementById("btn-tabla");
 
-    const formulario = document.getElementById("paso-1");
-    const tabla = document.getElementById("tabla-trabajadores")?.closest(".contenedor_informacion");
+//---------------------------------
+//
+// función para cambiar de formulario a tabla
+//
+//---------------------------------
 
-    if (!btnCrear || !btnTabla || !formulario || !tabla) {
-      console.error("❌ No se encontró algún elemento clave");
-      return;
+function alternarFormularioTablaAnimado() {
+  const btnCrear = document.getElementById("btn-crear");
+  const btnTabla = document.getElementById("btn-tabla");
+
+  const pasos = [
+    document.getElementById("paso-1"),
+    document.getElementById("paso-2"),
+    document.getElementById("paso-3"),
+    document.getElementById("paso-4"),
+  ];
+
+  const modalTabla = document.getElementById("modal-tabla-trabajadores");
+  const cerrarModal = document.getElementById("cerrar-modal");
+
+  if (!btnCrear || !btnTabla || pasos.includes(null) || !modalTabla || !cerrarModal) {
+    console.error("❌ Faltan elementos necesarios para el funcionamiento");
+    return;
+  }
+
+  // ✅ Evento para abrir el modal
+  btnTabla.addEventListener("click", () => {
+    if (btnTabla.classList.contains("active")) return;
+
+    btnTabla.classList.add("active");
+    btnCrear.classList.remove("active");
+
+    modalTabla.style.display = "block";
+
+    if (typeof cargarTrabajadores === "function") {
+      cargarTrabajadores();
     }
+  });
 
-    btnCrear.addEventListener("click", () => {
-      if (btnCrear.classList.contains("active")) return; // evitar animación repetida
+  // ✅ Evento para cerrar el modal
+  cerrarModal.addEventListener("click", () => {
+    modalTabla.style.display = "none";
+    btnCrear.classList.add("active");
+    btnTabla.classList.remove("active");
+  });
 
-      btnCrear.classList.add("active");
-      btnTabla.classList.remove("active");
+  // ✅ Evento para volver a "Crear trabajador"
+  btnCrear.addEventListener("click", () => {
+    if (btnCrear.classList.contains("active")) return;
 
-      window.cambiarFormulario(tabla, formulario);
-    });
+    btnCrear.classList.add("active");
+    btnTabla.classList.remove("active");
 
-    btnTabla.addEventListener("click", () => {
-      if (btnTabla.classList.contains("active")) return;
+    modalTabla.style.display = "none";
 
-      btnTabla.classList.add("active");
-      btnCrear.classList.remove("active");
+    // Mostrar el paso visible actual o volver al primero
+    const pasoActual = pasos.find(p => p.classList.contains("visible")) || pasos[0];
+    pasos.forEach(p => p.classList.add("oculto"));
+    pasoActual.classList.remove("oculto");
+    pasoActual.classList.add("visible");
+  });
+}
 
-      window.cambiarFormulario(formulario, tabla);
-
-      if (typeof cargarTrabajadores === "function") {
-        cargarTrabajadores();
-      }
-    });
-
-    // Mostrar formulario por defecto
-    formulario.classList.add("visible");
-    tabla.classList.add("oculto");
-  }
-
-  if (document.getElementById("btn-crear") && document.getElementById("btn-tabla")) {
-    alternarFormularioTablaAnimado();
-  }
-
+// ✅ Inicialización al cargar
+if (document.getElementById("btn-crear") && document.getElementById("btn-tabla")) {
+  alternarFormularioTablaAnimado();
+}
 
 
 

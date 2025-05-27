@@ -389,7 +389,7 @@ body {
   top: 2vh;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1000;
+  z-index: 10;
   backdrop-filter: blur(10px); /* Added blur effect */
   background-color: #0a4a82bb; /* Set color to #0a4a82 */
   padding-right: 20px; /* Add space to the right */
@@ -2188,7 +2188,7 @@ select option {
   position: fixed;
   top: 2vh;
   left: 20px;
-  z-index: 2000; /* asegura que esté por encima del resto */
+  z-index: 13; /* asegura que esté por encima del resto */
 }
 
 .button-volver {
@@ -2360,13 +2360,14 @@ hr {
 
 
 
+
 .contenedor_botones {
   opacity: 0;
   position: fixed; /* o absolute si lo prefieres dentro de otro contenedor */
   top: 2vh;
   left: 0;
   right: 0;
-  z-index: 1000; /* muy alto para que esté por encima de todo */
+  z-index: 11; /* muy alto para que esté por encima de todo */
   display: flex;
   justify-content: center;
   animation: pop 0.5s ease-in-out 2s forwards;
