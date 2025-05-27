@@ -29,8 +29,7 @@ def bodega(request):
 def crear_producto(request):
     return render(request, 'web/crear_producto.html')
 
-def trabajadores(request):
-    return render(request, 'web/trabajadores.html')
+
 
 def datos_personales(request):
     return render(request, 'web/datos_personales.html')

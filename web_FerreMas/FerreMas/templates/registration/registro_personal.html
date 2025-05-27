@@ -7,6 +7,20 @@
 
 {% block contenido %}
 
+<a class="button-volver contenedor_boton_volver" href="{% url 'perfil' %}">
+  ⬅ Volver
+</a>
+
+
+<div class="contenedor_botones">
+<div class="segmented-control">
+  <button class="segment active" id="btn-crear">Crear trabajador</button>
+  <button class="segment" id="btn-tabla">Tabla trabajadores</button>
+</div>
+
+</div>
+
+
 <div class="contenedor_informacion" id="paso-1" >
 
   <div class="bloque_info">
@@ -20,8 +34,8 @@
           </div>
         </div>
     </div>
-    <div class="columna_form">
-      <form action="" novalidate>
+    <div class="columna_form animacion-entrada">
+      <form class="formulario-paso" novalidate>
           <div class="vertical-align">
             <div class="flex-column">
               <label>Nombre del trabajador</label>
@@ -55,7 +69,6 @@
 
 </div>
 
-
 <div class="contenedor_informacion" id="paso-2">
 
   <div class="bloque_info">
@@ -70,7 +83,7 @@
         </div>
     </div>
     <div class="columna_form">
-      <form action="">
+      <form class="formulario-paso" novalidate>
           <div class="vertical-align">
             <div class="flex-column">
               <label>Correo electrónico</label>
@@ -112,42 +125,45 @@
 
   <div class="bloque_info">
     <div class="columna_info">
-        <div class="centrar">
-          <div class="encabezado-formulario">
-            <h1>Por ultimo, Asignación de sucursal</h1>
+      <div class="centrar">
+        <div class="encabezado-formulario">
+          <h1>Por último, Asignación de sucursal</h1>
+        </div>
+        <div class="subtexto-formulario">
+          <p>Selecciona la región y comuna donde trabajará esta persona.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="columna_form">
+      <!-- Se evita envío automático del formulario -->
+      <form class="formulario-paso" onsubmit="return false">
+        <div class="vertical-align">
+          <div class="flex-column">
+            <label>Región de la sucursal</label>
           </div>
-          <div class="subtexto-formulario">
-            <p>Selecciona la región y comuna donde trabajará esta persona.</p>
+          <div class="inputForm">
+            <select id="region-sucursal" name="region" class="input" required>
+              <option value="">Seleccione una región</option>
+              <!-- Se cargan dinámicamente -->
+            </select>
           </div>
         </div>
-    </div>
-    <div class="columna_form">
-      <form action="" >
-          <div class="vertical-align">
-            <div class="flex-column">
-              <label>Región de la sucursal</label>
-            </div>
-            <div class="inputForm">
-              <select id="region-sucursal" name="region" class="input" required>
-                <option value="">Seleccione una región</option>
-                <!-- Se cargan dinámicamente -->
-              </select>
-            </div>
-          </div>
-          <div class="vertical-align">
-            <div class="flex-column">
-              <label>Comuna de la sucursal</label>
-            </div>
-            <div class="inputForm">
-              <select id="comuna-sucursal" name="comuna" class="input" required>
-                <option value="">Seleccione una comuna</option>
-              </select>
-            </div>
-          </div>
 
-         <button type="submit" class="button-submit">Crear trabajador</button>
-         <button type="button" class="volver-atras button-submit">⬅ Volver</button>
+        <div class="vertical-align">
+          <div class="flex-column">
+            <label>Comuna de la sucursal</label>
+          </div>
+          <div class="inputForm">
+            <select id="comuna-sucursal" name="comuna" class="input" required disabled>
+              <option value="">Seleccione una comuna</option>
+            </select>
+          </div>
+        </div>
 
+        <!-- Botón que llama la función crearTrabajador -->
+        <button type="button" onclick="crearTrabajador()" class="button-submit">Crear trabajador</button>
+        <button type="button" class="volver-atras button-submit">⬅ Volver</button>
       </form>
     </div>
   </div>
@@ -169,13 +185,12 @@
         </div>
     </div>
     <div class="columna_form">
-      <form action="">
           <div class="vertical-align">
             <div class="flex-column">
               <label>Correo electrónico</label>
             </div>
             <div class="inputForm">
-              <input type="email" id="correo-trabajador" name="correo" class="input" placeholder="correo@empresa.cl" required disabled>
+              <input type="email" id="correo-trabajador-final" name="correo" class="input" placeholder="correo@empresa.cl" required disabled>
             </div>
           </div>
           <div class="vertical-align">
@@ -183,18 +198,38 @@
               <label>Contraseña generada automáticamente</label>
             </div>
             <div class="inputForm" style="display: flex; gap: 10px; align-items: center;">
-              <input type="text" id="password-trabajador" name="password" class="input" readonly required>
-              <button type="button" onclick="copiarPassword()">📋 Copiar</button>
+                <input type="text" id="password-trabajador" name="password" class="input" readonly required>
             </div>
           </div>
-        <button type="submit" class="button-submit">Continuar</button>
-      </form>
+        <button type="submit" onclick="copiarPassword()" class="button-submit">Copiar</button>
     </div>
   </div>
 
 </div>
 
+<div class="contenedor_informacion" id="" >
 
+  <div class="bloque_info">
+    <div class="columna_info">
+        <table id="tabla-trabajadores" border="1">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>RUT</th>
+              <th>Rol</th>
+              <th>Fecha creación</th>
+              <th>Contraseña de inicio</th>
+              <th>Cambiar contraseña</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+    </div>
+  </div>
+
+</div>
 
 
 {% endblock %}

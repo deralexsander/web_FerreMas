@@ -615,55 +615,103 @@ if (btnPagar) {
 
 
 
-//---------------------------------
-//
-// función para mostrar la ruta actual
-//
-//---------------------------------
-function mostrarRutaActual() {
-  const pathActual = window.location.pathname.replace(/\/+$/, "") + "/";
-  console.log("Ruta actual:", pathActual);
-  return pathActual;
-}
+  //---------------------------------
+  //
+  // función para mostrar la ruta actual
+  //
+  //---------------------------------
+  function mostrarRutaActual() {
+    const pathActual = window.location.pathname.replace(/\/+$/, "") + "/";
+    console.log("Ruta actual:", pathActual);
+    return pathActual;
+  }
 
-//---------------------------------
-//
-// función para mostrar/ocultar navbar o contenedor
-//
-//---------------------------------
-function aplicarAnimacionSiEsRegistroPersonal() {
-  const path = mostrarRutaActual();
-  const contenedor = document.querySelector(".button-container");
+  //---------------------------------
+  //
+  // función para mostrar/ocultar navbar o contenedor
+  //
+  //---------------------------------
+  function aplicarAnimacionSiEsRegistroPersonal() {
+    const path = mostrarRutaActual();
+    const contenedor = document.querySelector(".button-container");
 
-  if (!contenedor) return;
+    if (!contenedor) return;
 
-  contenedor.classList.remove("pop-in", "pop-out");
+    contenedor.classList.remove("pop-in", "pop-out");
 
-  // Si estamos en la página de registro
-  if (path === "/registro_personal/") {
-    contenedor.classList.add("pop-out");
+    // Si estamos en la página de registro
+    if (path === "/registro_personal/") {
+      contenedor.classList.add("pop-out");
 
-    // Marcamos que debe ejecutarse pop-in en la siguiente vista
-    localStorage.setItem("animar_popin", "true");
+      // Marcamos que debe ejecutarse pop-in en la siguiente vista
+      localStorage.setItem("animar_popin", "true");
 
-  } else {
-    // Verificamos si se debe ejecutar pop-in
-    const debeAnimarPopIn = localStorage.getItem("animar_popin") === "true";
+    } else {
+      // Verificamos si se debe ejecutar pop-in
+      const debeAnimarPopIn = localStorage.getItem("animar_popin") === "true";
 
-    if (debeAnimarPopIn) {
-      contenedor.style.opacity = 0;
-      contenedor.classList.add("pop-in");
+      if (debeAnimarPopIn) {
+        contenedor.style.opacity = 0;
+        contenedor.classList.add("pop-in");
 
-      // Evita que se repita
-      localStorage.removeItem("animar_popin");
+        // Evita que se repita
+        localStorage.removeItem("animar_popin");
 
-      setTimeout(() => {
-        contenedor.style.opacity = "";
-      }, 3500); // Duración de la animación
+        setTimeout(() => {
+          contenedor.style.opacity = "";
+        }, 2500); // Duración de la animación
+      }
     }
   }
-}
 
+  //---------------------------------
+  //
+  // función para cambiar de formulario a tabla
+  //
+  //---------------------------------
+
+  function alternarFormularioTablaAnimado() {
+    const btnCrear = document.getElementById("btn-crear");
+    const btnTabla = document.getElementById("btn-tabla");
+
+    const formulario = document.getElementById("paso-1");
+    const tabla = document.getElementById("tabla-trabajadores")?.closest(".contenedor_informacion");
+
+    if (!btnCrear || !btnTabla || !formulario || !tabla) {
+      console.error("❌ No se encontró algún elemento clave");
+      return;
+    }
+
+    btnCrear.addEventListener("click", () => {
+      if (btnCrear.classList.contains("active")) return; // evitar animación repetida
+
+      btnCrear.classList.add("active");
+      btnTabla.classList.remove("active");
+
+      window.cambiarFormulario(tabla, formulario);
+    });
+
+    btnTabla.addEventListener("click", () => {
+      if (btnTabla.classList.contains("active")) return;
+
+      btnTabla.classList.add("active");
+      btnCrear.classList.remove("active");
+
+      window.cambiarFormulario(formulario, tabla);
+
+      if (typeof cargarTrabajadores === "function") {
+        cargarTrabajadores();
+      }
+    });
+
+    // Mostrar formulario por defecto
+    formulario.classList.add("visible");
+    tabla.classList.add("oculto");
+  }
+
+  if (document.getElementById("btn-crear") && document.getElementById("btn-tabla")) {
+    alternarFormularioTablaAnimado();
+  }
 
 
 

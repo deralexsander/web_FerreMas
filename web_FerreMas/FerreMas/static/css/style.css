@@ -2188,7 +2188,7 @@ select option {
   position: fixed;
   top: 2vh;
   left: 20px;
-  z-index: 1000; /* asegura que esté por encima del resto */
+  z-index: 2000; /* asegura que esté por encima del resto */
 }
 
 .button-volver {
@@ -2360,35 +2360,48 @@ hr {
 
 
 
-
+.contenedor_botones {
+  opacity: 0;
+  position: fixed; /* o absolute si lo prefieres dentro de otro contenedor */
+  top: 2vh;
+  left: 0;
+  right: 0;
+  z-index: 1000; /* muy alto para que esté por encima de todo */
+  display: flex;
+  justify-content: center;
+  animation: pop 0.5s ease-in-out 2s forwards;
+}
 
 
 
 .segmented-control {
   display: flex;
   gap: 1rem;
-  background-color: #e0e0e0;
   padding: 6px;
-  border-radius: 8px;
   justify-content: center;
 }
 
 .segment {
   padding: 10px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
   background-color: transparent;
+  border: 1.5px solid hsla(0, 0%, 100%, 0.4);
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  color: white;
+
+   
 }
 
 .segment:hover {
-  background-color: #d0d0d0;
+  background-color: #0a4a82bb; /* Set color to #0a4a82 */
 }
 
 .segment.active {
-  background-color: #0a4a82;
+  border: none;
+  backdrop-filter: blur(10px); /* Added blur effect */
+  background-color: #0a4a82bb; /* Set color to #0a4a82 */
   color: white;
 }
 
