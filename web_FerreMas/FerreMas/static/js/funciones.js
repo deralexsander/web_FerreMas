@@ -565,6 +565,12 @@ if (window.location.pathname === "/registro_personal/") {
   }
   window.mostrarPaso = mostrarPaso;
 
+  //---------------------------------
+//
+// función para validar formulario trabajador 
+//
+//---------------------------------
+
   async function validarFormulario(form, index) {
     let valido = true;
 
@@ -693,39 +699,91 @@ if (window.location.pathname === "/registro_personal/") {
     }
   }
 
+
   //---------------------------------
   //
   // función para cambiar de formulario a tabla
   //
   //---------------------------------
 
+  function alternarFormularioTablaAnimado() {
+    const btnCrear = document.getElementById("btn-crear");
+    const btnTabla = document.getElementById("btn-tabla");
+
+    const modalTabla = document.getElementById("modal-tabla-trabajadores");
+    const cerrarModal = document.getElementById("cerrar-modal");
+
+    if (!btnCrear || !btnTabla || !modalTabla || !cerrarModal) {
+      console.error("❌ Faltan elementos necesarios para el funcionamiento");
+      return;
+    }
+
+    // ✅ Abrir el modal al hacer clic en "Tabla trabajadores"
+    btnTabla.addEventListener("click", () => {
+      if (btnTabla.classList.contains("active")) return;
+
+      btnTabla.classList.add("active");
+      btnCrear.classList.remove("active");
+
+      modalTabla.style.display = "block";
+
+      if (typeof cargarTrabajadores === "function") {
+        cargarTrabajadores();
+      }
+    });
+
+    // ✅ Cerrar modal con botón cerrar (X)
+    cerrarModal.addEventListener("click", () => {
+      modalTabla.style.display = "none";
+      btnCrear.classList.add("active");
+      btnTabla.classList.remove("active");
+    });
+
+    // ✅ Cerrar modal al hacer clic en "Crear trabajador"
+    btnCrear.addEventListener("click", () => {
+      if (btnCrear.classList.contains("active")) return;
+
+      btnCrear.classList.add("active");
+      btnTabla.classList.remove("active");
+
+      modalTabla.style.display = "none";
+    });
+
+    // ✅ Cerrar modal si se hace clic fuera del contenido
+    window.addEventListener("click", (event) => {
+      if (event.target === modalTabla) {
+        modalTabla.style.display = "none";
+        btnCrear.classList.add("active");
+        btnTabla.classList.remove("active");
+      }
+    });
+  }
+
+  // ✅ Inicialización
+  if (document.getElementById("btn-crear") && document.getElementById("btn-tabla")) {
+    alternarFormularioTablaAnimado();
+  }
+
 
 //---------------------------------
 //
-// función para cambiar de formulario a tabla
+// función para cambiar de formulario a tabla de productos
 //
 //---------------------------------
 
-function alternarFormularioTablaAnimado() {
-  const btnCrear = document.getElementById("btn-crear");
-  const btnTabla = document.getElementById("btn-tabla");
+function alternarFormularioTablaAnimadoProductos() {
+  const btnCrear = document.getElementById("btn-crear-producto");
+  const btnTabla = document.getElementById("btn-tabla-productos");
 
-  const pasos = [
-    document.getElementById("paso-1"),
-    document.getElementById("paso-2"),
-    document.getElementById("paso-3"),
-    document.getElementById("paso-4"),
-  ];
-
-  const modalTabla = document.getElementById("modal-tabla-trabajadores");
+  const modalTabla = document.getElementById("modal-tabla-productos");
   const cerrarModal = document.getElementById("cerrar-modal");
 
-  if (!btnCrear || !btnTabla || pasos.includes(null) || !modalTabla || !cerrarModal) {
+  if (!btnCrear || !btnTabla || !modalTabla || !cerrarModal) {
     console.error("❌ Faltan elementos necesarios para el funcionamiento");
     return;
   }
 
-  // ✅ Evento para abrir el modal
+  // ✅ Abrir el modal al hacer clic en "Tabla productos"
   btnTabla.addEventListener("click", () => {
     if (btnTabla.classList.contains("active")) return;
 
@@ -734,19 +792,20 @@ function alternarFormularioTablaAnimado() {
 
     modalTabla.style.display = "block";
 
-    if (typeof cargarTrabajadores === "function") {
-      cargarTrabajadores();
+    // Si tienes una función para cargar productos, se ejecuta
+    if (typeof cargarProductos === "function") {
+      cargarProductos();
     }
   });
 
-  // ✅ Evento para cerrar el modal
+  // ✅ Cerrar modal con botón cerrar (X)
   cerrarModal.addEventListener("click", () => {
     modalTabla.style.display = "none";
     btnCrear.classList.add("active");
     btnTabla.classList.remove("active");
   });
 
-  // ✅ Evento para volver a "Crear trabajador"
+  // ✅ Cerrar modal al hacer clic en "Crear producto"
   btnCrear.addEventListener("click", () => {
     if (btnCrear.classList.contains("active")) return;
 
@@ -754,19 +813,126 @@ function alternarFormularioTablaAnimado() {
     btnTabla.classList.remove("active");
 
     modalTabla.style.display = "none";
+  });
 
-    // Mostrar el paso visible actual o volver al primero
-    const pasoActual = pasos.find(p => p.classList.contains("visible")) || pasos[0];
-    pasos.forEach(p => p.classList.add("oculto"));
-    pasoActual.classList.remove("oculto");
-    pasoActual.classList.add("visible");
+  // ✅ Cerrar modal si se hace clic fuera del contenido
+  window.addEventListener("click", (event) => {
+    if (event.target === modalTabla) {
+      modalTabla.style.display = "none";
+      btnCrear.classList.add("active");
+      btnTabla.classList.remove("active");
+    }
   });
 }
 
-// ✅ Inicialización al cargar
-if (document.getElementById("btn-crear") && document.getElementById("btn-tabla")) {
-  alternarFormularioTablaAnimado();
+// ✅ Inicialización si los elementos existen
+if (
+  document.getElementById("btn-crear-producto") &&
+  document.getElementById("btn-tabla-productos")
+) {
+  alternarFormularioTablaAnimadoProductos();
 }
+
+
+
+
+  //---------------------------------
+  //
+  // función validar form productos
+  //
+  //---------------------------------
+
+  // ✅ Mostrar cantidad de imágenes seleccionadas
+  const inputFoto = document.querySelector('input[name="foto"]');
+  const contador = document.getElementById("contador-fotos");
+  if (inputFoto && contador) {
+    inputFoto.addEventListener("change", () => {
+      const total = inputFoto.files.length;
+      contador.textContent = total === 0
+        ? "No has seleccionado imágenes."
+        : `Has seleccionado ${total} imagen${total > 1 ? 'es' : ''}.`;
+    });
+  }
+
+  // ✅ Función para cambiar de paso
+  function cambiarPaso(desde, hacia) {
+    const pasoActual = document.getElementById(`paso-${desde}-producto`);
+    const pasoDestino = document.getElementById(`paso-${hacia}-producto`);
+
+    if (pasoActual && pasoDestino) {
+      pasoActual.classList.remove('visible');
+      pasoActual.classList.add('oculto');
+
+      pasoDestino.classList.remove('oculto');
+      pasoDestino.classList.add('visible');
+    }
+  }
+
+  // ✅ Validación por paso al presionar "Siguiente"
+  document.querySelectorAll(".btn-siguiente").forEach((boton) => {
+    boton.addEventListener("click", () => {
+      const pasoActual = parseInt(boton.dataset.paso);
+      const contenedor = document.getElementById(`paso-${pasoActual}-producto`);
+      const campos = contenedor.querySelectorAll("input, select, textarea");
+
+      for (let input of campos) {
+        if (input.name === "foto") {
+          const files = input.files;
+          if (!files || files.length < 1) {
+            alert("Debes subir al menos 1 imagen del producto.");
+            return;
+          }
+          if (files.length > 3) {
+            alert("Solo puedes subir hasta 3 imágenes.");
+            return;
+          }
+          continue;
+        }
+
+        if (input.hasAttribute("required") && !input.value.trim()) {
+          const label = input.closest(".inputForm")?.previousElementSibling?.innerText || input.name;
+          alert(`Por favor completa el campo: ${label}`);
+          return;
+        }
+      }
+
+      cambiarPaso(pasoActual, pasoActual + 1);
+    });
+  });
+
+  // ✅ Botones "Volver"
+  document.querySelectorAll(".volver-atras").forEach((boton) => {
+    boton.addEventListener("click", () => {
+      const visible = document.querySelector(".contenedor_informacion.visible");
+      if (!visible) return;
+
+      const pasoActual = parseInt(visible.id.match(/\d+/)[0]);
+      cambiarPaso(pasoActual, pasoActual - 1);
+    });
+  });
+
+
+  const btnTabla = document.getElementById("btn-tabla-productos");
+  const modal = document.getElementById("modal-tabla-productos");
+  const cerrarModal = document.getElementById("cerrar-modal");
+
+  if (btnTabla && modal && cerrarModal) {
+    btnTabla.addEventListener("click", () => {
+      modal.classList.remove("oculto");
+    });
+
+    cerrarModal.addEventListener("click", () => {
+      modal.classList.add("oculto");
+    });
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.add("oculto");
+      }
+    });
+  } else {
+    console.error("❌ No se encontró alguno de los elementos del modal.");
+  }
 
 
 

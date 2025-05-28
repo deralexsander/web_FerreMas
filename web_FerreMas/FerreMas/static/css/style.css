@@ -1808,7 +1808,7 @@ select option {
   .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 20;
     left: 0;
     top: 0;
     width: 100%;
@@ -2188,7 +2188,7 @@ select option {
   position: fixed;
   top: 2vh;
   left: 20px;
-  z-index: 13; /* asegura que esté por encima del resto */
+  z-index: 22; /* asegura que esté por encima del resto */
 }
 
 .button-volver {
@@ -2363,46 +2363,49 @@ hr {
 
 .contenedor_botones {
   opacity: 0;
-  position: fixed; /* o absolute si lo prefieres dentro de otro contenedor */
+  position: fixed;
   top: 2vh;
   left: 0;
   right: 0;
-  z-index: 11; /* muy alto para que esté por encima de todo */
+  z-index: 21;
   display: flex;
   justify-content: center;
   animation: pop 0.5s ease-in-out 2s forwards;
+  /* Quita el backdrop-filter y background-color */
+  background-color: transparent;
 }
-
-
 
 .segmented-control {
   display: flex;
   gap: 1rem;
   padding: 6px;
   justify-content: center;
+  background-color: transparent;
 }
 
 .segment {
   padding: 10px 20px;
   border: none;
   border-radius: 12px;
-  background-color: transparent;
-  border: 1.5px solid hsla(0, 0%, 100%, 0.4);
+
+  background-color: rgba(255, 255, 255, 0.1); /* fondo translúcido */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* compatibilidad Safari/Chrome */
+
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
   font-weight: bold;
   cursor: pointer;
   color: white;
-
-   
+  transition: all 0.3s ease;
 }
 
 .segment:hover {
-  background-color: #0a4a82bb; /* Set color to #0a4a82 */
+  background-color: rgba(10, 74, 130, 0.4);
 }
 
 .segment.active {
+  background-color: rgba(10, 74, 130, 0.7);
   border: none;
-  backdrop-filter: blur(10px); /* Added blur effect */
-  background-color: #0a4a82bb; /* Set color to #0a4a82 */
   color: white;
 }
 

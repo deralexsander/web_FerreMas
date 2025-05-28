@@ -166,4 +166,108 @@ window.crearTrabajador = async function () {
 
 
 
+
+
+
+
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
+}
+
+const form = document.getElementById("crearProductoForm");
+
+if (form) {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const getValue = (key) => formData.get(key)?.trim() || null;
+
+    const uid = uuidv4(); // Código único para imagen y producto
+    formData.append("codigo_imagen", uid);
+
+    try {
+      // 1. Subir la imagen a Django
+      const imagenResponse = await fetch("/api/subir-imagen/", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!imagenResponse.ok) {
+        throw new Error("Error al subir la imagen a Django");
+      }
+
+      // 2. Crear el producto en Firebase
+      const producto = {
+        nombre: getValue("nombre"),
+        categoria: getValue("categoria"),
+        descripcion: getValue("descripcion"),
+        marca: getValue("marca"),
+        precio: parseInt(getValue("precio")) || 0,
+        stock: parseInt(getValue("stock")) || 0,
+        codigo: getValue("codigo"),
+        potencia: getValue("potencia") ? parseInt(getValue("potencia")) : null,
+        voltaje: getValue("voltaje"),
+        color: getValue("color"),
+        tamano: getValue("tamano"),
+        material: getValue("material"),
+        presentacion: getValue("presentacion"),
+        garantia: getValue("garantia"),
+        uso: getValue("uso"),
+        peso: getValue("peso") ? parseFloat(getValue("peso")) : null,
+        dimensiones: getValue("dimensiones"),
+        vencimiento: getValue("vencimiento") || null,
+        creadoEn: Timestamp.now(),
+        codigoImagen: uid
+      };
+
+      const ref = doc(db, "productos", uid);
+      await setDoc(ref, producto);
+
+      // ✅ Limpiar formulario
+      form.reset();
+
+      // ✅ Volver al paso 1
+      document.querySelectorAll('.contenedor_informacion').forEach(div => {
+        div.classList.add("oculto");
+        div.classList.remove("visible");
+      });
+      const paso1 = document.getElementById("paso-1-producto");
+      paso1.classList.remove("oculto");
+      paso1.classList.add("visible");
+
+      // ✅ Marcar botón de paso 1 si tienes uno (opcional)
+      const btnCrear = document.getElementById("btn-crear-producto");
+      const btnTabla = document.getElementById("btn-tabla-productos");
+      if (btnCrear && btnTabla) {
+        btnCrear.classList.add("active");
+        btnTabla.classList.remove("active");
+      }
+
+      alert("✅ Producto guardado con imagen vinculada");
+    } catch (error) {
+      console.error("❌ Error al guardar el producto o la imagen:", error);
+      alert("❌ No se pudo guardar el producto o la imagen. Revisa la consola.");
+    }
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 });

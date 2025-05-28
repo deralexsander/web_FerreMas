@@ -67,8 +67,6 @@ window.addEventListener('DOMContentLoaded', () => {
   //
   //---------------------------------
 
-
-  
   window.cargarTrabajadores = async function () {
     try {
       if (!window.firebaseDB || !window.getDocs || !window.collection) {
@@ -116,8 +114,148 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-
-
   cargarTrabajadores();
 
+  //---------------------------------
+  // cargar productos (si existen tablas)
+  //---------------------------------
+
+  async function cargarProductosBodega() {
+    const productosSnapshot = await window.getDocs(
+      window.collection(window.firebaseDB, "productos")
+    );
+    const tbodyReponer = document.querySelector("#tabla-reponer tbody");
+    const tbodyDisponibles = document.querySelector("#tabla-disponibles tbody");
+    const selectFiltro = document.getElementById("filtro-categoria");
+
+    const categoriasSet = new Set();
+
+    tbodyReponer.innerHTML = "";
+    tbodyDisponibles.innerHTML = "";
+    selectFiltro.innerHTML = '<option value="todas">Todas</option>';
+
+    productosSnapshot.forEach((docSnap) => {
+      const producto = docSnap.data();
+      const fila = document.createElement("tr");
+      categoriasSet.add(producto.categoria || "Sin categoría");
+
+      if (producto.stock <= 5) {
+        fila.innerHTML = `
+          <td>${producto.nombre}</td>
+          <td>${producto.categoria}</td>
+          <td>${producto.stock}</td>
+          <td>
+            <input type="number" class="input-reponer" data-id="${docSnap.id}" min="1" placeholder="Cantidad" />
+            <button class="btn-reponer" data-id="${docSnap.id}">Reponer</button>
+            <button class="btn-eliminar-producto" data-id="${docSnap.id}">Eliminar</button>
+          </td>
+        `;
+        tbodyReponer.appendChild(fila);
+      } else {
+        fila.setAttribute("data-categoria", producto.categoria || "Sin categoría");
+        fila.innerHTML = `
+          <td>${producto.nombre}</td>
+          <td>${producto.categoria}</td>
+          <td>${producto.stock}</td>
+          <td>
+            <button class="btn-eliminar-producto" data-id="${docSnap.id}">Eliminar</button>
+          </td>
+        `;
+        tbodyDisponibles.appendChild(fila);
+      }
+    });
+
+    categoriasSet.forEach((cat) => {
+      const option = document.createElement("option");
+      option.value = cat;
+      option.textContent = cat;
+      selectFiltro.appendChild(option);
+    });
+
+    selectFiltro.addEventListener("change", () => {
+      const categoriaSeleccionada = selectFiltro.value;
+      document
+        .querySelectorAll("#tabla-disponibles tbody tr")
+        .forEach((fila) => {
+          const cat = fila.getAttribute("data-categoria");
+          fila.style.display =
+            categoriaSeleccionada === "todas" || cat === categoriaSeleccionada
+              ? ""
+              : "none";
+        });
+    });
+
+    document.querySelectorAll(".btn-reponer").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const input = document.querySelector(`.input-reponer[data-id="${id}"]`);
+        const cantidad = parseInt(input.value);
+
+        if (!cantidad || cantidad <= 0) {
+          alert("⚠️ Ingresa una cantidad válida para reponer.");
+          return;
+        }
+
+        const docRef = window.doc(window.firebaseDB, "productos", id);
+        const productoSnap = await window.getDoc(docRef);
+
+        if (!productoSnap.exists()) return alert("❌ Producto no encontrado.");
+
+        const stockActual = productoSnap.data().stock || 0;
+        const nuevoStock = stockActual + cantidad;
+
+        try {
+          await window.setDoc(docRef, { stock: nuevoStock }, { merge: true });
+          alert(`✅ Producto repuesto con +${cantidad} unidades`);
+          cargarProductosBodega();
+        } catch (err) {
+          console.error(err);
+          alert("❌ Error al actualizar el stock");
+        }
+      });
+    });
+
+    document.querySelectorAll(".btn-eliminar-producto").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const confirmar = confirm(
+          "⚠️ ¿Estás seguro de que quieres eliminar este producto? Esta acción es irreversible."
+        );
+        if (!confirmar) return;
+
+        try {
+          await window.deleteDoc(window.doc(window.firebaseDB, "productos", id));
+          alert("🗑️ Producto eliminado correctamente");
+          cargarProductosBodega();
+        } catch (err) {
+          console.error(err);
+          alert("❌ Error al eliminar el producto");
+        }
+      });
+    });
+  }
+
+  //---------------------------------
+  // esperar a que Firebase esté listo
+  //---------------------------------
+
+  async function esperarFirebaseYcargarProductos() {
+    if (
+      typeof window.firebaseDB !== "undefined" &&
+      typeof window.collection === "function" &&
+      typeof window.getDocs === "function"
+    ) {
+      if (
+        document.querySelector("#tabla-reponer tbody") &&
+        document.querySelector("#tabla-disponibles tbody") &&
+        document.getElementById("filtro-categoria")
+      ) {
+        await cargarProductosBodega();
+      }
+    } else {
+      setTimeout(esperarFirebaseYcargarProductos, 100);
+    }
+  }
+
+  esperarFirebaseYcargarProductos();
 });
