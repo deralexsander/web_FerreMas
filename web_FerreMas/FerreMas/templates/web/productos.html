@@ -6,7 +6,101 @@
 {% endblock %}
 
 {% block contenido %}
-<div class="fondo-blanco-productos">
 
+
+
+<div id="contenedor-productos" class="contenedor_productos">
+  <!-- Aquí se cargarán dinámicamente los productos -->
 </div>
+
+<div id="modal-producto" class="fondo-modal-productos">
+
+<div class="boton_salir">
+  <svg data-lucide="x" class="icono-salir"></svg>
+</div>
+
+
+  <div class="modal_productos">
+    <div class="contenedor_informacion">
+      <div class="bloque_info">
+        <div class="columna_info">
+          <img id="modal-imagen" class="foto_producto" src="" alt="Imagen del producto"
+             onerror="this.className='foto_producto'; this.src='/static/media/imagen-no-disponible.jpg';">
+        </div>
+        <div class="columna_info">
+          <div>
+            <div class="titulo_form_producto">
+            <h1 id="modal-nombre"></h1>
+            </div>
+            <div class="descripcion_form_producto">
+              <p id="modal-descripcion"></p>
+            </div>
+            <div class="precio_form_producto">
+              <p id="modal-precio"></p>
+            </div>
+            <div class="stock_form_producto">
+              <p id="modal-stock"></p>
+            </div>
+            <div class="contenedor-cantidad-boton">
+              <div class="input-cantidad-container">
+                <button class="btn-cantidad">-</button>
+                <input class="cantidad-productos" id="cantidad" type="number" value="1" min="1" />
+                <button class="btn-cantidad">+</button>
+              </div>
+              
+              <button class="btn-ferremas-sumar noselect">
+                <span class="btn-ferremas-texto">Agregar</span>
+                <span class="btn-ferremas-icono">
+                  <span class="btn-ferremas-icono-signo"><svg data-lucide="shopping-cart"></svg></span>
+                </span>
+              </button>
+
+            </div>
+
+          </div>
+
+            
+            
+        </div>
+      </div>
+      <div class="bloque_info ">
+        <div class="columna_info">
+          <h1>informacion relevante 1</h1>
+          <p id="modal-categoria"></p>
+          <p id="modal-marca"></p>
+          <p id="modal-codigo"></p>
+          <p id="modal-potencia"></p>
+          <p id="modal-voltaje"></p>
+          <p id="modal-color"></p>
+
+        </div>
+        <div class="columna_info">
+          una imagen del producto img 2
+        </div>
+      </div>
+      <div class="bloque_info invertido">
+        <div class="columna_info">
+          <h1>informacion relevante 2</h1>
+
+          <p id="modal-tamano"></p>
+          <p id="modal-material"></p>
+          <p id="modal-presentacion"></p>
+          <p id="modal-garantia"></p>
+          <p id="modal-uso"></p>
+          <p id="modal-peso"></p>
+          <p id="modal-dimensiones"></p>
+          <p id="modal-vencimiento"></p>
+        </div>
+        <div class="columna_info">
+          una imagen del producto img 3
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+ 
+</div>
+
+
 {% endblock %}

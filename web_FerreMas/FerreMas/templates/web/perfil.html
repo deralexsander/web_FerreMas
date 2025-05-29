@@ -21,26 +21,25 @@
       <a href="{% url 'crear_producto' %}">
         <button class="button-submit " style="width: 300px;">crear un nuevo producto.</button>
       </a>
-      <a href="{% url 'bodega' %}">
-        <button class="button-submit " style="width: 300px;">bodega.</button>
-      </a>
 
       <HR></HR>
 
-      <a href="{% url 'datos_personales' %}">
-        <button class="button-submit " style="width: 300px;">direcciones</button>
-      </a>
       <a href="{% url 'pedidos_realizados' %}">
         <button class="button-submit " style="width: 300px;">pedidos</button>
       </a>
       <a href="{% url 'trasferencias' %}">
         <button class="button-submit " style="width: 300px;">transferencias</button>
+
+      <a href="{% url 'armado_pedidos' %}">
+        <button class="button-submit " style="width: 300px;">armado de pedidos</button>
+      </a>
+      <HR></HR>
+      <a href="{% url 'datos_personales' %}">
+        <button class="button-submit " style="width: 300px;">direcciones</button>
+      </a>
       </a>
         <a href="{% url 'historial_pedidos' %}">
         <button class="button-submit " style="width: 300px;">historial_pedidos</button>
-      </a>
-      <a href="{% url 'armado_pedidos' %}">
-        <button class="button-submit " style="width: 300px;">armado de pedidos</button>
       </a>
       <button id="boton-logout" class="btn-vaciar-carrito" style="width: 300px;">Cerrar sesión</button>
     </div>

@@ -258,4 +258,147 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   esperarFirebaseYcargarProductos();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+window.cargarUltimosProductos = async function () {
+  const contenedor = document.getElementById("contenedor-productos");
+
+  if (!contenedor || contenedor.dataset.cargado === "true") return;
+
+  contenedor.dataset.cargado = "true";
+  contenedor.innerHTML = "";
+
+  if (
+    !window.firebaseDB ||
+    !window.collection ||
+    !window.getDocs ||
+    !window.query ||
+    !window.orderBy
+  ) {
+    console.error("❌ Firebase no está listo para cargar productos");
+    setTimeout(window.cargarUltimosProductos, 100);
+    return;
+  }
+
+  const productosRef = window.collection(window.firebaseDB, "productos");
+  const q = window.query(productosRef, window.orderBy("creadoEn", "desc"));
+
+  try {
+    const snapshot = await window.getDocs(q);
+
+    snapshot.forEach((doc) => {
+      const producto = doc.data();
+      const imagenUrl = producto.codigoImagen && producto.codigoImagen.length > 10
+        ? `/media/productos/${producto.codigoImagen}.jpg`
+        : '/static/media/imagen-no-disponible.jpg';
+
+      const tarjeta = document.createElement("div");
+      tarjeta.className = "tarjeta-producto";
+      tarjeta.innerHTML = `
+        <div class="tarjeta-producto__shine"></div>
+        <div class="tarjeta-producto__glow"></div>
+        <div class="tarjeta-producto__content">
+          <div class="tarjeta-producto__image">
+            <img src="${imagenUrl}" alt="Producto"
+              style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;"
+              onerror="this.src='/static/media/imagen-no-disponible.jpg'" />
+          </div>
+          <div class="tarjeta-producto__text">
+            <p class="tarjeta-producto__title">${producto.nombre || "Producto sin nombre"}</p>
+            <p class="tarjeta-producto__description">${producto.descripcion || ""}</p>
+          </div>
+          <div class="tarjeta-producto__footer">
+            <div class="tarjeta-producto__price">$${(producto.precio || 0).toLocaleString('es-CL')}</div>
+            <div class="tarjeta-producto__button">
+              <svg height="16" width="16" viewBox="0 0 24 24">
+                <path stroke-width="2" stroke="currentColor" d="M4 12H20M12 4V20" fill="currentColor"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      `;
+
+      tarjeta.addEventListener("click", () => {
+        const modal = document.getElementById("modal-producto");
+        modal.classList.remove("saliendo");
+        modal.style.display = "flex";
+        modal.classList.add("activo");
+
+        document.getElementById("modal-nombre").textContent = producto.nombre || "Producto sin nombre";
+        document.getElementById("modal-categoria").textContent = producto.categoria || "Sin categoría";
+        document.getElementById("modal-descripcion").textContent = producto.descripcion || "Sin descripción";
+        document.getElementById("modal-marca").textContent = `Marca: ${producto.marca || "Sin marca"}`;
+        document.getElementById("modal-precio").textContent = `$${(producto.precio || 0).toLocaleString('es-CL')}`;
+        
+        // Stock con color y mensaje
+        const stockElemento = document.getElementById("modal-stock");
+        if (producto.stock > 0) {
+          stockElemento.textContent = `${producto.stock} Disponibles`;
+          stockElemento.style.color = "#00c853"; // verde
+        } else {
+          stockElemento.textContent = "No disponible";
+          stockElemento.style.color = "#d50000"; // rojo
+        }
+
+        document.getElementById("modal-codigo").textContent = `Código: ${producto.codigo || "Sin código"}`;
+        document.getElementById("modal-potencia").textContent = producto.potencia || "N/A";
+        document.getElementById("modal-voltaje").textContent = producto.voltaje || "N/A";
+        document.getElementById("modal-color").textContent = producto.color || "N/A";
+        document.getElementById("modal-tamano").textContent = producto.tamano || "N/A";
+        document.getElementById("modal-material").textContent = producto.material || "N/A";
+        document.getElementById("modal-presentacion").textContent = producto.presentacion || "N/A";
+        document.getElementById("modal-garantia").textContent = producto.garantia || "N/A";
+        document.getElementById("modal-uso").textContent = producto.uso || "N/A";
+        document.getElementById("modal-peso").textContent = `${producto.peso || "N/A"} kg`;
+        document.getElementById("modal-dimensiones").textContent = producto.dimensiones || "N/A";
+        document.getElementById("modal-vencimiento").textContent = producto.vencimiento || "N/A";
+        document.getElementById("modal-imagen").src = imagenUrl;
+        modal.setAttribute("data-uid", doc.id);
+        const inputCantidad = document.getElementById("cantidad");
+        if (inputCantidad) {
+          inputCantidad.value = 1;
+          inputCantidad.dataset.stock = producto.stock || 0;
+
+          // Elimina listeners anteriores para evitar duplicados
+          const nuevoInput = inputCantidad.cloneNode(true);
+          inputCantidad.parentNode.replaceChild(nuevoInput, inputCantidad);
+
+          // Reasignar clase y atributos necesarios
+          nuevoInput.classList.add("cantidad-productos");
+
+          // Volver a inicializar botones de suma/resta con el nuevo input
+          inicializarControlesCantidad();
+        }
+
+
+
+        
+      });
+      contenedor.appendChild(tarjeta);
+    });
+
+  } catch (e) {
+    console.error("❌ Error al cargar productos:", e);
+  }
+};
+
+
+
+
 });
+
+
+
+

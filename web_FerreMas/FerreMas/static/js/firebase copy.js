@@ -462,13 +462,6 @@
 
 
 
-
-
-
-
-
-
-
   const contenedor = document.getElementById("contenedor-productos");
 
   async function cargarUltimosProductos() {

@@ -1613,13 +1613,15 @@ select option {
     transform: translateY(-5px) scale(0.98);
   }
   
-  .contenedor_productos {
-    display: flex;
-    flex-wrap: wrap;           /* Permite que se bajen si no caben en la misma fila */
-    gap: 1.5rem;                /* Espacio entre tarjetas */
-    justify-content: center;   /* Centrado horizontal */
-    padding: 10px 10px 0px 10px;
-  }
+.contenedor_productos {
+  display: flex;
+  flex-wrap: wrap;           /* Permite que se bajen si no caben en la misma fila */
+  gap: 1.5rem;               /* Espacio entre tarjetas */
+  justify-content: center;  /* Centrado horizontal */
+  padding: 90px 10px 0px 10px;  /* ← Aquí está el cambio: padding-top de 50px */
+  height: 360px;
+}
+
 
   .contenedor_productos_categoria {
     display: flex;
@@ -1813,7 +1815,7 @@ select option {
     top: 0;
     width: 100%;
     height: 100%;
-    backdrop-filter: blur(40px); /* (opcional) efecto glass elegante */
+    backdrop-filter: blur(100px); /* (opcional) efecto glass elegante */
     opacity: 0;
     animation: 
     pop 1.3s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
@@ -2410,6 +2412,276 @@ hr {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Fondo del modal */
+.fondo-modal-productos {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(100px);
+  padding: 33px;
+  box-sizing: border-box;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+/* Mostrar modal activamente */
+.fondo-modal-productos.activo {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Caja del modal */
+.modal_productos {
+  background: #0a4a82bb;
+  color: #ffffff;
+  top: 40px;
+  width: 100%;
+  height: 95%;
+  overflow-y: auto;
+  border-radius: 1rem;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+  
+}
+
+
+/* Estados base */
+#modal-producto {
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Mostrar con animación */
+#modal-producto.activo {
+  display: flex;
+  opacity: 0;
+  animation: pop 1s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
+}
+
+/* Ocultar con animación */
+#modal-producto.saliendo {
+  opacity: 1;
+  animation: popOutFade 1s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
+}
+
+
+
+.foto_producto{
+  margin: 0;
+  border-radius: 15px;
+  max-height: 500px;
+  min-height: 400px;
+}
+
+.titulo_form_producto {
+  color: #ffffff;
+  font-size: 1.2rem;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1; /* Compacta el texto verticalmente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0; /* Asegura que no haya separación entre elementos flex internos */
+}
+
+.descripcion_form_producto {
+  color: #ffffff;
+  font-size: 1.6rem;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1; /* Compacta el texto verticalmente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0; /* Asegura que no haya separación entre elementos flex internos */
+}
+
+.precio_form_producto {
+  color: #ffffff;
+  font-size: 1.6rem;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
+}
+.stock_form_producto {
+  color: #ffffff;
+  font-size: 1.6rem;
+  padding: 1 !important;
+  line-height: 1;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
+}
+
+
+
+
+.boton_salir {
+  position: fixed;         /* Fijado en pantalla */
+  top: 1rem;
+  left: 2rem;
+  width: 51px;
+  height: 51px;
+  background-color: #0a4a82bb;
+  border-radius: 15px;
+  z-index: 10;           /* Encima de todo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.icono-salir {
+  width: 50px;
+  height: 50px;
+  color: white;
+  pointer-events: none; /* Para que el clic se lo lleve el div contenedor */
+}
+
+.img-producto {
+  width: 100%;
+  height: auto;
+  
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+
+
+
+
+
+
+
+
+
+
+.btn-ferremas-sumar {
+  width: 150px;
+  height: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  position: relative;
+  background: #00a600;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.15);
+  transition: background 200ms;
+}
+
+.btn-ferremas-sumar:focus {
+  outline: none;
+}
+
+.btn-ferremas-texto {
+  color: white;
+  font-weight: bold;
+  transform: translateX(35px);
+  transition: color 200ms;
+}
+
+.btn-ferremas-icono {
+  position: absolute;
+  transform: translateX(110px);
+  height: 40px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid #007300;
+  transition: all 200ms;
+}
+
+.btn-ferremas-sumar:hover {
+  background: #00c000;
+}
+
+.btn-ferremas-sumar:hover .btn-ferremas-texto {
+  color: transparent;
+}
+
+.btn-ferremas-sumar:hover .btn-ferremas-icono {
+  width: 150px;
+  transform: translateX(0);
+  border-left: none;
+}
+
+.btn-ferremas-sumar svg {
+  width: 15px;
+  fill: #fff;
+  margin-right: 4px;
+}
+
+.btn-ferremas-icono-signo {
+  color: white;
+  font-weight: bold;
+}
+
+
+
+.contenedor-cantidad-boton {
+  display: flex;
+  gap: 1rem; /* espacio entre el input y el botón */
+  align-items: center;
+  flex-wrap: wrap; /* en caso de pantallas pequeñas */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@keyframes girar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
 
 

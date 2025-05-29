@@ -188,6 +188,27 @@ if (form) {
     const uid = uuidv4(); // Código único para imagen y producto
     formData.append("codigo_imagen", uid);
 
+    // 👉 Recolectamos las imágenes
+    const imagenes = formData.getAll("imagenes");
+
+    // 👉 Eliminar las imágenes del FormData para reconstruirlas correctamente
+    formData.delete("imagenes");
+
+    // 👉 Añadir las originales
+    imagenes.forEach((img) => {
+      formData.append("imagenes", img);
+    });
+
+    // 👉 Agregar imagen de reemplazo si faltan
+    const cantidadFaltante = 3 - imagenes.length;
+    for (let i = 0; i < cantidadFaltante; i++) {
+      const imagenPorDefecto = await fetch("/static/media/imagen-no-disponible.jpg")
+        .then(res => res.blob())
+        .then(blob => new File([blob], "imagen-no-disponible.jpg", { type: "image/jpeg" }));
+
+      formData.append("imagenes", imagenPorDefecto);
+    }
+
     try {
       // 1. Subir la imagen a Django
       const imagenResponse = await fetch("/api/subir-imagen/", {
@@ -226,10 +247,8 @@ if (form) {
       const ref = doc(db, "productos", uid);
       await setDoc(ref, producto);
 
-      // ✅ Limpiar formulario
       form.reset();
 
-      // ✅ Volver al paso 1
       document.querySelectorAll('.contenedor_informacion').forEach(div => {
         div.classList.add("oculto");
         div.classList.remove("visible");
@@ -238,7 +257,6 @@ if (form) {
       paso1.classList.remove("oculto");
       paso1.classList.add("visible");
 
-      // ✅ Marcar botón de paso 1 si tienes uno (opcional)
       const btnCrear = document.getElementById("btn-crear-producto");
       const btnTabla = document.getElementById("btn-tabla-productos");
       if (btnCrear && btnTabla) {
@@ -246,13 +264,14 @@ if (form) {
         btnTabla.classList.remove("active");
       }
 
-      alert("✅ Producto guardado con imagen vinculada");
+      alert("✅ Producto guardado con imágenes");
     } catch (error) {
       console.error("❌ Error al guardar el producto o la imagen:", error);
       alert("❌ No se pudo guardar el producto o la imagen. Revisa la consola.");
     }
   });
 }
+
 
 
 

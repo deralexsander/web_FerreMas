@@ -8,7 +8,6 @@ urlpatterns = [
     path('carrito/', views.carrito, name="carrito"),
     path('perfil/', views.perfil, name="perfil"),
     path('registro_personal/', views.registro_personal, name="registro_personal"),
-    path('bodega/', views.bodega, name="bodega"),
     path("api/subir-imagen/", views.subir_imagen, name="subir_imagen"),
     path('crear_producto/', views.crear_producto, name="crear_producto"),
     path('datos_personales/', views.datos_personales, name="datos_personales"),

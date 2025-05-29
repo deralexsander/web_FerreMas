@@ -912,6 +912,7 @@ if (
   });
 
 
+if (window.location.pathname === "/crear_producto/") {
   const btnTabla = document.getElementById("btn-tabla-productos");
   const modal = document.getElementById("modal-tabla-productos");
   const cerrarModal = document.getElementById("cerrar-modal");
@@ -933,6 +934,100 @@ if (
   } else {
     console.error("❌ No se encontró alguno de los elementos del modal.");
   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+window.inicializarControlesCantidad = function () {
+  const contenedor = document.querySelector('.input-cantidad-container');
+  if (!contenedor) return;
+
+  const input = contenedor.querySelector('.cantidad-productos');
+  const botones = contenedor.querySelectorAll('.btn-cantidad');
+  const stockMaximo = parseInt(input.dataset.stock) || Infinity;
+
+  botones.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      let valor = parseInt(input.value) || 1;
+
+      if (btn.textContent === '+') {
+        if (valor < stockMaximo) valor++;
+      } else if (btn.textContent === '-' && valor > 1) {
+        valor--;
+      }
+
+      input.value = valor;
+    });
+  });
+};
+
+
+
+
+
+
+function cerrarModalProducto() {
+  const modal = document.getElementById("modal-producto");
+  const inputCantidad = document.getElementById("cantidad");
+  const stockTexto = document.getElementById("modal-stock");
+
+  // Reiniciar cantidad y data-stock
+  if (inputCantidad) {
+    inputCantidad.value = 1;
+    delete inputCantidad.dataset.stock;
+  }
+
+  // Restaurar estilo de stock
+  if (stockTexto) {
+    stockTexto.textContent = "";
+    stockTexto.style.color = "";
+  }
+
+  // Animación de salida
+  modal.classList.remove("activo");
+  modal.classList.add("saliendo");
+
+  setTimeout(() => {
+    modal.classList.remove("saliendo");
+    modal.style.display = "none";
+  }, 1900);
+}
+
+// Botón de cerrar
+document.querySelector('.boton_salir')?.addEventListener('click', cerrarModalProducto);
+
+// Presionar ESC
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && document.getElementById("modal-producto")?.classList.contains("activo")) {
+    cerrarModalProducto();
+  }
+});
+
+// Clic fuera del modal
+document.getElementById("modal-producto")?.addEventListener("click", (e) => {
+  if (e.target.id === "modal-producto") {
+    cerrarModalProducto();
+  }
+});
+
+
+
+
+
+
+
+
+
 
 
 

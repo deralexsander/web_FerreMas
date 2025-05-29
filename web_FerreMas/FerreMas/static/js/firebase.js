@@ -55,6 +55,24 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.sendPasswordResetEmail = authModule.sendPasswordResetEmail;
   window.signOut = signOut;
 
+
+// Firebase Firestore functions
+window.firebaseDB = db;
+window.collection = firestoreModule.collection;
+window.getDocs = firestoreModule.getDocs;
+window.doc = firestoreModule.doc;
+window.setDoc = firestoreModule.setDoc;
+window.deleteDoc = firestoreModule.deleteDoc;
+window.getDoc = firestoreModule.getDoc;
+window.Timestamp = firestoreModule.Timestamp;
+
+// ⚠️ AÑADE ESTAS si aún no las tenías
+window.query = firestoreModule.query;
+window.orderBy = firestoreModule.orderBy;
+window.limit = firestoreModule.limit;
+
+
+
   // ✅ Listener de autenticación
   window.onFirebaseAuthStateChanged = function (callback) {
     return authModule.onAuthStateChanged(auth, callback);
@@ -70,4 +88,13 @@ window.addEventListener('DOMContentLoaded', async () => {
       cargarProductosBodega(); // <- esto ya no dará error
     }
   }
+
+  // Ejecutar cargarUltimosProductos si existe y hay contenedor
+if (
+  typeof window.cargarUltimosProductos === "function" &&
+  document.getElementById("contenedor-productos")
+) {
+  window.cargarUltimosProductos();  // ✅ Llama solo cuando todo Firebase esté listo
+}
+
 });

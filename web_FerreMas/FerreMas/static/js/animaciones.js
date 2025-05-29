@@ -1,21 +1,22 @@
 window.addEventListener('DOMContentLoaded', async () => {
 
-  // Inicializa íconos Lucide
   lucide.createIcons();
 
-  // Animación de íconos rotatorios
   const iconos = document.querySelectorAll('.icono');
   let actual = 0;
+
   function mostrarSiguienteIcono() {
     if (!iconos.length) return;
     iconos.forEach(i => i.classList.remove('mostrar'));
     iconos[actual].classList.add('mostrar');
     actual = (actual + 1) % iconos.length;
   }
+
   setTimeout(() => {
     mostrarSiguienteIcono();
     setInterval(mostrarSiguienteIcono, 1200);
   }, 3500);
+
 
 
 
@@ -68,5 +69,31 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Hacer la función global para poder usarla en otros archivos JS
   window.cambiarFormulario = cambiarFormulario;
+
+
+
+
+
+
+
+
+
+const modal = document.getElementById("modal-producto");
+if (modal) {
+  modal.classList.remove("activo");
+  modal.classList.add("saliendo");
+
+  setTimeout(() => {
+    modal.classList.remove("saliendo");
+    modal.style.display = "none";
+  }, 1900); // 1.6s + 0.3s
+}
+
+
+
+
+
+
+
 
 });
