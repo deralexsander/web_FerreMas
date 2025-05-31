@@ -98,26 +98,88 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  //---------------------------------
-  //
-  // funcionBotón pagar 
-  //
-  //---------------------------------
+//---------------------------------
+//
+// Escritura en Firestore si ?status=success|failure|pending
+//
+//---------------------------------
+// Función que espera que Firebase esté listo antes de guardar el pedido
+function esperarGuardarPedidoConAuth(status) {
+  if (
+    typeof window.firebaseAuth !== "undefined" &&
+    typeof window.firebaseAuth.onAuthStateChanged === "function"
+  ) {
+    window.firebaseAuth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        console.warn("⚠️ No hay usuario autenticado. No se escribirá en Firestore.");
+        return;
+      }
+
+      try {
+        await asegurarFirestore();
+
+        const uid = crypto.randomUUID();
+
+        const pedidoRef = window.doc(window.firebaseDB, "pedidos", uid);
+        await window.setDoc(pedidoRef, {
+          uid,
+          estado: status,
+          email: user.email,
+          userId: user.uid,
+          mensaje: "📝 Este es un ejemplo de pedido guardado directamente en pedidos/{uid}.",
+          timestamp: new Date().toISOString()
+        });
+
+        console.log(`✅ Pedido con estado '${status}' guardado correctamente con UID: ${uid}`);
+        mostrarMensaje(`📝 Pedido de ejemplo guardado como '${status}'.`);
+
+      } catch (err) {
+        console.error("❌ Error al guardar en Firestore:", err);
+        mostrarMensaje("❌ No se pudo registrar el estado del pedido.");
+      }
+    });
+  } else {
+    console.warn("🔁 Esperando que firebaseAuth esté disponible...");
+    setTimeout(() => esperarGuardarPedidoConAuth(status), 100);
+  }
+}
+
+
+// Detectar si hay status en la URL
+const params = new URLSearchParams(window.location.search);
+const status = params.get("status");
+
+const estadosValidos = ["success", "failure", "pending"];
+if (estadosValidos.includes(status)) {
+  esperarGuardarPedidoConAuth(status);
+}
+
+
+
+
+//---------------------------------
+//
+// funcionBotón pagar 
+//
+//---------------------------------
 if (btnPagar) {
   btnPagar.addEventListener("click", async (e) => {
     e.preventDefault();
 
-    // Validar que hay productos
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     if (carrito.length === 0) {
       mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.");
       return;
     }
 
-    // Validar tipo de entrega
     const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value;
     const region = document.getElementById("region-sucursal")?.value;
     const comuna = document.getElementById("comuna-sucursal")?.value;
+
+    if (!tipoEntrega) {
+      mostrarMensaje("Debes seleccionar un tipo de entrega.");
+      return;
+    }
 
     if (tipoEntrega === "tienda") {
       if (!region) {
@@ -130,7 +192,6 @@ if (btnPagar) {
       }
     }
 
-    // 🏠 Validar dirección seleccionada si es despacho a domicilio
     if (tipoEntrega === "domicilio") {
       const direccionSeleccionada = localStorage.getItem("direccionSeleccionada");
       if (!direccionSeleccionada) {
@@ -138,7 +199,6 @@ if (btnPagar) {
         return;
       }
 
-      // (opcional) verificar si existe en Firestore
       try {
         await asegurarFirestore();
         const user = window.firebaseAuth?.currentUser;
@@ -146,8 +206,10 @@ if (btnPagar) {
           mostrarMensaje("⚠️ Debes iniciar sesión.");
           return;
         }
+
         const ref = window.doc(window.firebaseDB, "direcciones", user.uid, "items", direccionSeleccionada);
         const snap = await window.getDoc(ref);
+
         if (!snap.exists()) {
           mostrarMensaje("⚠️ No hay ninguna dirección disponible. Agrega una antes de continuar.");
           return;
@@ -159,10 +221,43 @@ if (btnPagar) {
       }
     }
 
-    console.log("Todo válido. Aquí puedes continuar con el flujo de pago con tarjeta.");
-    mostrarMensaje("Todo OK, simulando redirección a WebPay...");
+    // ✅ Formatear carrito correctamente
+    const carritoFormateado = carrito.map((item) => ({
+      nombre: item.nombre || "Producto sin nombre",
+      precio: parseFloat(item.precio) || 0,
+      cantidad: parseInt(item.cantidad) || 1
+    }));
+
+    console.log("🧺 Carrito enviado:", carritoFormateado);
+
+    // Guardar tipo de entrega en localStorage para que esté disponible en el retorno
+    localStorage.setItem("tipo_entrega", tipoEntrega);
+    localStorage.setItem("region", region || "");
+    localStorage.setItem("comuna", comuna || "");
+
+    try {
+      const response = await fetch("/crear_preferencia/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: carritoFormateado,
+          tipo_entrega: tipoEntrega
+        })
+      });
+
+      const data = await response.json();
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        alert("❌ No se pudo iniciar el pago. Intenta más tarde.");
+      }
+    } catch (error) {
+      console.error("❌ Error al iniciar el pago:", error);
+      alert("❌ Error al conectar con el servidor.");
+    }
   });
 }
+
 
 
 

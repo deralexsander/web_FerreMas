@@ -79,7 +79,7 @@ def crear_preferencia(request):
         try:
             datos = json.loads(request.body)
 
-            sdk = mercadopago.SDK("APP_USR-...")
+            sdk = mercadopago.SDK("APP_USR-3060994062731939-051521-21ad6cf9dbf496c7174f3213cbc90788-445521183")
 
             items = []
             for item in datos.get("items", []):

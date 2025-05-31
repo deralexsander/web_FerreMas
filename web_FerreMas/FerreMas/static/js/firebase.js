@@ -51,7 +51,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   query = firestoreModule.query;
   orderBy = firestoreModule.orderBy;
   limit = firestoreModule.limit;
-  addDoc = firestoreModule.addDoc; // ✅ IMPORTANTE para crear pedidos
+  addDoc = firestoreModule.addDoc;
 
   // Auth functions
   signInWithEmailAndPassword = authModule.signInWithEmailAndPassword;
@@ -67,20 +67,18 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.firebaseAuth = auth;
   window.firebaseDB = db;
 
-  window.collection = collection;
-  window.getDocs = getDocs;
-  window.doc = doc;
-  window.setDoc = setDoc;
-  window.deleteDoc = deleteDoc;
-  window.getDoc = getDoc;
-  window.Timestamp = Timestamp;
-  window.query = query;
-  window.orderBy = orderBy;
-  window.limit = limit;
-  window.addDoc = addDoc;
+  window.collection = window.collection || collection;
+  window.getDocs = window.getDocs || getDocs;
+  window.doc = window.doc || doc;
+  window.setDoc = window.setDoc || setDoc;
+  window.deleteDoc = window.deleteDoc || deleteDoc;
+  window.getDoc = window.getDoc || getDoc;
+  window.Timestamp = window.Timestamp || Timestamp;
+  window.query = window.query || query;
+  window.orderBy = window.orderBy || orderBy;
+  window.limit = window.limit || limit;
+  window.addDoc = window.addDoc || addDoc;
 
-  window.collection = firestoreModule.collection;
-  window.getDocs = firestoreModule.getDocs;
   window.firebaseSignIn = signInWithEmailAndPassword;
   window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
   window.signOut = signOut;
