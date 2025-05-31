@@ -5,61 +5,80 @@ window.addEventListener('DOMContentLoaded', () => {
   //
   //---------------------------------
 
-  function esperarOnFirebaseAuthStateChanged() {
-    if (
-      typeof window.onFirebaseAuthStateChanged === "function" &&
-      typeof window.firebaseAuth !== "undefined"
-    ) {
-      window.onFirebaseAuthStateChanged(async (user) => {
-        if (!user) {
-          console.log("No hay usuario autenticado");
-          return;
-        }
+function esperarOnFirebaseAuthStateChanged() {
+  if (
+    typeof window.onFirebaseAuthStateChanged === "function" &&
+    typeof window.firebaseAuth !== "undefined"
+  ) {
+    window.onFirebaseAuthStateChanged(async (user) => {
+      if (!user) {
+        console.log("No hay usuario autenticado");
+        return;
+      }
 
-        if (
-          typeof window.doc !== "function" ||
-          typeof window.getDoc !== "function"
-        ) {
-          const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-          window.doc = doc;
-          window.getDoc = getDoc;
-        }
+      // Asegurar funciones Firestore disponibles
+      if (
+        typeof window.doc !== "function" ||
+        typeof window.getDoc !== "function"
+      ) {
+        const { doc, getDoc } = await import(
+          "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"
+        );
+        window.doc = doc;
+        window.getDoc = getDoc;
+      }
 
-        try {
-          const docRef = window.doc(window.firebaseDB, "trabajadores", user.uid);
-          const docSnap = await window.getDoc(docRef);
-          if (docSnap.exists()) {
-            const datos = docSnap.data();
-            console.log("Datos del usuario:", datos);
+      try {
+        const docRef = window.doc(window.firebaseDB, "trabajadores", user.uid);
+        const docSnap = await window.getDoc(docRef);
 
-            const tabla = document.getElementById('tabla-todos-datos-usuario');
-            if (tabla) {
-              const tbody = tabla.querySelector('tbody');
-              tbody.innerHTML = "";
-              Object.entries(datos).forEach(([campo, valor]) => {
-                const fila = document.createElement('tr');
-                const tdCampo = document.createElement('td');
-                const tdValor = document.createElement('td');
-                tdCampo.textContent = campo;
-                tdValor.textContent = valor;
-                fila.appendChild(tdCampo);
-                fila.appendChild(tdValor);
-                tbody.appendChild(fila);
-              });
-            }
-          } else {
-            console.log("No se encontraron datos del usuario en Firestore.");
+        if (docSnap.exists()) {
+          const datos = docSnap.data();
+          console.log("Datos del usuario:", datos);
+
+          const ruta = window.location.pathname;
+          if (
+            ruta === "/direccion/" &&
+            typeof cargarDirecciones === "function" &&
+            document.getElementById("tbody-direcciones")
+          ) {
+            await cargarDirecciones(); // 🟢 cargar tabla
+
+            // 🟢 Esperar a que la tabla esté completamente renderizada antes de buscar filas
+            setTimeout(async () => {
+              try {
+                const refSeleccion = window.doc(window.firebaseDB, "direccionesSeleccionadas", user.uid);
+                const snapSeleccion = await window.getDoc(refSeleccion);
+
+                if (snapSeleccion.exists()) {
+                  const { direccionId } = snapSeleccion.data();
+                  const fila = document.querySelector(`tr[data-id="${direccionId}"]`);
+                  const boton = fila?.querySelector("button");
+                  if (fila && boton && typeof seleccionarDireccion === "function") {
+                    seleccionarDireccion(direccionId, boton);
+                  }
+                }
+              } catch (e) {
+                console.warn("⚠️ No se pudo recuperar la dirección seleccionada:", e);
+              }
+            }, 300); // Espera breve para que el DOM se estabilice
           }
-        } catch (e) {
-          console.error("Error obteniendo datos del usuario:", e);
-        }
-      });
-    } else {
-      setTimeout(esperarOnFirebaseAuthStateChanged, 100);
-    }
-  }
 
-  esperarOnFirebaseAuthStateChanged();
+        } else {
+          console.warn("No se encontraron datos del trabajador");
+        }
+      } catch (error) {
+        console.error("❌ Error al obtener datos del trabajador:", error);
+      }
+    });
+  } else {
+    setTimeout(esperarOnFirebaseAuthStateChanged, 100); // Esperar hasta que Firebase esté listo
+  }
+}
+
+esperarOnFirebaseAuthStateChanged();
+
+
 
   //---------------------------------
   //
@@ -396,6 +415,295 @@ window.cargarUltimosProductos = async function () {
 
 
 
+window.cargarDirecciones = async function () {
+  const user = window.firebaseAuth?.currentUser;
+  const tbody = document.getElementById("tbody-direcciones");
+
+  if (!tbody) {
+    console.warn("No se encontró el elemento <tbody> con ID 'tbody-direcciones'.");
+    return;
+  }
+
+  if (!user) {
+    console.warn("⚠️ No hay usuario autenticado. No se pueden cargar direcciones.");
+    tbody.innerHTML = "<tr><td colspan='6'>Debes iniciar sesión para ver tus direcciones guardadas.</td></tr>";
+    return;
+  }
+
+  tbody.innerHTML = "<tr><td colspan='6'>Cargando direcciones...</td></tr>";
+
+  try {
+    const ref = window.collection(window.firebaseDB, "direcciones", user.uid, "items");
+    const snapshot = await window.getDocs(ref);
+
+    if (snapshot.empty) {
+      tbody.innerHTML = "<tr><td colspan='6'>No hay direcciones guardadas.</td></tr>";
+      return;
+    }
+
+    tbody.innerHTML = ""; // Limpiar contenido previo
+
+    snapshot.forEach((doc) => {
+      const d = doc.data();
+      const id = doc.id;
+
+      const fila = document.createElement("tr");
+      fila.setAttribute("data-id", id); // 👈 esto es clave
+      fila.innerHTML = `
+        <td>${d.nombre || "-"}</td>
+        <td>${d.correo || "-"}</td>
+        <td>${d.telefono || "-"}</td>
+        <td>${d.calleNumero || ""} ${d.departamento || ""}</td>
+        <td>${d.comuna || ""}, ${d.region || ""}</td>
+        <td>${formatearFecha(d.fechaGuardado)}</td>
+        <td><button onclick="seleccionarDireccion('${id}', this)">Seleccionar</button></td>
+      `;
+      tbody.appendChild(fila);
+    });
+
+  } catch (error) {
+    console.error("❌ Error al cargar direcciones:", error);
+    tbody.innerHTML = "<tr><td colspan='6'>Ocurrió un error al cargar las direcciones.</td></tr>";
+  }
+};
+
+// Utilidad para mostrar la fecha de forma legible
+function formatearFecha(fecha) {
+  try {
+    if (typeof fecha?.toDate === "function") fecha = fecha.toDate();
+    if (!(fecha instanceof Date)) fecha = new Date(fecha);
+    return fecha.toLocaleString("es-CL", {
+      dateStyle: "short",
+      timeStyle: "short"
+    });
+  } catch {
+    return "-";
+  }
+}
+
+
+
+
+
+
+
+
+
+
+async function cargarTransferencias() {
+  const tabla = document.querySelector("#tabla-transferencias tbody");
+  const botonConfirmar = document.getElementById("btn-confirmar-cambios");
+  if (!tabla || !botonConfirmar) return;
+
+  try {
+    const ref = window.collection(window.firebaseDB, "pedidos");
+    const snapshot = await window.getDocs(ref);
+
+    tabla.innerHTML = "";
+    const cambiosPendientes = {};
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const id = docSnap.id;
+      const estado = data.estadoTransferencia || "pendiente";
+
+      if (estado !== "pendiente") return; // solo mostrar pendientes
+
+      const cantidadProductos = Array.isArray(data.carrito)
+        ? data.carrito.reduce((acc, prod) => acc + (prod.cantidad || 0), 0)
+        : 0;
+
+      const total = typeof data.total === "number"
+        ? `$${data.total.toLocaleString("es-CL")}`
+        : "-";
+
+      const direccion = data.tipoEntrega === "domicilio"
+        ? typeof data.direccionDespacho === "object"
+          ? `${data.direccionDespacho?.calleNumero || ""} ${data.direccionDespacho?.departamento || ""}, ${data.direccionDespacho?.comuna || ""}, ${data.direccionDespacho?.region || ""}`
+          : data.direccionDespacho || "-"
+        : `${data.comunaSucursal || "-"}, ${data.regionSucursal || "-"}`;
+
+      const fecha = data.timestamp?.toDate?.().toLocaleString("es-CL") || "-";
+
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${data.rutCliente || "-"}</td>
+        <td>${data.nombreCliente || "-"}</td>
+        <td>${data.correoCliente || "-"}</td>
+        <td>${data.rutTitular || "-"}</td>
+        <td>${data.nombreTitular || "-"}</td>
+        <td>${data.banco || "-"}</td>
+        <td>${data.tipoEntrega || "-"}</td>
+        <td>${direccion}</td>
+        <td>${cantidadProductos}</td>
+        <td>${total}</td>
+        <td>${estado}</td>
+        <td>
+          <select class="select-estado" data-id="${id}">
+            <option value="pendiente" ${estado === "pendiente" ? "selected" : ""}>pendiente</option>
+            <option value="pago validado">pago validado</option>
+            <option value="problemas con tu pago">problemas con tu pago</option>
+          </select>
+        </td>
+        <td>${fecha}</td>
+      `;
+      tabla.appendChild(fila);
+    });
+
+    // Escuchar cambios en los select
+    document.querySelectorAll(".select-estado").forEach((select) => {
+      select.addEventListener("change", () => {
+        const id = select.getAttribute("data-id");
+        const nuevoEstado = select.value;
+        cambiosPendientes[id] = nuevoEstado;
+      });
+    });
+
+    // Confirmar cambios
+    botonConfirmar.addEventListener("click", async () => {
+      if (Object.keys(cambiosPendientes).length === 0) {
+        alert("No hay cambios pendientes.");
+        return;
+      }
+
+      const confirmar = confirm("¿Guardar cambios en estados?");
+      if (!confirmar) return;
+
+      try {
+        for (const id in cambiosPendientes) {
+          const nuevoEstado = cambiosPendientes[id];
+          await window.setDoc(
+            window.doc(window.firebaseDB, "pedidos", id),
+            { estadoTransferencia: nuevoEstado },
+            { merge: true }
+          );
+        }
+
+        alert("✅ Cambios guardados correctamente.");
+        cargarTransferencias();
+      } catch (error) {
+        console.error("❌ Error al guardar cambios:", error);
+        alert("Hubo un problema al guardar los cambios.");
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Error al cargar transferencias:", error);
+    alert("No se pudieron cargar las transferencias.");
+  }
+}
+
+function esperarFirebaseYCargar() {
+  if (
+    typeof window.firebaseDB !== "undefined" &&
+    typeof window.collection === "function" &&
+    typeof window.getDocs === "function"
+  ) {
+    cargarTransferencias();
+  } else {
+    setTimeout(esperarFirebaseYCargar, 100);
+  }
+}
+
+esperarFirebaseYCargar();
+
+
+
+
+
+
+
+
+
+
+
+// 🟩 1. Función para llamar pedidos desde Firestore
+window.llamarPedidos = async function () {
+  try {
+    const ref = window.collection(window.firebaseDB, "pedidos");
+    const snapshot = await window.getDocs(ref);
+    const pedidos = [];
+
+    snapshot.forEach(docSnap => {
+      pedidos.push({
+        id: docSnap.id,
+        ...docSnap.data()
+      });
+    });
+
+    return pedidos;
+  } catch (error) {
+    console.error("❌ Error al llamar pedidos:", error);
+    return [];
+  }
+};
+
+// 🟩 2. Función para renderizar pedidos en tablas
+window.renderPedidos = function (pedidos) {
+  const cuerpoDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
+  const cuerpoSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
+
+  if (!cuerpoDomicilio || !cuerpoSucursal) return;
+
+  cuerpoDomicilio.innerHTML = "";
+  cuerpoSucursal.innerHTML = "";
+
+  pedidos
+    .filter(p => p.estadoTransferencia !== "pendiente")
+    .forEach(p => {
+      const fila = document.createElement("tr");
+
+      const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "-";
+      const fecha = p.timestamp?.toDate?.().toLocaleString("es-CL") || "-";
+      const estado = p.estadoTransferencia || "-";
+      const accion = `<button class="btn-ver" data-id="${p.id}">Ver</button>`;
+
+      const direccion = p.tipoEntrega === "domicilio"
+        ? typeof p.direccionDespacho === "object"
+          ? `${p.direccionDespacho?.calleNumero || ""} ${p.direccionDespacho?.departamento || ""}, ${p.direccionDespacho?.comuna || ""}, ${p.direccionDespacho?.region || ""}`
+          : p.direccionDespacho || "-"
+        : p.comunaSucursal || "-";
+
+      fila.innerHTML = `
+        <td>${p.id}</td>
+        <td>${p.nombreCliente || "-"}</td>
+        <td>${p.correoCliente || "-"}</td>
+        <td>${fecha}</td>
+        <td>${total}</td>
+        <td>${estado}</td>
+        <td>${direccion}</td>
+        <td>${accion}</td>
+      `;
+
+      if (p.tipoEntrega === "domicilio") {
+        cuerpoDomicilio.appendChild(fila);
+      } else if (p.tipoEntrega === "tienda") {
+        cuerpoSucursal.appendChild(fila);
+      }
+    });
+};
+
+
+// 🟩 3. Función que llama y dibuja
+async function cargarPedidosEnTablas() {
+  const pedidos = await window.llamarPedidos();
+  window.renderPedidos(pedidos);
+}
+
+// 🟩 4. Esperador para que Firebase esté listo
+function esperarFirebaseYcargarPedidos() {
+  if (
+    typeof window.firebaseDB !== "undefined" &&
+    typeof window.collection === "function" &&
+    typeof window.getDocs === "function"
+  ) {
+    cargarPedidosEnTablas();
+  } else {
+    setTimeout(esperarFirebaseYcargarPedidos, 100);
+  }
+}
+
+esperarFirebaseYcargarPedidos();
 
 });
 

@@ -1,4 +1,5 @@
 window.addEventListener('DOMContentLoaded', async () => {
+
     const formularioLogin = centrarLogin?.querySelector('form');
 
     if (formularioLogin) {
@@ -272,6 +273,105 @@ if (form) {
   });
 }
 
+
+
+
+
+
+
+
+
+window.formTransferencias = async function () {
+  try {
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    if (carrito.length === 0) {
+      mostrarMensaje("Tu carrito está vacío.");
+      return;
+    }
+
+    const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value || "tienda";
+
+    // Datos del formulario
+    const nombreTitular = document.querySelector('input[name="nombre"]')?.value.trim();
+    const rutTitular = document.querySelector('input[name="rut"]')?.value.trim();
+    const banco = document.getElementById("banco")?.value;
+
+    // Validación básica
+    if (!nombreTitular || !rutTitular || !banco) {
+      mostrarMensaje("Faltan datos de transferencia.");
+      return;
+    }
+
+    const user = firebaseAuth?.currentUser;
+    if (!user) {
+      mostrarMensaje("Debes iniciar sesión para continuar.");
+      return;
+    }
+
+    // Calcular total base
+    const totalBase = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+    let totalFinal = totalBase;
+    let region = null;
+    let comuna = null;
+    let direccionSeleccionada = null;
+
+    if (tipoEntrega === "tienda") {
+      region = document.getElementById("region-sucursal")?.value;
+      comuna = document.getElementById("comuna-sucursal")?.value;
+
+      if (!region || !comuna) {
+        mostrarMensaje("Debes seleccionar región y comuna para el retiro.");
+        return;
+      }
+    } else if (tipoEntrega === "domicilio") {
+      const direccionesRef = collection(firebaseDB, "direcciones", user.uid, "items");
+      const direccionesSnap = await getDocs(query(direccionesRef, orderBy("fechaGuardado", "desc"), limit(1)));
+
+      if (direccionesSnap.empty) {
+        mostrarMensaje("No tienes una dirección registrada para despacho.");
+        return;
+      }
+
+      direccionSeleccionada = direccionesSnap.docs[0].data();
+      totalFinal += 5000;
+    }
+
+    const ref = collection(firebaseDB, "pedidos");
+    await addDoc(ref, {
+      uidCliente: user.uid,
+      correoCliente: user.email,
+      nombreTitular,
+      rutTitular,
+      banco,
+      carrito,
+      total: totalFinal,
+      tipoEntrega,
+      regionSucursal: tipoEntrega === "tienda" ? region : null,
+      comunaSucursal: tipoEntrega === "tienda" ? comuna : null,
+      direccionDespacho: tipoEntrega === "domicilio" ? direccionSeleccionada : null,
+      estadoTransferencia: "pendiente", // 🔄 cambio aquí
+      timestamp: Timestamp.now()
+    });
+
+    mostrarMensaje("✅ Solicitud enviada correctamente. Validaremos el pago.");
+
+    // 🧹 Limpiar el carrito y actualizar interfaz
+    localStorage.removeItem("carrito");
+
+    if (typeof window.renderizarCarrito === "function") {
+      window.renderizarCarrito();
+    }
+
+    // 🔁 Refrescar la página después de 2 segundos
+    setTimeout(() => {
+      location.reload();
+    }, 2000);
+
+  } catch (error) {
+    console.error("Error al guardar transferencia:", error);
+    mostrarMensaje("❌ Ocurrió un error al enviar la solicitud. Intenta nuevamente.");
+  }
+}
 
 
 

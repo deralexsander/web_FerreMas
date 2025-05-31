@@ -1,5 +1,23 @@
-let db, collection, getDocs, doc, setDoc, deleteDoc, getDoc, Timestamp;
-let signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut;
+let db,
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  deleteDoc,
+  getDoc,
+  Timestamp,
+  query,
+  orderBy,
+  limit,
+  addDoc;
+
+let signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  sendPasswordResetEmail;
+
+let auth;
 
 window.addEventListener('DOMContentLoaded', async () => {
   // Importar Firebase modular dinámicamente
@@ -19,10 +37,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   };
 
   const app = initializeApp(firebaseConfig);
-  const auth = authModule.getAuth(app);
+  auth = authModule.getAuth(app);
   db = firestoreModule.getFirestore(app);
 
-  // ✅ Exportar funciones necesarias desde Firestore
+  // Firestore functions
   collection = firestoreModule.collection;
   getDocs = firestoreModule.getDocs;
   doc = firestoreModule.doc;
@@ -30,18 +48,25 @@ window.addEventListener('DOMContentLoaded', async () => {
   deleteDoc = firestoreModule.deleteDoc;
   getDoc = firestoreModule.getDoc;
   Timestamp = firestoreModule.Timestamp;
+  query = firestoreModule.query;
+  orderBy = firestoreModule.orderBy;
+  limit = firestoreModule.limit;
+  addDoc = firestoreModule.addDoc; // ✅ IMPORTANTE para crear pedidos
 
-  // ✅ Exportar funciones necesarias desde Auth
+  // Auth functions
   signInWithEmailAndPassword = authModule.signInWithEmailAndPassword;
   createUserWithEmailAndPassword = authModule.createUserWithEmailAndPassword;
   signOut = authModule.signOut;
+  updateProfile = authModule.updateProfile;
+  sendPasswordResetEmail = authModule.sendPasswordResetEmail;
 
-  // Guardar en window para acceso global
+  // Exportar variables globales
   window.firebaseAppConfig = firebaseConfig;
   window.firebase = firebase;
   window.authModule = authModule;
   window.firebaseAuth = auth;
   window.firebaseDB = db;
+
   window.collection = collection;
   window.getDocs = getDocs;
   window.doc = doc;
@@ -49,52 +74,41 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.deleteDoc = deleteDoc;
   window.getDoc = getDoc;
   window.Timestamp = Timestamp;
+  window.query = query;
+  window.orderBy = orderBy;
+  window.limit = limit;
+  window.addDoc = addDoc;
+
+  window.collection = firestoreModule.collection;
+  window.getDocs = firestoreModule.getDocs;
   window.firebaseSignIn = signInWithEmailAndPassword;
   window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-  window.updateProfile = authModule.updateProfile;
-  window.sendPasswordResetEmail = authModule.sendPasswordResetEmail;
   window.signOut = signOut;
+  window.updateProfile = updateProfile;
+  window.sendPasswordResetEmail = sendPasswordResetEmail;
 
-
-// Firebase Firestore functions
-window.firebaseDB = db;
-window.collection = firestoreModule.collection;
-window.getDocs = firestoreModule.getDocs;
-window.doc = firestoreModule.doc;
-window.setDoc = firestoreModule.setDoc;
-window.deleteDoc = firestoreModule.deleteDoc;
-window.getDoc = firestoreModule.getDoc;
-window.Timestamp = firestoreModule.Timestamp;
-
-// ⚠️ AÑADE ESTAS si aún no las tenías
-window.query = firestoreModule.query;
-window.orderBy = firestoreModule.orderBy;
-window.limit = firestoreModule.limit;
-
-
-
-  // ✅ Listener de autenticación
+  // Listener global de autenticación
   window.onFirebaseAuthStateChanged = function (callback) {
     return authModule.onAuthStateChanged(auth, callback);
   };
+  window.onAuthStateChanged = authModule.onAuthStateChanged;
 
-  // ✅ Llamar aquí si necesitas cargar productos al iniciar
+  // Lógica condicional para cargar productos si corresponde
   if (
     document.querySelector("#tabla-reponer tbody") &&
     document.querySelector("#tabla-disponibles tbody") &&
     document.getElementById("filtro-categoria")
   ) {
     if (typeof cargarProductosBodega === "function") {
-      cargarProductosBodega(); // <- esto ya no dará error
+      cargarProductosBodega();
     }
   }
 
-  // Ejecutar cargarUltimosProductos si existe y hay contenedor
-if (
-  typeof window.cargarUltimosProductos === "function" &&
-  document.getElementById("contenedor-productos")
-) {
-  window.cargarUltimosProductos();  // ✅ Llama solo cuando todo Firebase esté listo
-}
-
+  // Lógica condicional para cargar últimos productos
+  if (
+    typeof window.cargarUltimosProductos === "function" &&
+    document.getElementById("contenedor-productos")
+  ) {
+    window.cargarUltimosProductos();
+  }
 });

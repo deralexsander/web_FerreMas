@@ -100,11 +100,11 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   //---------------------------------
   //
-  // Botón pagar vacío, listo para futura implementación
+  // funcionBotón pagar 
   //
   //---------------------------------
 if (btnPagar) {
-  btnPagar.addEventListener("click", (e) => {
+  btnPagar.addEventListener("click", async (e) => {
     e.preventDefault();
 
     // Validar que hay productos
@@ -130,10 +130,40 @@ if (btnPagar) {
       }
     }
 
+    // 🏠 Validar dirección seleccionada si es despacho a domicilio
+    if (tipoEntrega === "domicilio") {
+      const direccionSeleccionada = localStorage.getItem("direccionSeleccionada");
+      if (!direccionSeleccionada) {
+        mostrarMensaje("⚠️ Debes seleccionar una dirección para el despacho a domicilio.");
+        return;
+      }
+
+      // (opcional) verificar si existe en Firestore
+      try {
+        await asegurarFirestore();
+        const user = window.firebaseAuth?.currentUser;
+        if (!user) {
+          mostrarMensaje("⚠️ Debes iniciar sesión.");
+          return;
+        }
+        const ref = window.doc(window.firebaseDB, "direcciones", user.uid, "items", direccionSeleccionada);
+        const snap = await window.getDoc(ref);
+        if (!snap.exists()) {
+          mostrarMensaje("⚠️ No hay ninguna dirección disponible. Agrega una antes de continuar.");
+          return;
+        }
+      } catch (err) {
+        console.error("❌ Error al validar dirección:", err);
+        mostrarMensaje("❌ Error al verificar tu dirección. Intenta nuevamente.");
+        return;
+      }
+    }
+
     console.log("Todo válido. Aquí puedes continuar con el flujo de pago con tarjeta.");
-    mostrarMensaje("Todo OK, simulando redirección a WebPay..."); // opcional
+    mostrarMensaje("Todo OK, simulando redirección a WebPay...");
   });
 }
+
 
 
   //---------------------------------
@@ -348,62 +378,93 @@ if (btnPagar) {
   //
   //---------------------------------
 
-  if (formTransferencia) {
-    formTransferencia.addEventListener("submit", (e) => {
-      e.preventDefault();
+if (formTransferencia) {
+  formTransferencia.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      // 1. Validar productos en el carrito
-      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-      if (carrito.length === 0) {
-        mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.");
+    // 1. Validar productos en el carrito
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    if (carrito.length === 0) {
+      mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.");
+      return;
+    }
+
+    // 2. Validar tipo de entrega
+    const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value;
+    const region = document.getElementById("region-sucursal")?.value;
+    const comuna = document.getElementById("comuna-sucursal")?.value;
+
+    if (tipoEntrega === "tienda") {
+      if (!region) {
+        mostrarMensaje("Debes seleccionar una región para el retiro en tienda.");
         return;
       }
+      if (!comuna) {
+        mostrarMensaje("Debes seleccionar una comuna para el retiro en tienda.");
+        return;
+      }
+    }
 
-      // 2. Validar tipo de entrega
-      const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value;
-      const region = document.getElementById("region-sucursal")?.value;
-      const comuna = document.getElementById("comuna-sucursal")?.value;
+    // 3. Validar campos del formulario
+    const nombre = formTransferencia.querySelector('input[name="nombre"]')?.value.trim();
+    const rut = formTransferencia.querySelector('input[name="rut"]')?.value.trim();
+    const banco = document.getElementById("banco")?.value;
+    const acepta = formTransferencia.querySelector('input[name="acepta"]')?.checked;
 
-      if (tipoEntrega === "tienda") {
-        if (!region) {
-          mostrarMensaje("Debes seleccionar una región para el retiro en tienda.");
+    const regexRut = /^\d{7,8}-[\dkK]$/;
+
+    if (!nombre) {
+      mostrarMensaje("Por favor ingresa el nombre del titular.");
+      return;
+    }
+    if (!rut || !regexRut.test(rut)) {
+      mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9");
+      return;
+    }
+    if (!banco) {
+      mostrarMensaje("Debes seleccionar un banco.");
+      return;
+    }
+    if (!acepta) {
+      mostrarMensaje("Debes aceptar que el pago será validado manualmente.");
+      return;
+    }
+
+    // 4. Verificar si el usuario ha iniciado sesión
+    const user = firebaseAuth?.currentUser;
+    if (!user) {
+      mostrarMensaje("⚠️ Debes iniciar sesión para realizar la transferencia.");
+      return;
+    }
+
+    // 5. Validar dirección SOLO si es despacho a domicilio
+    if (tipoEntrega === "domicilio") {
+      try {
+        const direccionesRef = collection(firebaseDB, "direcciones", user.uid, "items");
+        const direccionesSnap = await getDocs(query(direccionesRef, orderBy("fechaGuardado", "desc"), limit(1)));
+
+        if (direccionesSnap.empty) {
+          mostrarMensaje("⚠️ No tienes ninguna dirección guardada. Agrega una antes de continuar.");
           return;
         }
-        if (!comuna) {
-          mostrarMensaje("Debes seleccionar una comuna para el retiro en tienda.");
-          return;
-        }
-      }
 
-      // 3. Validar campos del formulario
-      const nombre = formTransferencia.querySelector('input[name="nombre"]')?.value.trim();
-      const rut = formTransferencia.querySelector('input[name="rut"]')?.value.trim();
-      const banco = document.getElementById("banco")?.value;
-      const acepta = formTransferencia.querySelector('input[name="acepta"]')?.checked;
-
-      const regexRut = /^\d{7,8}-[\dkK]$/;
-
-      if (!nombre) {
-        mostrarMensaje("Por favor ingresa el nombre del titular.");
+      } catch (error) {
+        console.error("Error al validar la dirección:", error);
+        mostrarMensaje("❌ Ocurrió un error al validar tu dirección. Intenta nuevamente.");
         return;
       }
-      if (!rut || !regexRut.test(rut)) {
-        mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9");
-        return;
-      }
-      if (!banco) {
-        mostrarMensaje("Debes seleccionar un banco.");
-        return;
-      }
-      if (!acepta) {
-        mostrarMensaje("Debes aceptar que el pago será validado manualmente.");
-        return;
-      }
+    }
 
-      console.log("Todo válido, puedes enviar el formulario o guardar los datos.");
-      // Aquí puedes continuar con la lógica de guardado en Firestore, envío, etc.
-    });
-  }
+    // 6. Todo validado, mostrar mensaje de carga
+    mostrarMensaje("⏳ Transfiriendo... Por favor, espera.", "info");
+
+    // 7. Ejecutar función que guarda la transferencia
+    await formTransferencias();
+  });
+}
+
+
+
 
   //---------------------------------
   //
@@ -660,44 +721,38 @@ if (window.location.pathname === "/registro_personal/") {
   // función para mostrar/ocultar navbar o contenedor
   //
   //---------------------------------
-  function aplicarAnimacionSiEsRegistroPersonal() {
-    const path = mostrarRutaActual();
-    const contenedor = document.querySelector(".button-container");
+function aplicarAnimacionSiEsRegistroPersonal() {
+  const path = mostrarRutaActual();
+  const contenedor = document.querySelector(".button-container");
 
-    if (!contenedor) return;
+  if (!contenedor) return;
 
-    contenedor.classList.remove("pop-in", "pop-out");
+  contenedor.classList.remove("pop-in", "pop-out");
 
-    // Si estamos en la página de registro
-    if (path === "/registro_personal/") {
-      contenedor.classList.add("pop-out");
+  // Rutas que deben activar pop-out + marcar pop-in para después
+  const rutasQueAniman = ["/registro_personal/", "/crear_producto/", "/datos_personales/"];
 
-      // Marcamos que debe ejecutarse pop-in en la siguiente vista
-      localStorage.setItem("animar_popin", "true");
+  if (rutasQueAniman.includes(path)) {
+    contenedor.classList.add("pop-out");
+    localStorage.setItem("animar_popin", "true");
 
-    } else if (path === "/crear_producto/"){
-      contenedor.classList.add("pop-out");
+  } else {
+    const debeAnimarPopIn = localStorage.getItem("animar_popin") === "true";
 
-      // Marcamos que debe ejecutarse pop-in en la siguiente vista
-      localStorage.setItem("animar_popin", "true");
+    if (debeAnimarPopIn) {
+      contenedor.style.opacity = 0;
+      contenedor.classList.add("pop-in");
 
-    } else {
-      // Verificamos si se debe ejecutar pop-in
-      const debeAnimarPopIn = localStorage.getItem("animar_popin") === "true";
+      localStorage.removeItem("animar_popin");
 
-      if (debeAnimarPopIn) {
-        contenedor.style.opacity = 0;
-        contenedor.classList.add("pop-in");
-
-        // Evita que se repita
-        localStorage.removeItem("animar_popin");
-
-        setTimeout(() => {
-          contenedor.style.opacity = "";
-        }, 2500); // Duración de la animación
-      }
+      setTimeout(() => {
+        contenedor.style.opacity = "";
+      }, 2500); // Duración de la animación
     }
   }
+}
+
+
 
 
   //---------------------------------
@@ -1022,6 +1077,677 @@ document.getElementById("modal-producto")?.addEventListener("click", (e) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ======= CONTADOR DE PRODUCTOS DIFERENTES =======
+function actualizarContadorProductosDiferentes() {
+  const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  const badgeContador = document.getElementById("contador-productos");
+  if (badgeContador) badgeContador.textContent = carrito.length;
+}
+
+// ======= OBTENER COSTO DE ENVÍO =======
+function obtenerCostoEnvio() {
+  const inputSeleccionado = document.querySelector('input[name="tipo_entrega"]:checked');
+  const tipoEntrega = inputSeleccionado ? inputSeleccionado.value : localStorage.getItem("tipo_entrega") || "tienda";
+  return tipoEntrega === "domicilio" ? 5000 : 0;
+}
+
+// ======= AGREGAR PRODUCTO AL CARRITO =======
+function agregarAlCarrito() {
+  const cantidad = parseInt(document.getElementById("cantidad").value) || 1;
+  const uid = document.getElementById("modal-producto").getAttribute("data-uid");
+  const nombre = document.getElementById("modal-nombre").textContent;
+  const precioTexto = document.getElementById("modal-precio").textContent;
+  const precio = parseInt(precioTexto.replace(/\D/g, "")) || 0;
+  const imagen = document.getElementById("modal-imagen").src;
+
+  const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+  const existente = carrito.find(p => p.uid === uid);
+  if (existente) {
+    existente.cantidad += cantidad;
+  } else {
+    carrito.push({ uid, nombre, precio, cantidad, imagen });
+  }
+
+  localStorage.setItem("carrito", JSON.stringify(carrito));
+  renderizarCarrito();
+  actualizarContadorProductosDiferentes();
+  mostrarMensaje("✔️ Producto agregado al carrito", "success");
+}
+
+// ======= MODIFICAR CANTIDAD Y ELIMINAR =======
+function modificarCantidad(index, delta) {
+  const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  if (!carrito[index]) return;
+
+  carrito[index].cantidad += delta;
+  if (carrito[index].cantidad < 1) carrito[index].cantidad = 1;
+
+  localStorage.setItem("carrito", JSON.stringify(carrito));
+  renderizarCarrito();
+}
+
+function eliminarProducto(index) {
+  const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  carrito.splice(index, 1);
+  localStorage.setItem("carrito", JSON.stringify(carrito));
+  renderizarCarrito();
+}
+
+// ======= VISTA DEL CARRITO =======
+function renderizarCarrito() {
+  const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  const contenedor = document.getElementById("carrito-contenido");
+  const totalPagar = document.getElementById("total-pagar");
+  const btnPagar = document.getElementById("btn-pagar");
+
+  if (!contenedor || !totalPagar || !btnPagar) return;
+
+  if (carrito.length === 0) {
+    contenedor.innerHTML = "<h1 class='titulo-form-center'>No hay productos en el carrito. Debes tener al menos un producto para continuar con la compra.</h1>";
+    totalPagar.textContent = "$0";
+    return;
+  }
+
+  btnPagar.disabled = false;
+  let total = 0;
+
+  const html = carrito.map((item, index) => {
+    const subtotal = item.precio * item.cantidad;
+    total += subtotal;
+    return `
+      <div class="producto-carrito">
+        <img src="${item.imagen}" width="80">
+        <h4>${item.nombre}</h4>
+        <p>Código: ${item.codigo || item.uid}</p>
+        <div class="cantidad-control">
+          <button class="btn-cantidad-menor" data-index="${index}">-</button>
+          <span class="cantidad">${item.cantidad}</span>
+          <button class="btn-cantidad-mayor" data-index="${index}">+</button>
+        </div>
+        <p>Precio unidad: $${item.precio.toLocaleString("es-CL")}</p>
+        <p>Subtotal: $${subtotal.toLocaleString("es-CL")}</p>
+        <button class="btn-eliminar" data-index="${index}">❌ Eliminar</button>
+      </div>
+    `;
+  }).join("");
+
+  contenedor.innerHTML = html;
+  const costoEnvio = obtenerCostoEnvio();
+  totalPagar.textContent = `$${(total + costoEnvio).toLocaleString("es-CL")}`;
+
+  document.querySelectorAll(".btn-cantidad-mayor").forEach(btn =>
+    btn.addEventListener("click", () => modificarCantidad(btn.dataset.index, 1))
+  );
+  document.querySelectorAll(".btn-cantidad-menor").forEach(btn =>
+    btn.addEventListener("click", () => modificarCantidad(btn.dataset.index, -1))
+  );
+  document.querySelectorAll(".btn-eliminar").forEach(btn =>
+    btn.addEventListener("click", () => eliminarProducto(btn.dataset.index))
+  );
+}
+
+// ======= VACIAR CARRITO =======
+document.getElementById("btn-vaciar-carrito")?.addEventListener("click", () => {
+  if (confirm("🗑 ¿Estás seguro de que quieres vaciar el carrito?")) {
+    localStorage.removeItem("carrito");
+    renderizarCarrito();
+    actualizarContadorProductosDiferentes();
+  }
+});
+
+// ======= EVENTO PARA BOTÓN DE AGREGAR AL CARRITO =======
+document.getElementById("btn-agregar-carrito")?.addEventListener("click", agregarAlCarrito);
+
+// ======= REACTIVAR CUANDO CAMBIA TIPO DE ENTREGA =======
+document.querySelectorAll('input[name="tipo_entrega"]').forEach(radio => {
+  radio.addEventListener("change", renderizarCarrito);
+});
+
+// ======= CARGAR AL INICIO =======
+actualizarContadorProductosDiferentes();
+renderizarCarrito();
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const radiosEntrega = document.querySelectorAll('input[name="tipo_entrega"]');
+  const regionSucursal = document.getElementById("region-sucursal");
+  const comunaSucursal = document.getElementById("comuna-sucursal");
+  const grupoDespacho = document.getElementById("grupo-despacho");
+  const contenedorDireccion = document.getElementById("contenedor-direccion");
+
+  function actualizarVistaEntrega() {
+    const tipo = document.querySelector('input[name="tipo_entrega"]:checked')?.value;
+
+    if (tipo === "tienda") {
+      // Mostrar grupo de selección de sucursales y ocultar dirección
+      grupoDespacho.classList.remove("oculto");
+      regionSucursal.disabled = false;
+      comunaSucursal.disabled = false;
+
+      contenedorDireccion.classList.add("oculto");
+    } else if (tipo === "domicilio") {
+      // Ocultar grupo de sucursales y mostrar dirección de envío
+      grupoDespacho.classList.add("oculto");
+      regionSucursal.disabled = true;
+      comunaSucursal.disabled = true;
+
+      contenedorDireccion.classList.remove("oculto");
+    }
+  }
+
+  // Asignar evento a los radios
+  radiosEntrega.forEach(radio => {
+    radio.addEventListener("change", actualizarVistaEntrega);
+  });
+
+  // Aplicar el estado inicial
+  actualizarVistaEntrega();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function alternarFormularioTablaDirecciones() {
+  const btnAgregar = document.getElementById("btn-agregar-direccion");
+  const btnTabla = document.getElementById("btn-tabla-direcciones");
+
+  const modalDirecciones = document.getElementById("modal-direcciones");
+  const cerrarModal = document.getElementById("cerrar-modal-direcciones");
+
+  if (!btnAgregar || !btnTabla || !modalDirecciones || !cerrarModal) {
+    console.error("❌ Faltan elementos necesarios para direcciones");
+    return;
+  }
+
+  // ✅ Abrir el modal al hacer clic en "Tus direcciones"
+  btnTabla.addEventListener("click", () => {
+    if (btnTabla.classList.contains("active")) return;
+
+    btnTabla.classList.add("active");
+    btnAgregar.classList.remove("active");
+
+    modalDirecciones.style.display = "block";
+
+    if (typeof cargarDirecciones === "function") {
+      cargarDirecciones();
+    }
+  });
+
+  // ✅ Cerrar modal con botón cerrar (X)
+  cerrarModal.addEventListener("click", () => {
+    modalDirecciones.style.display = "none";
+    btnAgregar.classList.add("active");
+    btnTabla.classList.remove("active");
+  });
+
+  // ✅ Cerrar modal al hacer clic en "Agregar dirección"
+  btnAgregar.addEventListener("click", () => {
+    if (btnAgregar.classList.contains("active")) return;
+
+    btnAgregar.classList.add("active");
+    btnTabla.classList.remove("active");
+
+    modalDirecciones.style.display = "none";
+  });
+
+  // ✅ Cerrar modal al hacer clic fuera del contenido
+  window.addEventListener("click", (event) => {
+    if (event.target === modalDirecciones) {
+      modalDirecciones.style.display = "none";
+      btnAgregar.classList.add("active");
+      btnTabla.classList.remove("active");
+    }
+  });
+}
+
+// ✅ Inicialización
+if (
+  document.getElementById("btn-agregar-direccion") &&
+  document.getElementById("btn-tabla-direcciones")
+) {
+  alternarFormularioTablaDirecciones();
+}
+
+
+// ---------- Validación individual ----------
+function validarFormularioPaso(formulario) {
+  const inputs = formulario.querySelectorAll('input, select');
+
+  for (let input of inputs) {
+    if (input.hasAttribute('required')) {
+      const valor = input.value.trim();
+      const label = input.closest('.inputForm')?.previousElementSibling?.innerText || 'Este campo';
+
+      if (!valor) {
+        input.classList.add('input-error');
+        mostrarMensaje(`El campo '${label}' es obligatorio.`, 'error');
+        input.focus();
+        return false;
+      }
+
+      if (input.type === 'email' && !/^\S+@\S+\.\S+$/.test(valor)) {
+        input.classList.add('input-error');
+        mostrarMensaje(`El campo '${label}' debe ser un correo válido.`, 'error');
+        input.focus();
+        return false;
+      }
+
+      if (input.id === 'telefono' && !/^\d+$/.test(valor)) {
+        input.classList.add('input-error');
+        mostrarMensaje(`El campo '${label}' debe contener solo números.`, 'error');
+        input.focus();
+        return false;
+      }
+
+      if (input.id === 'rut' && !/^[0-9]+-[0-9kK]{1}$/.test(valor)) {
+        input.classList.add('input-error');
+        mostrarMensaje(`El campo '${label}' debe tener un RUT válido (Ej: 12345678-9).`, 'error');
+        input.focus();
+        return false;
+      }
+
+      input.classList.remove('input-error');
+    }
+  }
+
+  return true;
+}
+
+// ---------- Cambio de pasos con validación al avanzar ----------
+function mostrarPaso(numero) {
+  const pasoActual = document.querySelector('.contenedor_informacion.visible');
+  const pasoDestino = document.getElementById(`paso-${numero}-direccion`);
+
+  if (!pasoActual || !pasoDestino || pasoActual === pasoDestino) return;
+
+  const numeroActual = parseInt(pasoActual.id.split('-')[1]);
+  if (numero > numeroActual) {
+    const formulario = pasoActual.querySelector('form');
+    if (formulario && !validarFormularioPaso(formulario)) return;
+  }
+
+  pasoActual.classList.remove('visible');
+  cambiarFormulario(pasoActual, pasoDestino);
+}
+
+// ---------- Guardar dirección en Firebase Cloud ----------
+window.guardarDireccion = async function () {
+  const paso3 = document.getElementById('paso-3-direccion');
+  const formulario = paso3?.querySelector('form');
+  if (!formulario) return;
+  if (!validarFormularioPaso(formulario)) return;
+
+  const user = window.firebaseAuth?.currentUser;
+  if (!user) {
+    mostrarMensaje("⚠️ Debes iniciar sesión para guardar tu dirección.", "error");
+    return;
+  }
+
+  const direccion = {
+    nombre: document.getElementById("nombre")?.value.trim() || "",
+    rut: document.getElementById("rut")?.value.trim() || "",
+    telefono: document.getElementById("telefono")?.value.trim() || "",
+    correo: document.getElementById("correo")?.value.trim() || "",
+    calleNumero: document.getElementById("calle-numero")?.value.trim() || "",
+    departamento: document.getElementById("departamento")?.value.trim() || "",
+    comuna: document.getElementById("comuna")?.value || "",
+    region: document.getElementById("region")?.value || "",
+    codigoPostal: document.getElementById("codigo-postal")?.value.trim() || "",
+    fechaGuardado: new Date()
+  };
+
+  if (!direccion.region || !direccion.comuna) {
+    mostrarMensaje("📍 Debes seleccionar región y comuna.", "error");
+    return;
+  }
+
+  try {
+    // Asegurarse de que addDoc esté cargado
+    if (!window.addDoc) {
+      const firestore = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+      window.addDoc = firestore.addDoc;
+    }
+
+    const ref = window.collection(window.firebaseDB, "direcciones", user.uid, "items");
+    const docRef = await window.addDoc(ref, direccion);
+
+    mostrarMensaje("✅ Dirección guardada correctamente.", "success");
+
+    // Limpiar formularios
+    const paso1 = document.getElementById('paso-1-direccion');
+    paso3.classList.remove('visible');
+    cambiarFormulario(paso3, paso1);
+
+    document.querySelectorAll('.formulario-paso').forEach(f => f.reset());
+    document.getElementById("comuna").innerHTML = '<option value="">Seleccione una comuna</option>';
+    document.getElementById("comuna").disabled = true;
+
+    if (typeof cargarDirecciones === "function") cargarDirecciones();
+
+    // 🟢 Seleccionar automáticamente la nueva dirección
+    if (typeof seleccionarDireccion === "function") {
+      // Esperamos un poco a que se cargue en la tabla
+      setTimeout(() => {
+        seleccionarDireccion(docRef.id);
+      }, 500);
+    }
+
+  } catch (error) {
+    console.error("❌ Error al guardar dirección:", error);
+    mostrarMensaje("🚫 Error al guardar la dirección. Intenta nuevamente.", "error");
+  }
+};
+
+
+// ---------- Mostrar mensaje en consola ----------
+window.mostrarMensaje = function (texto, tipo = 'info') {
+  const prefix = {
+    error: '❌ ERROR:',
+    success: '✅ ÉXITO:',
+    info: 'ℹ️ INFO:'
+  }[tipo] || '';
+  console.log(`${prefix} ${texto}`);
+};
+
+// ---------- Exponer funciones ----------
+window.mostrarPaso = mostrarPaso;
+window.cambiarFormulario = cambiarFormulario;
+
+
+
+
+
+
+
+
+
+
+
+  const btnAgregar = document.getElementById("btn-agregar-direccion");
+  const btnTabla = document.getElementById("btn-tabla-direcciones");
+  const modalDirecciones = document.getElementById("modal-direcciones");
+  const cerrarModalBtn = document.getElementById("cerrar-modal-direcciones");
+
+  btnTabla?.addEventListener("click", () => {
+    modalDirecciones.style.display = "block";
+    btnAgregar.classList.remove("active");
+    btnTabla.classList.add("active");
+
+    if (typeof window.cargarDirecciones === "function") {
+      window.cargarDirecciones();
+    }
+  });
+
+  cerrarModalBtn?.addEventListener("click", () => {
+    modalDirecciones.style.display = "none";
+    btnTabla.classList.remove("active");
+    btnAgregar.classList.add("active");
+  });
+
+  window.addEventListener("click", (event) => {
+    if (event.target === modalDirecciones) {
+      modalDirecciones.style.display = "none";
+      btnTabla.classList.remove("active");
+      btnAgregar.classList.add("active");
+    }
+  });
+
+
+
+
+
+window.guardarSeleccionDireccion = async function (direccionId) {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user || !direccionId) return;
+
+  // Asegurar funciones
+  if (!window.doc || !window.setDoc) {
+    const firestore = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+    window.doc = firestore.doc;
+    window.setDoc = firestore.setDoc;
+  }
+
+  try {
+    const ref = window.doc(window.firebaseDB, "direccionesSeleccionadas", user.uid);
+    await window.setDoc(ref, { direccionId: direccionId }, { merge: true });
+    console.log("Dirección seleccionada guardada en Firestore.");
+  } catch (error) {
+    console.error("❌ Error al guardar la dirección seleccionada:", error);
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// =======================
+// Selección y carga de direcciones optimizada
+// =======================
+
+async function asegurarFirestore() {
+  if (!window.doc || !window.getDoc || !window.setDoc || !window.collection || !window.getDocs) {
+    const firestore = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+    window.doc = firestore.doc;
+    window.getDoc = firestore.getDoc;
+    window.setDoc = firestore.setDoc;
+    window.collection = firestore.collection;
+    window.getDocs = firestore.getDocs;
+  }
+}
+
+window.guardarSeleccionDireccion = async function (direccionId) {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user || !direccionId) return;
+  await asegurarFirestore();
+  try {
+    const ref = window.doc(window.firebaseDB, "direccionesSeleccionadas", user.uid);
+    await window.setDoc(ref, { direccionId: direccionId }, { merge: true });
+    console.log("✅ Dirección seleccionada guardada en Firestore.");
+  } catch (error) {
+    console.error("❌ Error al guardar la dirección seleccionada:", error);
+  }
+};
+
+window.seleccionarDireccion = async function (id, boton = null) {
+  const user = window.firebaseAuth?.currentUser;
+  if (!user || !id) return;
+
+  await asegurarFirestore();
+
+  try {
+    const ref = window.doc(window.firebaseDB, "direcciones", user.uid, "items", id);
+    const snap = await window.getDoc(ref);
+    if (!snap.exists()) {
+      console.warn("⚠️ La dirección seleccionada no existe.");
+      return;
+    }
+
+    const direccion = snap.data();
+    window.direccionSeleccionada = direccion;
+
+    console.log(`Datos del usuario (ID: ${id}):`, direccion);
+
+    const box = document.getElementById("direccion-seleccionada-box");
+    if (box) {
+      box.innerText = `📍 Dirección seleccionada: ${direccion.calleNumero || ""} ${direccion.departamento || ""}, ${direccion.comuna || ""}, ${direccion.region || ""}`;
+    }
+
+    document.querySelectorAll("#tbody-direcciones tr").forEach(f => f.classList.remove("fila-seleccionada"));
+    const fila = boton ? boton.closest("tr") : document.querySelector(`tr[data-id="${id}"]`);
+    if (fila) fila.classList.add("fila-seleccionada");
+
+    localStorage.setItem("direccionSeleccionada", id);
+    if (typeof window.guardarSeleccionDireccion === "function") {
+      await window.guardarSeleccionDireccion(id);
+    }
+
+  } catch (error) {
+    console.error("❌ Error al seleccionar dirección:", error);
+  }
+};
+
+async function cargarDireccionSeleccionada(uid) {
+  await asegurarFirestore();
+
+  const idGuardado = localStorage.getItem("direccionSeleccionada");
+  if (idGuardado) {
+    console.log("📦 Recuperando dirección seleccionada desde localStorage:", idGuardado);
+    await window.seleccionarDireccion(idGuardado);
+    return;
+  }
+
+  try {
+    const colRef = window.collection(window.firebaseDB, "direcciones", uid, "items");
+    const snap = await window.getDocs(colRef);
+
+    if (snap.size === 1) {
+      const unica = snap.docs[0];
+      const id = unica.id;
+      console.log("📦 Solo hay una dirección, se usará por defecto:", id);
+      localStorage.setItem("direccionSeleccionada", id);
+      await window.seleccionarDireccion(id);
+    } else {
+      console.log("ℹ️ Usuario tiene varias direcciones. No se seleccionó ninguna automáticamente.");
+    }
+  } catch (e) {
+    console.error("❌ Error al cargar direcciones desde Firestore:", e);
+  }
+}
+
+// ✅ Mostrar dirección seleccionada en el paso de checkout
+window.mostrarDireccionSeleccionadaCliente = async function () {
+  const contenedor = document.getElementById("lista-ultimas-direcciones");
+  if (!contenedor) return;
+
+  const div = document.createElement("div");
+  div.classList.add("direccion-guardada");
+
+  const info = document.createElement("div");
+  info.classList.add("direccion-info");
+  info.innerHTML = `<p class="texto">⏳ Cargando dirección...</p>`;
+
+  div.appendChild(info);
+  contenedor.innerHTML = "";
+  contenedor.appendChild(div);
+
+  const user = window.firebaseAuth?.currentUser;
+  const direccionId = localStorage.getItem("direccionSeleccionada");
+
+  if (!user) {
+    info.innerHTML = "<p class='texto'>⚠️ Debes iniciar sesión para ver tus direcciones.</p>";
+    return;
+  }
+
+  if (!direccionId) {
+    info.innerHTML = "<p class='texto'>⚠️ No tienes una dirección seleccionada.</p>";
+    return;
+  }
+
+  await asegurarFirestore();
+
+  try {
+    const ref = window.doc(window.firebaseDB, "direcciones", user.uid, "items", direccionId);
+    const snapshot = await window.getDoc(ref);
+
+    if (!snapshot.exists()) {
+      info.innerHTML = "<p class='texto'>⚠️ No se encontró la dirección seleccionada.</p>";
+      return;
+    }
+
+    const datos = snapshot.data();
+
+    info.innerHTML = `
+      <p class="nombre">👤 <strong>${datos.nombre}</strong></p>
+      <p class="texto">📍 ${datos.calleNumero}${datos.departamento ? ', ' + datos.departamento : ''}</p>
+      <p class="texto">🏙️ ${datos.comuna}, ${datos.region}</p>
+      <p class="texto">📞 ${datos.telefono}</p>
+      <p class="texto">📧 ${datos.correo}</p>
+    `;
+
+  } catch (error) {
+    console.error("❌ Error al mostrar dirección seleccionada:", error);
+    info.innerHTML = "<p class='texto'>⚠️ Error al cargar la dirección seleccionada.</p>";
+  }
+};
+
+
+
+
+function iniciarSesionCliente() {
+  if (
+    typeof window.onFirebaseAuthStateChanged === "function" &&
+    typeof window.firebaseAuth !== "undefined"
+  ) {
+    window.onFirebaseAuthStateChanged(async (user) => {
+      if (!user) {
+        console.log("⚠️ Usuario no autenticado");
+        return;
+      }
+      await cargarDireccionSeleccionada(user.uid);
+      await window.mostrarDireccionSeleccionadaCliente(); // ✅ Aquí la llamada adicional
+    });
+  } else {
+    setTimeout(iniciarSesionCliente, 100);
+  }
+}
+
+iniciarSesionCliente();
 
 
 

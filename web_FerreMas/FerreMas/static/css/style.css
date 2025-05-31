@@ -2666,6 +2666,11 @@ hr {
 }
 
 
+.fila-seleccionada {
+  outline: 3px solid #30c66a;
+  background-color: #f0fff5;
+  font-weight: bold;
+}
 
 
 

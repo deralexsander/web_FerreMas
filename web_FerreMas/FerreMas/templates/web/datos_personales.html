@@ -6,107 +6,161 @@
 {% endblock %}
 
 {% block contenido %}
-<div class="contenedor_informacion" >
-    <div class="bloque_info">
 
-      <div class="columna_info">
-        <div class="titulo-form">
-          <h1>Tus direcciones</h1>
+<a class="button-volver contenedor_boton_volver" href="{% url 'perfil' %}">
+  ⬅ Volver
+</a>
+
+<div class="contenedor_botones">
+  <div class="segmented-control" id="grupo-botones-direccion">
+    <button class="segment active" id="btn-agregar-direccion">Agregar dirección</button>
+    <button class="segment" id="btn-tabla-direcciones">Tus direcciones</button>
+  </div>
+</div>
+
+
+<!-- PASO 1: Datos personales -->
+<div class="contenedor_informacion visible" id="paso-1-direccion">
+  <div class="bloque_info">
+    <div class="columna_info">
+      <div class="centrar">
+        <div class="encabezado-formulario">
+          <h1>Datos de contacto</h1>
         </div>
-        <div id="lista-direcciones">
-          <!-- Aquí se mostrarán las direcciones guardadas del cliente -->
+        <div class="subtexto-formulario">
+          <p>Ingresa tu nombre, teléfono, correo y RUT.</p>
         </div>
-      </div>
-
-
-
-      <div class="columna_info">
-
-        <div class="titulo-form">
-          <h1>📬 Agregar dirección de envío</h1>
-        </div>
-        <form id="formulario-direccion" class="form">
-
-
-                <div class="flex-column">
-                  <label for="nombre">Nombre completo</label>
-                </div>
-                <div class="inputForm">
-                  <input type="text" id="nombre" class="input" placeholder="Nombre completo" required>
-                </div>
-
-                <div class="flex-column">
-                  <label for="telefono">Teléfono</label>
-                </div>
-                <div class="inputForm">
-                  <input type="text" id="telefono" class="input" placeholder="Ej: +56912345678" required>
-                </div>
-
-                <div class="flex-column">
-                  <label for="correo">Correo electrónico</label>
-                </div>
-                <div class="inputForm">
-                  <input type="email" id="correo" class="input" placeholder="correo@ejemplo.com" required>
-                </div>
-
-                <div class="flex-column">
-                  <label for="rut">RUT</label>
-                </div>
-                <div class="inputForm">
-                  <input type="text" id="rut" class="input" placeholder="12.345.678-9" required>
-                </div>
-
-                <div class="flex-column">
-                  <label for="calle-numero">Calle y número</label>
-                </div>
-                <div class="inputForm">
-                  <input type="text" id="calle-numero" class="input" placeholder="Ej: Los Álamos 1234" required>
-                </div>
-
-                <div class="flex-column">
-                  <label for="departamento">Departamento/Casa (opcional)</label>
-                </div>
-                <div class="inputForm">
-                  <input type="text" id="departamento" class="input" placeholder="Depto 101 / Casa B">
-                </div>
-
-                <div class="flex-column">
-                  <label for="region">Región</label>
-                </div>
-                <div class="inputForm">
-                  <select id="region" class="input" required>
-                    <option value="">Seleccione una región</option>
-                  </select>
-                </div>
-
-                <div class="flex-column">
-                  <label for="comuna">Comuna</label>
-                </div>
-                <div class="inputForm">
-                  <select id="comuna" class="input" disabled required>
-                    <option value="">Seleccione una comuna</option>
-                  </select>
-                </div>
-
-                <div class="flex-column">
-                  <label for="codigo-postal">Código postal (opcional)</label>
-                </div>
-                <div class="inputForm">
-                  <input type="text" id="codigo-postal" class="input" placeholder="Ej: 1230000">
-                </div>
-
-                <div class="flex-column" style="margin-top: 10px;">
-                  <label style="display: flex; align-items: center; gap: 5px;">
-                    <input type="checkbox" id="guardar-envio" checked disabled>
-                    ¿Guardar esta dirección para futuras compras?
-                  </label>
-                </div>
-
-                <button type="submit" id="btn-guardar-direccion" class="button-submit">Guardar dirección</button>
-        </form>
       </div>
     </div>
+    <div class="columna_form">
+      <form class="formulario-paso" novalidate>
+        <div class="flex-column"><label>Nombre completo</label></div>
+        <div class="inputForm">
+          <input type="text" id="nombre" class="input" required placeholder="Ej: Nombre Apellido">
+        </div>
+
+        <div class="flex-column"><label>Teléfono</label></div>
+        <div class="inputForm">
+          <input type="text" id="telefono" class="input" required placeholder="Ej: 912345678">
+        </div>
+
+        <div class="flex-column"><label>Correo electrónico</label></div>
+        <div class="inputForm">
+          <input type="email" id="correo" class="input" required placeholder="Ej: ejemplo@correo.com">
+        </div>
+
+        <div class="flex-column"><label>RUT</label></div>
+        <div class="inputForm">
+          <input type="text" id="rut" class="input" required placeholder="Ej: 12345678-9">
+        </div>
+
+        <button type="button" onclick="mostrarPaso(2)" class="button-submit">Continuar</button>
+      </form>
+    </div>
+  </div>
 </div>
+
+<!-- PASO 2: Dirección -->
+<div class="contenedor_informacion oculto" id="paso-2-direccion">
+  <div class="bloque_info">
+    <div class="columna_info">
+      <div class="centrar">
+        <div class="encabezado-formulario">
+          <h1>Dirección de envío</h1>
+        </div>
+        <div class="subtexto-formulario">
+          <p>Completa la dirección donde deseas recibir tus pedidos.</p>
+        </div>
+      </div>
+    </div>
+    <div class="columna_form">
+      <form class="formulario-paso" novalidate>
+        <div class="flex-column"><label>Calle y número</label></div>
+        <div class="inputForm">
+          <input type="text" id="calle-numero" class="input" required placeholder="Ej: Av. Libertad 1234">
+        </div>
+
+        <div class="flex-column"><label>Depto/Casa (opcional)</label></div>
+        <div class="inputForm">
+          <input type="text" id="departamento" class="input" placeholder="Ej: Depto 405, Casa 7">
+        </div>
+
+        <div class="flex-column"><label>Código postal (opcional)</label></div>
+        <div class="inputForm">
+          <input type="text" id="codigo-postal" class="input" placeholder="Ej: 2340000">
+        </div>
+
+        <button type="button" onclick="mostrarPaso(3)" class="button-submit">Continuar</button>
+        <button type="button" onclick="mostrarPaso(1)" class="volver-atras button-submit">⬅ Volver</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- PASO 3: Ubicación -->
+<div class="contenedor_informacion oculto" id="paso-3-direccion">
+  <div class="bloque_info">
+    <div class="columna_info">
+      <div class="centrar">
+        <div class="encabezado-formulario">
+          <h1>Ubicación</h1>
+        </div>
+        <div class="subtexto-formulario">
+          <p>Selecciona tu región y comuna.</p>
+        </div>
+      </div>
+    </div>
+    <div class="columna_form">
+      <form class="formulario-paso" onsubmit="return false">
+        <div class="flex-column"><label>Región</label></div>
+        <div class="inputForm">
+          <select id="region" class="input" required>
+            <option value="">Seleccione una región</option>
+          </select>
+        </div>
+
+        <div class="flex-column"><label>Comuna</label></div>
+        <div class="inputForm">
+          <select id="comuna" class="input" disabled required>
+            <option value="">Seleccione una comuna</option>
+          </select>
+        </div>
+
+        <button type="button" onclick="guardarDireccion()" class="button-submit">Guardar dirección</button>
+        <button type="button" onclick="mostrarPaso(2)" class="volver-atras button-submit">⬅ Volver</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ======================= -->
+<!-- MODAL de tabla de direcciones -->
+<!-- ======================= -->
+<div id="modal-direcciones" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span id="cerrar-modal-direcciones" class="cerrar-modal">&times;</span>
+    <h2>Direcciones guardadas</h2>
+    <table class="tabla-direcciones">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Teléfono</th>
+          <th>Dirección</th>
+          <th>Ubicación</th>
+          <th>Fecha</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-direcciones"></tbody>
+    </table>
+
+    <div id="direccion-seleccionada-box" style="margin-top: 1rem; font-weight: bold;"></div>
+  </div>
+</div>
+
 
 
 

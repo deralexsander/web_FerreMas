@@ -76,40 +76,44 @@ import json
 @csrf_exempt
 def crear_preferencia(request):
     if request.method == 'POST':
-        datos = json.loads(request.body)
+        try:
+            datos = json.loads(request.body)
 
-        sdk = mercadopago.SDK("APP_USR-3060994062731939-051521-21ad6cf9dbf496c7174f3213cbc90788-445521183")
+            sdk = mercadopago.SDK("APP_USR-...")
 
-        items = []
+            items = []
+            for item in datos.get("items", []):
+                items.append({
+                    "title": item["nombre"],
+                    "quantity": int(item["cantidad"]),
+                    "unit_price": float(item["precio"]),
+                    "currency_id": "CLP"
+                })
 
-        # Agregar productos
-        for item in datos.get("items", []):
-            items.append({
-                "title": item["nombre"],
-                "quantity": int(item["cantidad"]),
-                "unit_price": float(item["precio"]),
-                "currency_id": "CLP"
-            })
+            if datos.get("tipo_entrega") == "domicilio":
+                items.append({
+                    "title": "Despacho a domicilio",
+                    "quantity": 1,
+                    "unit_price": 5000.0,
+                    "currency_id": "CLP"
+                })
 
-        # Verificar si hay despacho a domicilio y agregar el ítem
-        if datos.get("tipo_entrega") == "domicilio":
-            items.append({
-                "title": "Despacho a domicilio",
-                "quantity": 1,
-                "unit_price": 5000.0,
-                "currency_id": "CLP"
-            })
+            preferencia_data = {
+                "items": items,
+                "back_urls": {
+                    "success": "https://significance-suited-practice-nc.trycloudflare.com/carrito?status=success",
+                    "failure": "https://significance-suited-practice-nc.trycloudflare.com/carrito?status=failure",
+                    "pending": "https://significance-suited-practice-nc.trycloudflare.com/carrito?status=pending"
+                },
+                "auto_return": "approved"
+            }
 
-        preferencia_data = {
-            "items": items,
-            "back_urls": {
-                "success": "https://nirvana-gathering-constitutional-computing.trycloudflare.com/carrito?status=success",
-                "failure": "https://nirvana-gathering-constitutional-computing.trycloudflare.com/carrito?status=failure",
-                "pending": "https://nirvana-gathering-constitutional-computing.trycloudflare.com/carrito?status=pending"
-            },
-            "auto_return": "approved"
-        }
+            preferencia = sdk.preference().create(preferencia_data)
+            return JsonResponse({"init_point": preferencia["response"]["init_point"]})
 
-        preferencia = sdk.preference().create(preferencia_data)
-        return JsonResponse({"init_point": preferencia["response"]["init_point"]})
+        except Exception as e:
+            print("❌ Error en crear_preferencia:", e)
+            return JsonResponse({"error": "Error al crear preferencia"}, status=500)
+
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
