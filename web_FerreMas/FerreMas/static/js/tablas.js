@@ -487,104 +487,160 @@ function formatearFecha(fecha) {
 
 
 
-
-
-
 async function cargarTransferencias() {
   const tabla = document.querySelector("#tabla-transferencias tbody");
-  const botonConfirmar = document.getElementById("btn-confirmar-cambios");
-  if (!tabla || !botonConfirmar) return;
+  if (!tabla) return;
 
   try {
     const ref = window.collection(window.firebaseDB, "pedidos");
     const snapshot = await window.getDocs(ref);
 
     tabla.innerHTML = "";
-    const cambiosPendientes = {};
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
       const id = docSnap.id;
+
       const estado = data.estadoTransferencia || "pendiente";
+      const tipoDePago = data.tipoDePago || "";
 
-      if (estado !== "pendiente") return; // solo mostrar pendientes
-
-      const cantidadProductos = Array.isArray(data.carrito)
-        ? data.carrito.reduce((acc, prod) => acc + (prod.cantidad || 0), 0)
-        : 0;
+      if (tipoDePago.toLowerCase() !== "transferencia" || estado !== "pendiente") return;
 
       const total = typeof data.total === "number"
         ? `$${data.total.toLocaleString("es-CL")}`
         : "-";
 
-      const direccion = data.tipoEntrega === "domicilio"
-        ? typeof data.direccionDespacho === "object"
-          ? `${data.direccionDespacho?.calleNumero || ""} ${data.direccionDespacho?.departamento || ""}, ${data.direccionDespacho?.comuna || ""}, ${data.direccionDespacho?.region || ""}`
-          : data.direccionDespacho || "-"
-        : `${data.comunaSucursal || "-"}, ${data.regionSucursal || "-"}`;
-
-      const fecha = data.timestamp?.toDate?.().toLocaleString("es-CL") || "-";
+      const fechaCorta = data.timestamp?.toDate?.().toLocaleDateString("es-CL") || "-";
 
       const fila = document.createElement("tr");
       fila.innerHTML = `
-        <td>${data.rutCliente || "-"}</td>
-        <td>${data.nombreCliente || "-"}</td>
-        <td>${data.correoCliente || "-"}</td>
-        <td>${data.rutTitular || "-"}</td>
-        <td>${data.nombreTitular || "-"}</td>
-        <td>${data.banco || "-"}</td>
-        <td>${data.tipoEntrega || "-"}</td>
-        <td>${direccion}</td>
-        <td>${cantidadProductos}</td>
-        <td>${total}</td>
-        <td>${estado}</td>
-        <td>
-          <select class="select-estado" data-id="${id}">
-            <option value="pendiente" ${estado === "pendiente" ? "selected" : ""}>pendiente</option>
-            <option value="pago validado">pago validado</option>
-            <option value="problemas con tu pago">problemas con tu pago</option>
-          </select>
+        <td colspan="9">
+          <div class="contenedor-pedido-grid">
+            <div class="lado-datos">
+              <div class="lado-izquierdo">
+                <p><strong>RUT:</strong> ${data.rutTitular || "-"}</p>
+                <p><strong>Nombre:</strong> ${data.nombreTitular || "-"}</p>
+                <p><strong>Banco:</strong> ${data.banco || "-"}</p>
+              </div>
+              <div class="lado-derecho">
+                <p><strong>Entrega:</strong> ${data.tipoEntrega || "-"}</p>
+                <p><strong>Productos:</strong></p>
+                ${
+                  Array.isArray(data.carrito)
+                    ? `<ul>${data.carrito
+                        .map(prod => `<li>${prod.cantidad || 1} × ${prod.nombre || "Producto"}</li>`)
+                        .join("")}</ul>`
+                    : "-"
+                }
+              </div>
+            </div>
+            <div class="fila-inferior">
+              <div><strong>Total:</strong> ${total}</div>
+              <div><strong>Estado:</strong> ${estado}</div>
+              <div><strong>Fecha:</strong> ${fechaCorta}</div>
+              <div class="contenedor-botones">
+                <button class="btn btn-validar" data-id="${id}">✅ Validar</button>
+                <button class="btn btn-rechazar" data-id="${id}">❌ Rechazar</button>
+              </div>
+            </div>
+          </div>
         </td>
-        <td>${fecha}</td>
       `;
       tabla.appendChild(fila);
     });
 
-    // Escuchar cambios en los select
-    document.querySelectorAll(".select-estado").forEach((select) => {
-      select.addEventListener("change", () => {
-        const id = select.getAttribute("data-id");
-        const nuevoEstado = select.value;
-        cambiosPendientes[id] = nuevoEstado;
+
+    // Acción: Validar
+    // Acción: Validar
+    document.querySelectorAll(".btn.btn-validar").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+
+        try {
+          const ref = window.doc(window.firebaseDB, "pedidos", id);
+          const docSnap = await window.getDoc(ref);
+
+          if (!docSnap.exists()) {
+            alert("❌ No se encontró el pedido.");
+            return;
+          }
+
+          const data = docSnap.data();
+          console.log("📄 Datos del pedido:", data);
+
+          const emailCliente = data.email || "";
+          const nombre = data.nombreTitular || "Cliente";
+          const uidPedido = id;
+          const fecha = data.timestamp?.toDate?.().toLocaleDateString("es-CL") || "fecha desconocida";
+
+          if (!emailCliente) {
+            alert("⚠️ El correo del cliente no está disponible.");
+            return;
+          }
+
+          // Construcción de productos
+          const productos = Array.isArray(data.carrito)
+            ? data.carrito.map(prod => `- ${prod.cantidad || 1} × ${prod.nombre || "Producto"}`).join("%0A")
+            : "-";
+
+          const tipoEntrega = data.tipoEntrega === "domicilio" ? "Envío a domicilio" : "Retiro en tienda";
+          const total = typeof data.total === "number" ? `$${data.total.toLocaleString("es-CL")}` : "-";
+
+          // Construcción de cuerpo de correo
+          const asunto = `FERREMAS – Comprobante de compra ${uidPedido}`;
+          const cuerpo = `FERREMAS – Comprobante de compra%0A%0AN° Pedido: ${uidPedido}%0AFecha: ${fecha}%0A%0ACliente: ${nombre}%0ACorreo: ${emailCliente}%0A%0ADetalle:%0A${productos}%0A%0AForma de pago: Transferencia%0AMétodo de entrega: ${tipoEntrega}%0AMonto total: ${total}%0A%0AGracias por tu compra.%0AEste documento es un comprobante informal emitido por Ferremas.`;
+
+          // Abrir cliente de correo
+          window.location.href = `mailto:${emailCliente}?subject=${encodeURIComponent(asunto)}&body=${cuerpo}`;
+
+          // Confirmación posterior
+          const confirmar = confirm("¿Deseas marcar el pedido como 'pago validado'?");
+          if (!confirmar) return;
+
+          await window.setDoc(
+            window.doc(window.firebaseDB, "pedidos", id),
+            { estadoTransferencia: "pago validado" },
+            { merge: true }
+          );
+
+          alert("✅ Pedido actualizado como 'pago validado'.");
+          cargarTransferencias();
+
+        } catch (error) {
+          console.error("❌ Error al validar:", error);
+          alert("Hubo un error al procesar el pedido.");
+        }
       });
     });
 
-    // Confirmar cambios
-    botonConfirmar.addEventListener("click", async () => {
-      if (Object.keys(cambiosPendientes).length === 0) {
-        alert("No hay cambios pendientes.");
-        return;
-      }
 
-      const confirmar = confirm("¿Guardar cambios en estados?");
-      if (!confirmar) return;
 
-      try {
-        for (const id in cambiosPendientes) {
-          const nuevoEstado = cambiosPendientes[id];
+
+
+
+
+    // Acción: Rechazar
+    document.querySelectorAll(".btn.btn-rechazar").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+
+        const confirmar = confirm("¿Deseas marcar el pedido como 'problemas con el pago'?");
+        if (!confirmar) return;
+
+        try {
           await window.setDoc(
             window.doc(window.firebaseDB, "pedidos", id),
-            { estadoTransferencia: nuevoEstado },
+            { estadoTransferencia: "problemas con tu pago" },
             { merge: true }
           );
-        }
 
-        alert("✅ Cambios guardados correctamente.");
-        cargarTransferencias();
-      } catch (error) {
-        console.error("❌ Error al guardar cambios:", error);
-        alert("Hubo un problema al guardar los cambios.");
-      }
+          alert("❌ Pedido marcado con problemas.");
+          cargarTransferencias();
+        } catch (error) {
+          console.error("❌ Error al rechazar:", error);
+          alert("Hubo un error al marcar el pedido.");
+        }
+      });
     });
 
   } catch (error) {
@@ -592,6 +648,9 @@ async function cargarTransferencias() {
     alert("No se pudieron cargar las transferencias.");
   }
 }
+
+
+
 
 function esperarFirebaseYCargar() {
   if (
@@ -606,6 +665,147 @@ function esperarFirebaseYCargar() {
 }
 
 esperarFirebaseYCargar();
+
+
+
+
+
+
+
+window.cargarHistorialTransferencias = async function () {
+  const tabla = document.querySelector("#historial-tabla-transferencias tbody");
+  if (!tabla) return;
+
+  try {
+    const ref = window.collection(window.firebaseDB, "pedidos");
+    const snapshot = await window.getDocs(ref);
+
+    tabla.innerHTML = "";
+
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data();
+
+      const tipoPago = (data.tipoDePago || "").toLowerCase();
+      const tipoEntrega = data.tipoEntrega?.toLowerCase() || "-";
+
+      const estado = tipoPago === "tarjeta"
+        ? "Pagado"
+        : data.estadoTransferencia || data.estado || "-";
+
+      const total = typeof data.total === "number"
+        ? `$${data.total.toLocaleString("es-CL")}`
+        : "-";
+
+      let fechaCorta = "-";
+      if (data.timestamp?.toDate) {
+        fechaCorta = data.timestamp.toDate().toLocaleDateString("es-CL");
+      } else if (typeof data.timestamp === "string") {
+        const fecha = new Date(data.timestamp);
+        if (!isNaN(fecha)) {
+          fechaCorta = fecha.toLocaleDateString("es-CL");
+        }
+      }
+
+      const listaProductos = Array.isArray(data.carrito)
+        ? data.carrito
+        : Array.isArray(data.productos)
+          ? data.productos
+          : [];
+
+      const productosHTML = listaProductos.length > 0
+        ? `<ul>${listaProductos
+            .map(prod => `<li>${prod.cantidad || 1} × ${prod.nombre || "Producto"}</li>`)
+            .join("")}</ul>`
+        : "Sin productos";
+
+      const comuna =
+        data?.direccionDespacho?.comuna ||
+        data?.comunaSucursal ||
+        data?.comuna ||
+        "Sin información";
+
+      const region =
+        data?.direccionDespacho?.region ||
+        data?.regionSucursal ||
+        data?.region ||
+        "Sin información";
+
+      const entrega = `${tipoEntrega} / ${comuna}, ${region}`;
+
+      // ------------------------------
+      // Buscar nombre desde trabajadores si está vacío
+      // ------------------------------
+      let nombreUsuario = data.nombreTitular || "-";
+      if (
+        tipoPago === "tarjeta" &&
+        tipoEntrega === "tienda" &&
+        (!data.nombreTitular || data.nombreTitular === "-") &&
+        data.userId
+      ) {
+        try {
+          const docTrabRef = window.doc(window.firebaseDB, "trabajadores", data.userId);
+          const docTrabSnap = await window.getDoc(docTrabRef);
+          if (docTrabSnap.exists()) {
+            const trabajador = docTrabSnap.data();
+            nombreUsuario = `${trabajador.nombre || ""} ${trabajador.apellidoPaterno || ""}`.trim();
+          }
+        } catch (e) {
+          console.warn("No se pudo obtener trabajador para:", data.userId);
+        }
+      }
+
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td colspan="9">
+          <div class="contenedor-pedido-grid">
+            <div class="lado-datos">
+              <div class="lado-izquierdo">
+                ${
+                  tipoPago === "tarjeta" && tipoEntrega === "tienda"
+                    ? `
+                      <p><strong>Correo:</strong> ${data.email || "-"}</p>
+                      <p><strong>Usuario:</strong> ${nombreUsuario}</p>
+                    `
+                    : `
+                      <p><strong>RUT:</strong> ${data.rutTitular || "-"}</p>
+                      <p><strong>Nombre:</strong> ${data.nombreTitular || "-"}</p>
+                      <p><strong>Banco:</strong> ${data.banco || "-"}</p>
+                    `
+                }
+                <p><strong>Pago:</strong> ${data.tipoDePago || "-"}</p>
+              </div>
+              <div class="lado-derecho">
+                <p><strong>Entrega:</strong> ${entrega}</p>
+                <p><strong>Productos:</strong></p>
+                ${productosHTML}
+              </div>
+            </div>
+            <div class="fila-inferior">
+              <div><strong>Total:</strong> ${total}</div>
+              <div><strong>Estado:</strong> ${estado}</div>
+              <div><strong>Fecha:</strong> ${fechaCorta}</div>
+            </div>
+          </div>
+        </td>
+      `;
+      tabla.appendChild(fila);
+    }
+
+  } catch (error) {
+    console.error("❌ Error al cargar historial:", error);
+    alert("No se pudo cargar el historial de pagos.");
+  }
+};
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -704,6 +904,24 @@ function esperarFirebaseYcargarPedidos() {
 }
 
 esperarFirebaseYcargarPedidos();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 });
 

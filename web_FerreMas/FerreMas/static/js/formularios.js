@@ -339,19 +339,21 @@ window.formTransferencias = async function () {
     const ref = collection(firebaseDB, "pedidos");
     await addDoc(ref, {
       uidCliente: user.uid,
-      correoCliente: user.email,
+      email: user.email, // 👈 Aquí se guarda el correo del cliente
       nombreTitular,
       rutTitular,
       banco,
       carrito,
       total: totalFinal,
       tipoEntrega,
+      tipoDePago: "Transferencia",
       regionSucursal: tipoEntrega === "tienda" ? region : null,
       comunaSucursal: tipoEntrega === "tienda" ? comuna : null,
       direccionDespacho: tipoEntrega === "domicilio" ? direccionSeleccionada : null,
-      estadoTransferencia: "pendiente", // 🔄 cambio aquí
+      estadoTransferencia: "pendiente",
       timestamp: Timestamp.now()
     });
+
 
     mostrarMensaje("✅ Solicitud enviada correctamente. Validaremos el pago.");
 

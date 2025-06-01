@@ -5,30 +5,48 @@
 <title>Transferencias</title>
 {% endblock %}
 
+
 {% block contenido %}
 
-<table id="tabla-transferencias">
-  <thead>
-    <tr>
-      <th>RUT Cliente</th>
-      <th>Nombre Cliente</th>
-      <th>Correo Cliente</th>
-      <th>RUT Titular</th>
-      <th>Nombre Titular</th>
-      <th>Banco</th>
-      <th>Tipo Entrega</th>
-      <th>Dirección / Sucursal</th>
-      <th>Productos</th>
-      <th>Total</th>
-      <th>Estado actual</th>
-      <th>Cambiar estado</th>
-      <th>Fecha</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
 
-<button id="btn-confirmar-cambios" style="margin-top: 20px;">✅ Confirmar cambios</button>
+  <a class="button-volver contenedor_boton_volver" href="{% url 'perfil' %}">
+  ⬅ Volver
+  </a>
+
+
+
+<div class="contenedor_botones">
+<div class="segmented-control">
+  <button class="segment active" id="btn-crear">Transferencias pendientes</button>
+  <button class="segment" id="btn-tabla">Historial de pagos</button>
+</div>
+
+</div>
+
+
+<div id="modal-pendientes" class="fondo-modal-trabajadores visible">
+  <div class="modal_productos">
+    <div class="contenedor_informacion">
+      <table id="tabla-transferencias" class="tabla-transferencias">
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="modal-historial" class="fondo-modal-trabajadores oculto">
+  <div class="modal_productos">
+    <div class="contenedor_informacion">
+        <table id="historial-tabla-transferencias" class="tabla-transferencias">
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
+
 
 
 {% endblock %}

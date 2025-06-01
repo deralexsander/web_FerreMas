@@ -101,9 +101,9 @@ def crear_preferencia(request):
             preferencia_data = {
                 "items": items,
                 "back_urls": {
-                    "success": "https://significance-suited-practice-nc.trycloudflare.com/carrito?status=success",
-                    "failure": "https://significance-suited-practice-nc.trycloudflare.com/carrito?status=failure",
-                    "pending": "https://significance-suited-practice-nc.trycloudflare.com/carrito?status=pending"
+                    "success": "https://dumb-heaven-bringing-vinyl.trycloudflare.com/carrito?status=success",
+                    "failure": "https://dumb-heaven-bringing-vinyl.trycloudflare.com/carrito?status=failure",
+                    "pending": "https://dumb-heaven-bringing-vinyl.trycloudflare.com/carrito?status=pending"
                 },
                 "auto_return": "approved"
             }

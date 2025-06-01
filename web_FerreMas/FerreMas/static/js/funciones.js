@@ -98,165 +98,224 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-//---------------------------------
-//
-// Escritura en Firestore si ?status=success|failure|pending
-//
-//---------------------------------
-// Función que espera que Firebase esté listo antes de guardar el pedido
-function esperarGuardarPedidoConAuth(status) {
-  if (
-    typeof window.firebaseAuth !== "undefined" &&
-    typeof window.firebaseAuth.onAuthStateChanged === "function"
-  ) {
-    window.firebaseAuth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        console.warn("⚠️ No hay usuario autenticado. No se escribirá en Firestore.");
+  //-----------------------------
+  // Escritura en Firestore si ?status=success|failure|pending
+  //-----------------------------
+  function esperarGuardarPedidoConAuth(status) {
+    if (
+      typeof window.firebaseAuth !== "undefined" &&
+      typeof window.firebaseAuth.onAuthStateChanged === "function"
+    ) {
+      window.firebaseAuth.onAuthStateChanged(async (user) => {
+        if (!user) {
+          console.warn("⚠️ No hay usuario autenticado. No se escribirá en Firestore.");
+          return;
+        }
+
+        try {
+
+          const uid = crypto.randomUUID();
+          const tipoEntrega = localStorage.getItem("tipo_entrega") || "no especificado";
+          const region = localStorage.getItem("region") || null;
+          const comuna = localStorage.getItem("comuna") || null;
+
+          // Recuperar y formatear carrito
+          const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+          const productos = carrito.map((item) => ({
+            nombre: item.nombre || "Producto sin nombre",
+            precio: parseFloat(item.precio) || 0,
+            cantidad: parseInt(item.cantidad) || 1
+          }));
+
+          // Validar que haya productos
+          if (productos.length === 0) {
+            console.warn("⚠️ No hay productos válidos en el carrito. No se guardará el pedido.");
+            return;
+          }
+
+          let total = productos.reduce((sum, prod) => sum + prod.precio * prod.cantidad, 0);
+
+          if (tipoEntrega === "domicilio") {
+            total += 5000;
+          }
+
+          const pedidoData = {
+            uid,
+            userId: user.uid,
+            email: user.email,
+            tipoEntrega,
+            region,
+            comuna,
+            productos,
+            total,
+            tipoDePago: "Tarjeta",
+            timestamp: new Date().toISOString()
+          };
+
+          if (tipoEntrega === "domicilio") {
+            const direccionId = localStorage.getItem("direccionSeleccionada");
+            if (direccionId) {
+              const direccionRef = window.doc(window.firebaseDB, "direcciones", user.uid, "items", direccionId);
+              const direccionSnap = await window.getDoc(direccionRef);
+
+              if (direccionSnap.exists()) {
+                pedidoData.direccionDespacho = direccionSnap.data();
+                console.log("📬 Dirección de despacho añadida:", direccionSnap.data());
+              } else {
+                console.warn("⚠️ Dirección seleccionada no encontrada.");
+              }
+            }
+          }
+
+          const pedidoRef = window.doc(window.firebaseDB, "pedidos", uid);
+          await window.setDoc(pedidoRef, pedidoData);
+
+          console.log(`✅ Pedido guardado con UID: ${uid}, total: $${total}, tipo: ${tipoEntrega}`);
+
+          // 🧹 Limpiar localStorage
+          localStorage.removeItem("carrito");
+          localStorage.removeItem("tipo_entrega");
+          localStorage.removeItem("region");
+          localStorage.removeItem("comuna");
+          localStorage.removeItem("direccionSeleccionada");
+
+          // 🔄 Redirigir a /carrito/
+          setTimeout(() => {
+            window.location.href = "/carrito/";
+          }, 1000);
+
+        } catch (err) {
+          console.error("❌ Error al guardar en Firestore:", err);
+          mostrarMensaje("❌ No se pudo registrar el pedido.");
+        }
+      });
+    } else {
+      console.warn("🔁 Esperando que firebaseAuth esté disponible...");
+      setTimeout(() => esperarGuardarPedidoConAuth(status), 100);
+    }
+  }
+
+
+
+
+
+
+
+  //-----------------------------
+  // Detectar si hay status en la URL
+  //-----------------------------
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get("status");
+
+  const estadosValidos = ["success", "failure", "pending"];
+  if (estadosValidos.includes(status)) {
+    esperarGuardarPedidoConAuth(status);
+  }
+
+
+
+
+
+  //---------------------------------
+  //
+  // funcionBotón pagar 
+  //
+  //---------------------------------
+  if (btnPagar) {
+    btnPagar.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      if (carrito.length === 0) {
+        mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.");
         return;
       }
 
+      const user = window.firebaseAuth?.currentUser;
+      if (!user) {
+        mostrarMensaje("⚠️ Debes iniciar sesión antes de pagar.");
+        return;
+      }
+
+      const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value;
+      const region = document.getElementById("region-sucursal")?.value;
+      const comuna = document.getElementById("comuna-sucursal")?.value;
+
+      if (!tipoEntrega) {
+        mostrarMensaje("Debes seleccionar un tipo de entrega.");
+        return;
+      }
+
+      if (tipoEntrega === "tienda") {
+        if (!region) {
+          mostrarMensaje("Debes seleccionar una región para el retiro en tienda.");
+          return;
+        }
+        if (!comuna) {
+          mostrarMensaje("Debes seleccionar una comuna para el retiro en tienda.");
+          return;
+        }
+      }
+
+      if (tipoEntrega === "domicilio") {
+        const direccionSeleccionada = localStorage.getItem("direccionSeleccionada");
+        if (!direccionSeleccionada) {
+          mostrarMensaje("⚠️ Debes seleccionar una dirección para el despacho a domicilio.");
+          return;
+        }
+
+        try {
+          await asegurarFirestore();
+
+          const ref = window.doc(window.firebaseDB, "direcciones", user.uid, "items", direccionSeleccionada);
+          const snap = await window.getDoc(ref);
+
+          if (!snap.exists()) {
+            mostrarMensaje("⚠️ No hay ninguna dirección disponible. Agrega una antes de continuar.");
+            return;
+          }
+        } catch (err) {
+          console.error("❌ Error al validar dirección:", err);
+          mostrarMensaje("❌ Error al verificar tu dirección. Intenta nuevamente.");
+          return;
+        }
+      }
+
+      const carritoFormateado = carrito.map((item) => ({
+        nombre: item.nombre || "Producto sin nombre",
+        precio: parseFloat(item.precio) || 0,
+        cantidad: parseInt(item.cantidad) || 1
+      }));
+
+      console.log("🧺 Carrito enviado:", carritoFormateado);
+
+      localStorage.setItem("tipo_entrega", tipoEntrega);
+      localStorage.setItem("region", region || "");
+      localStorage.setItem("comuna", comuna || "");
+
       try {
-        await asegurarFirestore();
-
-        const uid = crypto.randomUUID();
-
-        const pedidoRef = window.doc(window.firebaseDB, "pedidos", uid);
-        await window.setDoc(pedidoRef, {
-          uid,
-          estado: status,
-          email: user.email,
-          userId: user.uid,
-          mensaje: "📝 Este es un ejemplo de pedido guardado directamente en pedidos/{uid}.",
-          timestamp: new Date().toISOString()
+        const response = await fetch("/crear_preferencia/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: carritoFormateado,
+            tipo_entrega: tipoEntrega
+          })
         });
 
-        console.log(`✅ Pedido con estado '${status}' guardado correctamente con UID: ${uid}`);
-        mostrarMensaje(`📝 Pedido de ejemplo guardado como '${status}'.`);
-
-      } catch (err) {
-        console.error("❌ Error al guardar en Firestore:", err);
-        mostrarMensaje("❌ No se pudo registrar el estado del pedido.");
+        const data = await response.json();
+        if (data.init_point) {
+          window.location.href = data.init_point;
+        } else {
+          alert("❌ No se pudo iniciar el pago. Intenta más tarde.");
+        }
+      } catch (error) {
+        console.error("❌ Error al iniciar el pago:", error);
+        alert("❌ Error al conectar con el servidor.");
       }
     });
-  } else {
-    console.warn("🔁 Esperando que firebaseAuth esté disponible...");
-    setTimeout(() => esperarGuardarPedidoConAuth(status), 100);
   }
-}
 
-
-// Detectar si hay status en la URL
-const params = new URLSearchParams(window.location.search);
-const status = params.get("status");
-
-const estadosValidos = ["success", "failure", "pending"];
-if (estadosValidos.includes(status)) {
-  esperarGuardarPedidoConAuth(status);
-}
-
-
-
-
-//---------------------------------
-//
-// funcionBotón pagar 
-//
-//---------------------------------
-if (btnPagar) {
-  btnPagar.addEventListener("click", async (e) => {
-    e.preventDefault();
-
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    if (carrito.length === 0) {
-      mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.");
-      return;
-    }
-
-    const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value;
-    const region = document.getElementById("region-sucursal")?.value;
-    const comuna = document.getElementById("comuna-sucursal")?.value;
-
-    if (!tipoEntrega) {
-      mostrarMensaje("Debes seleccionar un tipo de entrega.");
-      return;
-    }
-
-    if (tipoEntrega === "tienda") {
-      if (!region) {
-        mostrarMensaje("Debes seleccionar una región para el retiro en tienda.");
-        return;
-      }
-      if (!comuna) {
-        mostrarMensaje("Debes seleccionar una comuna para el retiro en tienda.");
-        return;
-      }
-    }
-
-    if (tipoEntrega === "domicilio") {
-      const direccionSeleccionada = localStorage.getItem("direccionSeleccionada");
-      if (!direccionSeleccionada) {
-        mostrarMensaje("⚠️ Debes seleccionar una dirección para el despacho a domicilio.");
-        return;
-      }
-
-      try {
-        await asegurarFirestore();
-        const user = window.firebaseAuth?.currentUser;
-        if (!user) {
-          mostrarMensaje("⚠️ Debes iniciar sesión.");
-          return;
-        }
-
-        const ref = window.doc(window.firebaseDB, "direcciones", user.uid, "items", direccionSeleccionada);
-        const snap = await window.getDoc(ref);
-
-        if (!snap.exists()) {
-          mostrarMensaje("⚠️ No hay ninguna dirección disponible. Agrega una antes de continuar.");
-          return;
-        }
-      } catch (err) {
-        console.error("❌ Error al validar dirección:", err);
-        mostrarMensaje("❌ Error al verificar tu dirección. Intenta nuevamente.");
-        return;
-      }
-    }
-
-    // ✅ Formatear carrito correctamente
-    const carritoFormateado = carrito.map((item) => ({
-      nombre: item.nombre || "Producto sin nombre",
-      precio: parseFloat(item.precio) || 0,
-      cantidad: parseInt(item.cantidad) || 1
-    }));
-
-    console.log("🧺 Carrito enviado:", carritoFormateado);
-
-    // Guardar tipo de entrega en localStorage para que esté disponible en el retorno
-    localStorage.setItem("tipo_entrega", tipoEntrega);
-    localStorage.setItem("region", region || "");
-    localStorage.setItem("comuna", comuna || "");
-
-    try {
-      const response = await fetch("/crear_preferencia/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: carritoFormateado,
-          tipo_entrega: tipoEntrega
-        })
-      });
-
-      const data = await response.json();
-      if (data.init_point) {
-        window.location.href = data.init_point;
-      } else {
-        alert("❌ No se pudo iniciar el pago. Intenta más tarde.");
-      }
-    } catch (error) {
-      console.error("❌ Error al iniciar el pago:", error);
-      alert("❌ Error al conectar con el servidor.");
-    }
-  });
-}
 
 
 
@@ -825,7 +884,7 @@ function aplicarAnimacionSiEsRegistroPersonal() {
   contenedor.classList.remove("pop-in", "pop-out");
 
   // Rutas que deben activar pop-out + marcar pop-in para después
-  const rutasQueAniman = ["/registro_personal/", "/crear_producto/", "/datos_personales/"];
+  const rutasQueAniman = ["/registro_personal/", "/crear_producto/", "/datos_personales/", "/trasferencias/"];
 
   if (rutasQueAniman.includes(path)) {
     contenedor.classList.add("pop-out");
@@ -1850,6 +1909,45 @@ iniciarSesionCliente();
 
 
 
+
+
+
+  const btnPendientes = document.getElementById("btn-crear");
+  const btnHistorial = document.getElementById("btn-tabla");
+  const modalPendientes = document.getElementById("modal-pendientes");
+  const modalHistorial = document.getElementById("modal-historial");
+
+  function cambiarDeModal(destino) {
+    if (destino === "pendientes") {
+      cambiarFormulario(modalHistorial, modalPendientes);
+      btnPendientes.classList.add("active");
+      btnHistorial.classList.remove("active");
+    } else {
+      cambiarFormulario(modalPendientes, modalHistorial);
+      btnHistorial.classList.add("active");
+      btnPendientes.classList.remove("active");
+    }
+  }
+
+  if (btnPendientes && btnHistorial) {
+    btnPendientes.addEventListener("click", () => cambiarDeModal("pendientes"));
+    btnHistorial.addEventListener("click", () => cambiarDeModal("historial"));
+  }
+
+
+
+function cambiarDeModal(destino) {
+  if (destino === "pendientes") {
+    cambiarFormulario(modalHistorial, modalPendientes);
+    btnPendientes.classList.add("active");
+    btnHistorial.classList.remove("active");
+  } else {
+    cambiarFormulario(modalPendientes, modalHistorial);
+    cargarHistorialTransferencias(); // ← Carga tabla al abrir historial
+    btnHistorial.classList.add("active");
+    btnPendientes.classList.remove("active");
+  }
+}
 
 
 
