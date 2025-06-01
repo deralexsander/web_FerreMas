@@ -550,7 +550,7 @@ async function cargarTransferencias() {
     });
 
 
-    // Acción: Validar
+
     // Acción: Validar
     document.querySelectorAll(".btn.btn-validar").forEach((btn) => {
       btn.addEventListener("click", async () => {
@@ -599,9 +599,13 @@ async function cargarTransferencias() {
 
           await window.setDoc(
             window.doc(window.firebaseDB, "pedidos", id),
-            { estadoTransferencia: "pago validado" },
+            {
+              estadoTransferencia: "pago validado",
+              pedido: "En espera de preparación"
+            },
             { merge: true }
           );
+
 
           alert("✅ Pedido actualizado como 'pago validado'.");
           cargarTransferencias();
@@ -614,34 +618,59 @@ async function cargarTransferencias() {
     });
 
 
-
-
-
-
-
+    // Acción: Rechazar
     // Acción: Rechazar
     document.querySelectorAll(".btn.btn-rechazar").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-id");
 
-        const confirmar = confirm("¿Deseas marcar el pedido como 'problemas con el pago'?");
-        if (!confirmar) return;
-
         try {
+          const ref = window.doc(window.firebaseDB, "pedidos", id);
+          const docSnap = await window.getDoc(ref);
+
+          if (!docSnap.exists()) {
+            alert("❌ No se encontró el pedido.");
+            return;
+          }
+
+          const data = docSnap.data();
+          const emailCliente = data.email || "";
+          const nombre = data.nombreTitular || "Cliente";
+          const uidPedido = id;
+          const fecha = data.timestamp?.toDate?.().toLocaleDateString("es-CL") || "fecha desconocida";
+
+          if (!emailCliente) {
+            alert("⚠️ El correo del cliente no está disponible.");
+            return;
+          }
+
+          const asunto = `FERREMAS – Rechazo de pedido ${uidPedido}`;
+          const cuerpo = `Estimado/a ${nombre},%0A%0ALamentamos informarte que tu pedido N° ${uidPedido}, con fecha ${fecha}, ha sido rechazado debido a que no se recibió el comprobante de pago correspondiente por la vía de transferencia bancaria.%0A%0APara continuar con el proceso de compra, te invitamos a verificar que el pago haya sido realizado correctamente y que los datos enviados coincidan con los requerimientos.%0A%0ASi tienes dudas o necesitas más información, no dudes en responder a este mismo correo. Estaremos atentos para ayudarte.%0A%0ASaludos cordiales,%0AEquipo FERREMAS`;
+
+          // Abrir cliente de correo antes de confirmar
+          window.location.href = `mailto:${emailCliente}?subject=${encodeURIComponent(asunto)}&body=${cuerpo}`;
+
+          // Esperar confirmación para actualizar el estado
+          const confirmar = confirm("¿Deseas marcar el pedido como 'problemas con el pago'?");
+          if (!confirmar) return;
+
           await window.setDoc(
             window.doc(window.firebaseDB, "pedidos", id),
             { estadoTransferencia: "problemas con tu pago" },
             { merge: true }
           );
 
-          alert("❌ Pedido marcado con problemas.");
+          alert("❌ Pedido marcado como 'problemas con tu pago'.");
           cargarTransferencias();
+
         } catch (error) {
           console.error("❌ Error al rechazar:", error);
-          alert("Hubo un error al marcar el pedido.");
+          alert("Hubo un error al procesar el pedido.");
         }
       });
     });
+
+
 
   } catch (error) {
     console.error("❌ Error al cargar transferencias:", error);
@@ -838,50 +867,114 @@ window.llamarPedidos = async function () {
   }
 };
 
-// 🟩 2. Función para renderizar pedidos en tablas
+
+
+
+
+
+
+
+
+
+
 window.renderPedidos = function (pedidos) {
   const cuerpoDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
   const cuerpoSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
 
-  if (!cuerpoDomicilio || !cuerpoSucursal) return;
+  if (!cuerpoDomicilio || !cuerpoSucursal) {
+    console.warn("No se encontraron las tablas en el HTML.");
+    return;
+  }
 
   cuerpoDomicilio.innerHTML = "";
   cuerpoSucursal.innerHTML = "";
 
-  pedidos
-    .filter(p => p.estadoTransferencia !== "pendiente")
-    .forEach(p => {
-      const fila = document.createElement("tr");
+  pedidos.forEach(p => {
+    const fila = document.createElement("tr");
 
-      const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "-";
-      const fecha = p.timestamp?.toDate?.().toLocaleString("es-CL") || "-";
-      const estado = p.estadoTransferencia || "-";
-      const accion = `<button class="btn-ver" data-id="${p.id}">Ver</button>`;
+    // Fecha segura
+    let fechaCorta = "none";
+    try {
+      const fechaObj = typeof p.timestamp === "string"
+        ? new Date(p.timestamp)
+        : p.timestamp.toDate?.() || new Date(p.timestamp);
 
-      const direccion = p.tipoEntrega === "domicilio"
-        ? typeof p.direccionDespacho === "object"
-          ? `${p.direccionDespacho?.calleNumero || ""} ${p.direccionDespacho?.departamento || ""}, ${p.direccionDespacho?.comuna || ""}, ${p.direccionDespacho?.region || ""}`
-          : p.direccionDespacho || "-"
-        : p.comunaSucursal || "-";
-
-      fila.innerHTML = `
-        <td>${p.id}</td>
-        <td>${p.nombreCliente || "-"}</td>
-        <td>${p.correoCliente || "-"}</td>
-        <td>${fecha}</td>
-        <td>${total}</td>
-        <td>${estado}</td>
-        <td>${direccion}</td>
-        <td>${accion}</td>
-      `;
-
-      if (p.tipoEntrega === "domicilio") {
-        cuerpoDomicilio.appendChild(fila);
-      } else if (p.tipoEntrega === "tienda") {
-        cuerpoSucursal.appendChild(fila);
+      if (!isNaN(fechaObj)) {
+        fechaCorta = fechaObj.toLocaleDateString("es-CL");
       }
-    });
+    } catch (e) {
+      console.warn("Error al convertir fecha:", e);
+    }
+
+    const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "none";
+    const tipoEntrega = p.tipoEntrega || "none";
+    const estadoPedido = p.pedido || "none";
+    const id = p.uid || "none";
+
+    const direccion = p.direccionDespacho || {};
+    const rut = p.rutTitular || direccion.rut || "none";
+    const nombreTitular = p.nombreTitular || direccion.nombre || "none";
+    const email = p.email || direccion.email || direccion.correo || "none";
+    const comuna = p.comuna || direccion.comuna || p.comunaSucursal || "none";
+    const region = p.region || direccion.region || p.regionSucursal || "none";
+
+    const productosArray = Array.isArray(p.carrito)
+      ? p.carrito
+      : Array.isArray(p.productos) ? p.productos : [];
+
+    const productos = productosArray.length > 0
+      ? `<ul>${productosArray.map(prod => `
+          <li style="display: flex; align-items: center; margin-bottom: 4px;">
+            ${prod.imagen ? `<img src="${prod.imagen}" alt="${prod.nombre}" style="width: 40px; height: 40px; object-fit: cover; margin-right: 8px; border-radius: 4px;">` : ""}
+            ${prod.cantidad || 1} × ${prod.nombre || "Producto"} — $${prod.precio?.toLocaleString("es-CL") || "0"}
+          </li>`).join("")}</ul>`
+      : "<em>No hay productos</em>";
+
+    fila.innerHTML = `
+      <td colspan="9">
+        <div class="contenedor-pedido-grid">
+          <div class="lado-datos">
+            <div class="lado-izquierdo">
+              <p><strong>RUT:</strong> ${rut}</p>
+              <p><strong>Nombre:</strong> ${nombreTitular}</p>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Estado pedido:</strong> ${estadoPedido}</p>
+              <p><strong>Entrega:</strong> ${tipoEntrega}</p>
+              <p><strong>Comuna:</strong> ${comuna}</p>
+              <p><strong>Región:</strong> ${region}</p>
+            </div>
+            <div class="lado-derecho">
+              <p><strong>Productos:</strong></p>
+              ${productos}
+            </div>
+          </div>
+          <div class="fila-inferior">
+            <div><strong>Total:</strong> ${total}</div>
+            <div><strong>Fecha:</strong> ${fechaCorta}</div>
+            <div class="contenedor-botones">
+              <button class="btn btn-validar" data-id="${id}">✅ Validar</button>
+              <button class="btn btn-rechazar" data-id="${id}">❌ Rechazar</button>
+            </div>
+          </div>
+        </div>
+      </td>
+    `;
+
+    if (tipoEntrega === "domicilio") {
+      cuerpoDomicilio.appendChild(fila);
+    } else if (tipoEntrega === "tienda") {
+      cuerpoSucursal.appendChild(fila);
+    }
+  });
+
+  console.log(`Se cargaron ${pedidos.length} pedidos`);
 };
+
+
+
+
+
+
 
 
 // 🟩 3. Función que llama y dibuja

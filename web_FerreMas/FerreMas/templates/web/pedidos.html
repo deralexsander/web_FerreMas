@@ -6,38 +6,55 @@
 {% endblock %}
 
 {% block contenido %}
-<h2>📦 Pedidos a Domicilio</h2>
-<table id="tabla-pedidos-domicilio">
-  <thead>
-    <tr>
-      <th>Código Pedido</th>
-      <th>Cliente</th>
-      <th>Correo</th>
-      <th>Fecha</th>
-      <th>Total</th>
-      <th>Estado</th>
-      <th>Dirección</th>
-      <th>Acción</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
 
-<h2>🏬 Pedidos en Sucursal</h2>
-<table id="tabla-pedidos-sucursal">
-  <thead>
-    <tr>
-      <th>Código Pedido</th>
-      <th>Cliente</th>
-      <th>Correo</th>
-      <th>Fecha</th>
-      <th>Total</th>
-      <th>Estado</th>
-      <th>Sucursal</th>
-      <th>Acción</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+
+
+  <a class="button-volver contenedor_boton_volver" href="{% url 'perfil' %}">
+  ⬅ Volver
+  </a>
+
+
+
+<div class="contenedor_botones">
+<div class="segmented-control">
+  <button class="segment active" id="btn-crear">Pedidos en sucursal</button>
+  <button class="segment" id="btn-tabla">Pedidos a domicilio</button>
+  <button class="segment" id="btn-tabla">historial de pedidos</button>
+</div>
+
+</div>
+
+
+<div id="modal-pendientes" class="fondo-modal-trabajadores visible">
+  <div class="modal_productos">
+    <div class="contenedor_informacion">
+      <table id="tabla-pedidos-sucursal" class="tabla-transferencias">
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="modal-historial" class="fondo-modal-trabajadores oculto">
+  <div class="modal_productos">
+    <div class="contenedor_informacion">
+        <table id="tabla-pedidos-domicilio" class="tabla-transferencias">
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 {% endblock %}

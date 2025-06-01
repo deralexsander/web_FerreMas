@@ -147,6 +147,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             region,
             comuna,
             productos,
+            pedido: "En espera de preparación",
             total,
             tipoDePago: "Tarjeta",
             timestamp: new Date().toISOString()
@@ -884,7 +885,7 @@ function aplicarAnimacionSiEsRegistroPersonal() {
   contenedor.classList.remove("pop-in", "pop-out");
 
   // Rutas que deben activar pop-out + marcar pop-in para después
-  const rutasQueAniman = ["/registro_personal/", "/crear_producto/", "/datos_personales/", "/trasferencias/"];
+  const rutasQueAniman = ["/registro_personal/", "/crear_producto/", "/datos_personales/", "/pedidos_realizados/", "/trasferencias/"];
 
   if (rutasQueAniman.includes(path)) {
     contenedor.classList.add("pop-out");
