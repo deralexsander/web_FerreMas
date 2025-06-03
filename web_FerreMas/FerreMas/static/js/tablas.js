@@ -867,38 +867,30 @@ window.llamarPedidos = async function () {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
 window.renderPedidos = function (pedidos) {
   const cuerpoDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
   const cuerpoSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
 
   if (!cuerpoDomicilio || !cuerpoSucursal) {
-    console.warn("No se encontraron las tablas en el HTML.");
+    console.warn("❌ No se encontraron las tablas en el HTML.");
     return;
   }
 
   cuerpoDomicilio.innerHTML = "";
   cuerpoSucursal.innerHTML = "";
 
-  pedidos.forEach(p => {
+  const pedidosFiltrados = pedidos.filter(p =>
+    (p.pedido || "").toLowerCase() === "en espera de preparación"
+  );
+
+  pedidosFiltrados.forEach(p => {
     const fila = document.createElement("tr");
 
-    // Fecha segura
     let fechaCorta = "none";
     try {
       const fechaObj = typeof p.timestamp === "string"
         ? new Date(p.timestamp)
         : p.timestamp.toDate?.() || new Date(p.timestamp);
-
       if (!isNaN(fechaObj)) {
         fechaCorta = fechaObj.toLocaleDateString("es-CL");
       }
@@ -907,7 +899,7 @@ window.renderPedidos = function (pedidos) {
     }
 
     const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "none";
-    const tipoEntrega = p.tipoEntrega || "none";
+    const tipoEntrega = (p.tipoEntrega || "").toLowerCase(); // 🔑 normaliza
     const estadoPedido = p.pedido || "none";
     const id = p.uid || "none";
 
@@ -918,15 +910,17 @@ window.renderPedidos = function (pedidos) {
     const comuna = p.comuna || direccion.comuna || p.comunaSucursal || "none";
     const region = p.region || direccion.region || p.regionSucursal || "none";
 
-    const productosArray = Array.isArray(p.carrito)
-      ? p.carrito
-      : Array.isArray(p.productos) ? p.productos : [];
+    const productosArray = Array.isArray(p.productos)
+      ? p.productos
+      : Array.isArray(p.carrito)
+        ? p.carrito
+        : [];
 
     const productos = productosArray.length > 0
-      ? `<ul>${productosArray.map(prod => `
-          <li style="display: flex; align-items: center; margin-bottom: 4px;">
-            ${prod.imagen ? `<img src="${prod.imagen}" alt="${prod.nombre}" style="width: 40px; height: 40px; object-fit: cover; margin-right: 8px; border-radius: 4px;">` : ""}
-            ${prod.cantidad || 1} × ${prod.nombre || "Producto"} — $${prod.precio?.toLocaleString("es-CL") || "0"}
+      ? `<ul style="padding-left: 0; list-style: none;">${productosArray.map(prod => `
+          <li style="display: flex; align-items: center; margin-bottom: 6px;">
+            ${prod.imagen ? `<img src="${prod.imagen}" alt="${prod.nombre}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 4px;">` : ""}
+            <span>${prod.cantidad || 1} × ${prod.nombre || "Producto"} — $${prod.precio?.toLocaleString("es-CL") || "0"}</span>
           </li>`).join("")}</ul>`
       : "<em>No hay productos</em>";
 
@@ -952,14 +946,16 @@ window.renderPedidos = function (pedidos) {
             <div><strong>Total:</strong> ${total}</div>
             <div><strong>Fecha:</strong> ${fechaCorta}</div>
             <div class="contenedor-botones">
-              <button class="btn btn-validar" data-id="${id}">✅ Validar</button>
-              <button class="btn btn-rechazar" data-id="${id}">❌ Rechazar</button>
+              <button class="btn btn-tomar" data-id="${id}">🛒 Tomar pedido</button>
+              <button class="btn btn-mensaje" data-id="${id}">📩 Enviar mensaje</button>
+              <button class="btn btn-cancelar" data-id="${id}">❌ Cancelar pedido</button>
             </div>
           </div>
         </div>
       </td>
     `;
 
+    // ✅ Condicional bien normalizado
     if (tipoEntrega === "domicilio") {
       cuerpoDomicilio.appendChild(fila);
     } else if (tipoEntrega === "tienda") {
@@ -967,8 +963,20 @@ window.renderPedidos = function (pedidos) {
     }
   });
 
-  console.log(`Se cargaron ${pedidos.length} pedidos`);
+  // ✅ Mostrar mensajes si no hay pedidos
+  if (cuerpoDomicilio.children.length === 0) {
+    cuerpoDomicilio.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos a domicilio por preparar.</em></td></tr>`;
+  }
+
+  if (cuerpoSucursal.children.length === 0) {
+    cuerpoSucursal.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en sucursal por preparar.</em></td></tr>`;
+  }
+
+  console.log(`✅ Se cargaron ${pedidosFiltrados.length} pedidos 'en espera de preparación'`);
 };
+
+
+
 
 
 

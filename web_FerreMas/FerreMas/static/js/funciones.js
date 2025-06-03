@@ -124,7 +124,8 @@ window.addEventListener('DOMContentLoaded', async () => {
           const productos = carrito.map((item) => ({
             nombre: item.nombre || "Producto sin nombre",
             precio: parseFloat(item.precio) || 0,
-            cantidad: parseInt(item.cantidad) || 1
+            cantidad: parseInt(item.cantidad) || 1,
+            imagen: item.imagen || null  // 👈 Aquí agregas la imagen
           }));
 
           // Validar que haya productos
@@ -919,12 +920,12 @@ function aplicarAnimacionSiEsRegistroPersonal() {
   function alternarFormularioTablaAnimado() {
     const btnCrear = document.getElementById("btn-crear");
     const btnTabla = document.getElementById("btn-tabla");
-
     const modalTabla = document.getElementById("modal-tabla-trabajadores");
     const cerrarModal = document.getElementById("cerrar-modal");
 
+    // Solo correr si todos los elementos existen
     if (!btnCrear || !btnTabla || !modalTabla || !cerrarModal) {
-      console.error("❌ Faltan elementos necesarios para el funcionamiento");
+      // Elimina este error para que no moleste en páginas donde no aplica
       return;
     }
 
