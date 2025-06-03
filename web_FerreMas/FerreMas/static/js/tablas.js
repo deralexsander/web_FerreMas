@@ -96,10 +96,9 @@ esperarOnFirebaseAuthStateChanged();
 
   //---------------------------------
   //
-  // cargar tabla con todos los trabajadores
+  // tabla de todos los trabajadores
   //
   //---------------------------------
-
   window.cargarTrabajadores = async function () {
     try {
       if (!window.firebaseDB || !window.getDocs || !window.collection) {
@@ -150,9 +149,10 @@ esperarOnFirebaseAuthStateChanged();
   cargarTrabajadores();
 
   //---------------------------------
-  // cargar productos (si existen tablas)
+  //
+  // tabla de productos (bodega)
+  //
   //---------------------------------
-
   async function cargarProductosBodega() {
     const productosSnapshot = await window.getDocs(
       window.collection(window.firebaseDB, "productos")
@@ -292,128 +292,120 @@ esperarOnFirebaseAuthStateChanged();
 
   esperarFirebaseYcargarProductos();
 
+  //---------------------------------
+  //
+  // tabla de últimos productos (tarjetas)
+  //
+  //---------------------------------
+  window.cargarUltimosProductos = async function () {
+    const contenedor = document.getElementById("contenedor-productos");
 
+    if (!contenedor || contenedor.dataset.cargado === "true") return;
 
+    contenedor.dataset.cargado = "true";
+    contenedor.innerHTML = "";
 
+    if (
+      !window.firebaseDB ||
+      !window.collection ||
+      !window.getDocs ||
+      !window.query ||
+      !window.orderBy
+    ) {
+      console.error("❌ Firebase no está listo para cargar productos");
+      setTimeout(window.cargarUltimosProductos, 100);
+      return;
+    }
 
+    const productosRef = window.collection(window.firebaseDB, "productos");
+    const q = window.query(productosRef, window.orderBy("creadoEn", "desc"));
 
+    try {
+      const snapshot = await window.getDocs(q);
 
+      snapshot.forEach((doc) => {
+        const producto = doc.data();
+        const imagenUrl = producto.codigoImagen && producto.codigoImagen.length > 10
+          ? `/media/productos/${producto.codigoImagen}.jpg`
+          : '/static/media/imagen-no-disponible.jpg';
 
-
-
-
-
-
-
-window.cargarUltimosProductos = async function () {
-  const contenedor = document.getElementById("contenedor-productos");
-
-  if (!contenedor || contenedor.dataset.cargado === "true") return;
-
-  contenedor.dataset.cargado = "true";
-  contenedor.innerHTML = "";
-
-  if (
-    !window.firebaseDB ||
-    !window.collection ||
-    !window.getDocs ||
-    !window.query ||
-    !window.orderBy
-  ) {
-    console.error("❌ Firebase no está listo para cargar productos");
-    setTimeout(window.cargarUltimosProductos, 100);
-    return;
-  }
-
-  const productosRef = window.collection(window.firebaseDB, "productos");
-  const q = window.query(productosRef, window.orderBy("creadoEn", "desc"));
-
-  try {
-    const snapshot = await window.getDocs(q);
-
-    snapshot.forEach((doc) => {
-      const producto = doc.data();
-      const imagenUrl = producto.codigoImagen && producto.codigoImagen.length > 10
-        ? `/media/productos/${producto.codigoImagen}.jpg`
-        : '/static/media/imagen-no-disponible.jpg';
-
-      const tarjeta = document.createElement("div");
-      tarjeta.className = "tarjeta-producto";
-      tarjeta.innerHTML = `
-        <div class="tarjeta-producto__shine"></div>
-        <div class="tarjeta-producto__glow"></div>
-        <div class="tarjeta-producto__content">
-          <div class="tarjeta-producto__image">
-            <img src="${imagenUrl}" alt="Producto"
-              style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;"
-              onerror="this.src='/static/media/imagen-no-disponible.jpg'" />
-          </div>
-          <div class="tarjeta-producto__text">
-            <p class="tarjeta-producto__title">${producto.nombre || "Producto sin nombre"}</p>
-            <p class="tarjeta-producto__description">${producto.descripcion || ""}</p>
-          </div>
-          <div class="tarjeta-producto__footer">
-            <div class="tarjeta-producto__price">$${(producto.precio || 0).toLocaleString('es-CL')}</div>
-            <div class="tarjeta-producto__button">
-              <svg height="16" width="16" viewBox="0 0 24 24">
-                <path stroke-width="2" stroke="currentColor" d="M4 12H20M12 4V20" fill="currentColor"></path>
-              </svg>
+        const tarjeta = document.createElement("div");
+        tarjeta.className = "tarjeta-producto";
+        tarjeta.innerHTML = `
+          <div class="tarjeta-producto__shine"></div>
+          <div class="tarjeta-producto__glow"></div>
+          <div class="tarjeta-producto__content">
+            <div class="tarjeta-producto__image">
+              <img src="${imagenUrl}" alt="Producto"
+                style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;"
+                onerror="this.src='/static/media/imagen-no-disponible.jpg'" />
+            </div>
+            <div class="tarjeta-producto__text">
+              <p class="tarjeta-producto__title">${producto.nombre || "Producto sin nombre"}</p>
+              <p class="tarjeta-producto__description">${producto.descripcion || ""}</p>
+            </div>
+            <div class="tarjeta-producto__footer">
+              <div class="tarjeta-producto__price">$${(producto.precio || 0).toLocaleString('es-CL')}</div>
+              <div class="tarjeta-producto__button">
+                <svg height="16" width="16" viewBox="0 0 24 24">
+                  <path stroke-width="2" stroke="currentColor" d="M4 12H20M12 4V20" fill="currentColor"></path>
+                </svg>
+              </div>
             </div>
           </div>
-        </div>
-      `;
+        `;
 
-      tarjeta.addEventListener("click", () => {
-        const modal = document.getElementById("modal-producto");
-        modal.classList.remove("saliendo");
-        modal.style.display = "flex";
-        modal.classList.add("activo");
+        tarjeta.addEventListener("click", () => {
+          const modal = document.getElementById("modal-producto");
+          modal.classList.remove("saliendo");
+          modal.style.display = "flex";
+          modal.classList.add("activo");
 
-        document.getElementById("modal-nombre").textContent = producto.nombre || "Producto sin nombre";
-        document.getElementById("modal-categoria").textContent = producto.categoria || "Sin categoría";
-        document.getElementById("modal-descripcion").textContent = producto.descripcion || "Sin descripción";
-        document.getElementById("modal-marca").textContent = `Marca: ${producto.marca || "Sin marca"}`;
-        document.getElementById("modal-precio").textContent = `$${(producto.precio || 0).toLocaleString('es-CL')}`;
-        
-        // Stock con color y mensaje
-        const stockElemento = document.getElementById("modal-stock");
-        if (producto.stock > 0) {
-          stockElemento.textContent = `${producto.stock} Disponibles`;
-          stockElemento.style.color = "#00c853"; // verde
-        } else {
-          stockElemento.textContent = "No disponible";
-          stockElemento.style.color = "#d50000"; // rojo
-        }
+          document.getElementById("modal-nombre").textContent = producto.nombre || "Producto sin nombre";
+          document.getElementById("modal-categoria").textContent = producto.categoria || "Sin categoría";
+          document.getElementById("modal-descripcion").textContent = producto.descripcion || "Sin descripción";
+          document.getElementById("modal-marca").textContent = `Marca: ${producto.marca || "Sin marca"}`;
+          document.getElementById("modal-precio").textContent = `$${(producto.precio || 0).toLocaleString('es-CL')}`;
+          
+          // Stock con color y mensaje
+          const stockElemento = document.getElementById("modal-stock");
+          if (producto.stock > 0) {
+            stockElemento.textContent = `${producto.stock} Disponibles`;
+            stockElemento.style.color = "#00c853"; // verde
+          } else {
+            stockElemento.textContent = "No disponible";
+            stockElemento.style.color = "#d50000"; // rojo
+          }
 
-        document.getElementById("modal-codigo").textContent = `Código: ${producto.codigo || "Sin código"}`;
-        document.getElementById("modal-potencia").textContent = producto.potencia || "N/A";
-        document.getElementById("modal-voltaje").textContent = producto.voltaje || "N/A";
-        document.getElementById("modal-color").textContent = producto.color || "N/A";
-        document.getElementById("modal-tamano").textContent = producto.tamano || "N/A";
-        document.getElementById("modal-material").textContent = producto.material || "N/A";
-        document.getElementById("modal-presentacion").textContent = producto.presentacion || "N/A";
-        document.getElementById("modal-garantia").textContent = producto.garantia || "N/A";
-        document.getElementById("modal-uso").textContent = producto.uso || "N/A";
-        document.getElementById("modal-peso").textContent = `${producto.peso || "N/A"} kg`;
-        document.getElementById("modal-dimensiones").textContent = producto.dimensiones || "N/A";
-        document.getElementById("modal-vencimiento").textContent = producto.vencimiento || "N/A";
-        document.getElementById("modal-imagen").src = imagenUrl;
-        modal.setAttribute("data-uid", doc.id);
-        const inputCantidad = document.getElementById("cantidad");
-        if (inputCantidad) {
-          inputCantidad.value = 1;
-          inputCantidad.dataset.stock = producto.stock || 0;
+          document.getElementById("modal-codigo").textContent = `Código: ${producto.codigo || "Sin código"}`;
+          document.getElementById("modal-potencia").textContent = producto.potencia || "N/A";
+          document.getElementById("modal-voltaje").textContent = producto.voltaje || "N/A";
+          document.getElementById("modal-color").textContent = producto.color || "N/A";
+          document.getElementById("modal-tamano").textContent = producto.tamano || "N/A";
+          document.getElementById("modal-material").textContent = producto.material || "N/A";
+          document.getElementById("modal-presentacion").textContent = producto.presentacion || "N/A";
+          document.getElementById("modal-garantia").textContent = producto.garantia || "N/A";
+          document.getElementById("modal-uso").textContent = producto.uso || "N/A";
+          document.getElementById("modal-peso").textContent = `${producto.peso || "N/A"} kg`;
+          document.getElementById("modal-dimensiones").textContent = producto.dimensiones || "N/A";
+          document.getElementById("modal-vencimiento").textContent = producto.vencimiento || "N/A";
+          document.getElementById("modal-imagen").src = imagenUrl;
+          modal.setAttribute("data-uid", doc.id);
+          const inputCantidad = document.getElementById("cantidad");
+          if (inputCantidad) {
+            inputCantidad.value = 1;
+            inputCantidad.dataset.stock = producto.stock || 0;
 
-          // Elimina listeners anteriores para evitar duplicados
-          const nuevoInput = inputCantidad.cloneNode(true);
-          inputCantidad.parentNode.replaceChild(nuevoInput, inputCantidad);
+            // Elimina listeners anteriores para evitar duplicados
+            const nuevoInput = inputCantidad.cloneNode(true);
+            inputCantidad.parentNode.replaceChild(nuevoInput, inputCantidad);
 
-          // Reasignar clase y atributos necesarios
-          nuevoInput.classList.add("cantidad-productos");
+            // Reasignar clase y atributos necesarios
+            nuevoInput.classList.add("cantidad-productos");
 
-          // Volver a inicializar botones de suma/resta con el nuevo input
-          inicializarControlesCantidad();
-        }
+            // Volver a inicializar botones de suma/resta con el nuevo input
+            inicializarControlesCantidad();
+          }
 
 
 
@@ -429,139 +421,143 @@ window.cargarUltimosProductos = async function () {
 
 
 
-window.cargarDirecciones = async function () {
-  const user = window.firebaseAuth?.currentUser;
-  const tbody = document.getElementById("tbody-direcciones");
+  //---------------------------------
+  //
+  // tabla de direcciones del usuario
+  //
+  //---------------------------------
+  window.cargarDirecciones = async function () {
+    const user = window.firebaseAuth?.currentUser;
+    const tbody = document.getElementById("tbody-direcciones");
 
-  if (!tbody) {
-    console.warn("No se encontró el elemento <tbody> con ID 'tbody-direcciones'.");
-    return;
-  }
-
-  if (!user) {
-    console.warn("⚠️ No hay usuario autenticado. No se pueden cargar direcciones.");
-    tbody.innerHTML = "<tr><td colspan='6'>Debes iniciar sesión para ver tus direcciones guardadas.</td></tr>";
-    return;
-  }
-
-  tbody.innerHTML = "<tr><td colspan='6'>Cargando direcciones...</td></tr>";
-
-  try {
-    const ref = window.collection(window.firebaseDB, "direcciones", user.uid, "items");
-    const snapshot = await window.getDocs(ref);
-
-    if (snapshot.empty) {
-      tbody.innerHTML = "<tr><td colspan='6'>No hay direcciones guardadas.</td></tr>";
+    if (!tbody) {
+      console.warn("No se encontró el elemento <tbody> con ID 'tbody-direcciones'.");
       return;
     }
 
-    tbody.innerHTML = ""; // Limpiar contenido previo
+    if (!user) {
+      console.warn("⚠️ No hay usuario autenticado. No se pueden cargar direcciones.");
+      tbody.innerHTML = "<tr><td colspan='6'>Debes iniciar sesión para ver tus direcciones guardadas.</td></tr>";
+      return;
+    }
 
-    snapshot.forEach((doc) => {
-      const d = doc.data();
-      const id = doc.id;
+    tbody.innerHTML = "<tr><td colspan='6'>Cargando direcciones...</td></tr>";
 
-      const fila = document.createElement("tr");
-      fila.setAttribute("data-id", id); // 👈 esto es clave
-      fila.innerHTML = `
-        <td>${d.nombre || "-"}</td>
-        <td>${d.correo || "-"}</td>
-        <td>${d.telefono || "-"}</td>
-        <td>${d.calleNumero || ""} ${d.departamento || ""}</td>
-        <td>${d.comuna || ""}, ${d.region || ""}</td>
-        <td>${formatearFecha(d.fechaGuardado)}</td>
-        <td><button onclick="seleccionarDireccion('${id}', this)">Seleccionar</button></td>
-      `;
-      tbody.appendChild(fila);
-    });
+    try {
+      const ref = window.collection(window.firebaseDB, "direcciones", user.uid, "items");
+      const snapshot = await window.getDocs(ref);
 
-  } catch (error) {
-    console.error("❌ Error al cargar direcciones:", error);
-    tbody.innerHTML = "<tr><td colspan='6'>Ocurrió un error al cargar las direcciones.</td></tr>";
+      if (snapshot.empty) {
+        tbody.innerHTML = "<tr><td colspan='6'>No hay direcciones guardadas.</td></tr>";
+        return;
+      }
+
+      tbody.innerHTML = ""; // Limpiar contenido previo
+
+      snapshot.forEach((doc) => {
+        const d = doc.data();
+        const id = doc.id;
+
+        const fila = document.createElement("tr");
+        fila.setAttribute("data-id", id); // 👈 esto es clave
+        fila.innerHTML = `
+          <td>${d.nombre || "-"}</td>
+          <td>${d.correo || "-"}</td>
+          <td>${d.telefono || "-"}</td>
+          <td>${d.calleNumero || ""} ${d.departamento || ""}</td>
+          <td>${d.comuna || ""}, ${d.region || ""}</td>
+          <td>${formatearFecha(d.fechaGuardado)}</td>
+          <td><button onclick="seleccionarDireccion('${id}', this)">Seleccionar</button></td>
+        `;
+        tbody.appendChild(fila);
+      });
+
+    } catch (error) {
+      console.error("❌ Error al cargar direcciones:", error);
+      tbody.innerHTML = "<tr><td colspan='6'>Ocurrió un error al cargar las direcciones.</td></tr>";
+    }
+  };
+
+  // Utilidad para mostrar la fecha de forma legible
+  function formatearFecha(fecha) {
+    try {
+      if (typeof fecha?.toDate === "function") fecha = fecha.toDate();
+      if (!(fecha instanceof Date)) fecha = new Date(fecha);
+      return fecha.toLocaleString("es-CL", {
+        dateStyle: "short",
+        timeStyle: "short"
+      });
+    } catch {
+      return "-";
+    }
   }
-};
 
-// Utilidad para mostrar la fecha de forma legible
-function formatearFecha(fecha) {
-  try {
-    if (typeof fecha?.toDate === "function") fecha = fecha.toDate();
-    if (!(fecha instanceof Date)) fecha = new Date(fecha);
-    return fecha.toLocaleString("es-CL", {
-      dateStyle: "short",
-      timeStyle: "short"
-    });
-  } catch {
-    return "-";
-  }
-}
+  //---------------------------------
+  //
+  // tabla de transferencias pendientes
+  //
+  //---------------------------------
+  async function cargarTransferencias() {
+    const tabla = document.querySelector("#tabla-transferencias tbody");
+    if (!tabla) return;
 
+    try {
+      const ref = window.collection(window.firebaseDB, "pedidos");
+      const snapshot = await window.getDocs(ref);
 
+      tabla.innerHTML = "";
 
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const id = docSnap.id;
 
+        const estado = data.estadoTransferencia || "pendiente";
+        const tipoDePago = data.tipoDePago || "";
 
+        if (tipoDePago.toLowerCase() !== "transferencia" || estado !== "pendiente") return;
 
+        const total = typeof data.total === "number"
+          ? `$${data.total.toLocaleString("es-CL")}`
+          : "-";
 
-async function cargarTransferencias() {
-  const tabla = document.querySelector("#tabla-transferencias tbody");
-  if (!tabla) return;
+        const fechaCorta = data.timestamp?.toDate?.().toLocaleDateString("es-CL") || "-";
 
-  try {
-    const ref = window.collection(window.firebaseDB, "pedidos");
-    const snapshot = await window.getDocs(ref);
-
-    tabla.innerHTML = "";
-
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const id = docSnap.id;
-
-      const estado = data.estadoTransferencia || "pendiente";
-      const tipoDePago = data.tipoDePago || "";
-
-      if (tipoDePago.toLowerCase() !== "transferencia" || estado !== "pendiente") return;
-
-      const total = typeof data.total === "number"
-        ? `$${data.total.toLocaleString("es-CL")}`
-        : "-";
-
-      const fechaCorta = data.timestamp?.toDate?.().toLocaleDateString("es-CL") || "-";
-
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td colspan="9">
-          <div class="contenedor-pedido-grid">
-            <div class="lado-datos">
-              <div class="lado-izquierdo">
-                <p><strong>RUT:</strong> ${data.rutTitular || "-"}</p>
-                <p><strong>Nombre:</strong> ${data.nombreTitular || "-"}</p>
-                <p><strong>Banco:</strong> ${data.banco || "-"}</p>
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td colspan="9">
+            <div class="contenedor-pedido-grid">
+              <div class="lado-datos">
+                <div class="lado-izquierdo">
+                  <p><strong>RUT:</strong> ${data.rutTitular || "-"}</p>
+                  <p><strong>Nombre:</strong> ${data.nombreTitular || "-"}</p>
+                  <p><strong>Banco:</strong> ${data.banco || "-"}</p>
+                </div>
+                <div class="lado-derecho">
+                  <p><strong>Entrega:</strong> ${data.tipoEntrega || "-"}</p>
+                  <p><strong>Productos:</strong></p>
+                  ${
+                    Array.isArray(data.carrito)
+                      ? `<ul>${data.carrito
+                          .map(prod => `<li>${prod.cantidad || 1} × ${prod.nombre || "Producto"}</li>`)
+                          .join("")}</ul>`
+                      : "-"
+                  }
+                </div>
               </div>
-              <div class="lado-derecho">
-                <p><strong>Entrega:</strong> ${data.tipoEntrega || "-"}</p>
-                <p><strong>Productos:</strong></p>
-                ${
-                  Array.isArray(data.carrito)
-                    ? `<ul>${data.carrito
-                        .map(prod => `<li>${prod.cantidad || 1} × ${prod.nombre || "Producto"}</li>`)
-                        .join("")}</ul>`
-                    : "-"
-                }
+              <div class="fila-inferior">
+                <div><strong>Total:</strong> ${total}</div>
+                <div><strong>Estado:</strong> ${estado}</div>
+                <div><strong>Fecha:</strong> ${fechaCorta}</div>
+                <div class="contenedor-botones">
+                  <button class="btn btn-validar" data-id="${id}">✅ Validar</button>
+                  <button class="btn btn-rechazar" data-id="${id}">❌ Rechazar</button>
+                </div>
               </div>
             </div>
-            <div class="fila-inferior">
-              <div><strong>Total:</strong> ${total}</div>
-              <div><strong>Estado:</strong> ${estado}</div>
-              <div><strong>Fecha:</strong> ${fechaCorta}</div>
-              <div class="contenedor-botones">
-                <button class="btn btn-validar" data-id="${id}">✅ Validar</button>
-                <button class="btn btn-rechazar" data-id="${id}">❌ Rechazar</button>
-              </div>
-            </div>
-          </div>
-        </td>
-      `;
-      tabla.appendChild(fila);
-    });
+          </td>
+        `;
+        tabla.appendChild(fila);
+      });
 
 
 
@@ -716,598 +712,784 @@ esperarFirebaseYCargar();
 
 
 
-window.cargarHistorialTransferencias = async function () {
-  const tabla = document.querySelector("#historial-tabla-transferencias tbody");
-  if (!tabla) return;
+  //---------------------------------
+  //
+  // tabla de historial de transferencias
+  //
+  //---------------------------------
+  window.cargarHistorialTransferencias = async function () {
+    const tabla = document.querySelector("#historial-tabla-transferencias tbody");
+    if (!tabla) return;
 
-  try {
-    const ref = window.collection(window.firebaseDB, "pedidos");
-    const snapshot = await window.getDocs(ref);
+    try {
+      const ref = window.collection(window.firebaseDB, "pedidos");
+      const snapshot = await window.getDocs(ref);
 
-    tabla.innerHTML = "";
+      tabla.innerHTML = "";
 
-    let hayHistorial = false;
+      let hayHistorial = false;
 
-    for (const docSnap of snapshot.docs) {
-      const data = docSnap.data();
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
 
-      const tipoPago = (data.tipoDePago || "").toLowerCase();
-      const tipoEntrega = data.tipoEntrega?.toLowerCase() || "-";
+        const tipoPago = (data.tipoDePago || "").toLowerCase();
+        const tipoEntrega = data.tipoEntrega?.toLowerCase() || "-";
 
-      const estado = tipoPago === "tarjeta"
-        ? "Pagado"
-        : data.estadoTransferencia || data.estado || "-";
+        const estado = tipoPago === "tarjeta"
+          ? "Pagado"
+          : data.estadoTransferencia || data.estado || "-";
 
-      const total = typeof data.total === "number"
-        ? `$${data.total.toLocaleString("es-CL")}`
-        : "-";
+        const total = typeof data.total === "number"
+          ? `$${data.total.toLocaleString("es-CL")}`
+          : "-";
 
-      let fechaCorta = "-";
-      if (data.timestamp?.toDate) {
-        fechaCorta = data.timestamp.toDate().toLocaleDateString("es-CL");
-      } else if (typeof data.timestamp === "string") {
-        const fecha = new Date(data.timestamp);
-        if (!isNaN(fecha)) {
-          fechaCorta = fecha.toLocaleDateString("es-CL");
+        let fechaCorta = "-";
+        if (data.timestamp?.toDate) {
+          fechaCorta = data.timestamp.toDate().toLocaleDateString("es-CL");
+        } else if (typeof data.timestamp === "string") {
+          const fecha = new Date(data.timestamp);
+          if (!isNaN(fecha)) {
+            fechaCorta = fecha.toLocaleDateString("es-CL");
+          }
         }
+
+        const listaProductos = Array.isArray(data.carrito)
+          ? data.carrito
+          : Array.isArray(data.productos)
+            ? data.productos
+            : [];
+
+        const productosHTML = listaProductos.length > 0
+          ? `<ul>${listaProductos
+              .map(prod => `<li>${prod.cantidad || 1} × ${prod.nombre || "Producto"}</li>`)
+              .join("")}</ul>`
+          : "Sin productos";
+
+        const comuna =
+          data?.direccionDespacho?.comuna ||
+          data?.comunaSucursal ||
+          data?.comuna ||
+          "Sin información";
+
+        const region =
+          data?.direccionDespacho?.region ||
+          data?.regionSucursal ||
+          data?.region ||
+          "Sin información";
+
+        const entrega = `${tipoEntrega} / ${comuna}, ${region}`;
+
+        let nombreUsuario = data.nombreTitular || "-";
+        if (
+          tipoPago === "tarjeta" &&
+          tipoEntrega === "tienda" &&
+          (!data.nombreTitular || data.nombreTitular === "-") &&
+          data.userId
+        ) {
+          try {
+            const docTrabRef = window.doc(window.firebaseDB, "trabajadores", data.userId);
+            const docTrabSnap = await window.getDoc(docTrabRef);
+            if (docTrabSnap.exists()) {
+              const trabajador = docTrabSnap.data();
+              nombreUsuario = `${trabajador.nombre || ""} ${trabajador.apellidoPaterno || ""}`.trim();
+            }
+          } catch (e) {
+            console.warn("No se pudo obtener trabajador para:", data.userId);
+          }
+        }
+
+        hayHistorial = true;
+
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td colspan="9">
+            <div class="contenedor-pedido-grid">
+              <div class="lado-datos">
+                <div class="lado-izquierdo">
+                  ${
+                    tipoPago === "tarjeta" && tipoEntrega === "tienda"
+                      ? `
+                        <p><strong>Correo:</strong> ${data.email || "-"}</p>
+                        <p><strong>Usuario:</strong> ${nombreUsuario}</p>
+                      `
+                      : `
+                        <p><strong>RUT:</strong> ${data.rutTitular || "-"}</p>
+                        <p><strong>Nombre:</strong> ${data.nombreTitular || "-"}</p>
+                        <p><strong>Banco:</strong> ${data.banco || "-"}</p>
+                      `
+                  }
+                  <p><strong>Pago:</strong> ${data.tipoDePago || "-"}</p>
+                </div>
+                <div class="lado-derecho">
+                  <p><strong>Entrega:</strong> ${entrega}</p>
+                  <p><strong>Productos:</strong></p>
+                  ${productosHTML}
+                </div>
+              </div>
+              <div class="fila-inferior">
+                <div><strong>Total:</strong> ${total}</div>
+                <div><strong>Estado:</strong> ${estado}</div>
+                <div><strong>Fecha:</strong> ${fechaCorta}</div>
+              </div>
+            </div>
+          </td>
+        `;
+        tabla.appendChild(fila);
       }
 
-      const listaProductos = Array.isArray(data.carrito)
-        ? data.carrito
-        : Array.isArray(data.productos)
-          ? data.productos
+      if (!hayHistorial) {
+        tabla.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 20px;">
+              <em>📄 No hay historial de transferencias disponibles.</em>
+            </td>
+          </tr>
+        `;
+      }
+
+    } catch (error) {
+      console.error("❌ Error al cargar historial:", error);
+      alert("No se pudo cargar el historial de pagos.");
+    }
+  };
+
+  //---------------------------------
+  //
+  // tabla de pedidos (por preparar y sucursal)
+  //
+  //---------------------------------
+  window.llamarPedidos = async function () {
+    try {
+      const ref = window.collection(window.firebaseDB, "pedidos");
+      const snapshot = await window.getDocs(ref);
+      const pedidos = [];
+      snapshot.forEach(docSnap => {
+        pedidos.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      return pedidos;
+    } catch (error) {
+      return [];
+    }
+  };
+
+  window.renderPedidos = function (pedidos) {
+    const cuerpoDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
+    const cuerpoSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
+
+    if (!cuerpoDomicilio || !cuerpoSucursal) return;
+
+    cuerpoDomicilio.innerHTML = "";
+    cuerpoSucursal.innerHTML = "";
+
+    const pedidosFiltrados = pedidos.filter(p => {
+      const estado = (p.pedido || "").toLowerCase();
+      return (
+        estado === "en espera de preparación" ||
+        estado === "en preparación" ||
+        estado === "en preparación - armando" ||
+        estado === "en preparación - terminado" ||
+        estado === "listo para entrega/envío" ||
+        estado === "listo para entrega" ||
+        estado === "pedido enviado" 
+      );
+    });
+
+    pedidosFiltrados.forEach(p => {
+      const fila = document.createElement("tr");
+
+      let fechaCorta = "none";
+      try {
+        const fechaObj = typeof p.timestamp === "string"
+          ? new Date(p.timestamp)
+          : p.timestamp.toDate?.() || new Date(p.timestamp);
+        if (!isNaN(fechaObj)) {
+          fechaCorta = fechaObj.toLocaleDateString("es-CL");
+        }
+      } catch (e) {}
+
+      const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "none";
+      const tipoEntrega = (p.tipoEntrega || "").toLowerCase();
+      const estadoPedido = p.pedido || "none";
+      const id = p.uid || p.id || "none";
+
+      const direccion = p.direccionDespacho || {};
+      const rut = p.rutTitular || direccion.rut || "none";
+      const nombreTitular = p.nombreTitular || direccion.nombre || "none";
+      const email = p.email || direccion.email || direccion.correo || "none";
+      const comuna = p.comuna || direccion.comuna || p.comunaSucursal || "none";
+      const region = p.region || direccion.region || p.regionSucursal || "none";
+      const calleNumero = direccion.calleNumero || "";
+      const departamento = direccion.departamento || "";
+      const direccionCompleta = `${calleNumero} ${departamento}`.trim();
+
+      const productosArray = Array.isArray(p.productos)
+        ? p.productos
+        : Array.isArray(p.carrito)
+          ? p.carrito
           : [];
 
-      const productosHTML = listaProductos.length > 0
-        ? `<ul>${listaProductos
-            .map(prod => `<li>${prod.cantidad || 1} × ${prod.nombre || "Producto"}</li>`)
-            .join("")}</ul>`
+      const productos = productosArray.length > 0
+        ? `<ul style="padding-left: 0; list-style: none;">${productosArray.map(prod => `
+            <li style="display: flex; align-items: center; margin-bottom: 6px;">
+              ${prod.imagen ? `<img src="${prod.imagen}" alt="${prod.nombre}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 4px;">` : ""}
+              <span>${prod.cantidad || 1} × ${prod.nombre || "Producto"} — $${prod.precio?.toLocaleString("es-CL") || "0"}</span>
+            </li>`).join("")}</ul>`
+        : "<em>No hay productos</em>";
+
+      // Para el cuerpo del correo
+      const productosTexto = productosArray.length > 0
+        ? productosArray.map(prod => `- ${prod.cantidad || 1} × ${prod.nombre || "Producto"}`).join('\n')
         : "Sin productos";
 
-      const comuna =
-        data?.direccionDespacho?.comuna ||
-        data?.comunaSucursal ||
-        data?.comuna ||
-        "Sin información";
+      let botonTomar = "";
+      const estadoLower = estadoPedido.toLowerCase();
 
-      const region =
-        data?.direccionDespacho?.region ||
-        data?.regionSucursal ||
-        data?.region ||
-        "Sin información";
-
-      const entrega = `${tipoEntrega} / ${comuna}, ${region}`;
-
-      let nombreUsuario = data.nombreTitular || "-";
-      if (
-        tipoPago === "tarjeta" &&
-        tipoEntrega === "tienda" &&
-        (!data.nombreTitular || data.nombreTitular === "-") &&
-        data.userId
-      ) {
-        try {
-          const docTrabRef = window.doc(window.firebaseDB, "trabajadores", data.userId);
-          const docTrabSnap = await window.getDoc(docTrabRef);
-          if (docTrabSnap.exists()) {
-            const trabajador = docTrabSnap.data();
-            nombreUsuario = `${trabajador.nombre || ""} ${trabajador.apellidoPaterno || ""}`.trim();
-          }
-        } catch (e) {
-          console.warn("No se pudo obtener trabajador para:", data.userId);
+      if (tipoEntrega === "tienda") {
+        if (estadoLower === "en espera de preparación") {
+          botonTomar = `<button class="btn btn-tomar" data-id="${id}">🛒 Tomar pedido</button>`;
+        } else if (estadoLower === "en preparación") {
+          botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">📦 Pedido enviado al bodeguero</button>`;
+        } else if (estadoLower === "en preparación - armando") {
+          botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">🛠️ En armado</button>`;
+        } else if (estadoLower === "en preparación - terminado") {
+          // Cuando el pedido está terminado, mostrar botón para notificar retiro en tienda
+          botonTomar = `<button class="btn btn-recibir-tienda" data-id="${id}" data-email="${email}" data-nombre="${nombreTitular}" data-productos="${encodeURIComponent(productosTexto)}" data-region="${region}" data-comuna="${comuna}">✅ Pedido listo para retiro</button>`;
+        } else if (estadoLower === "listo para entrega/envío") {
+          botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">⏳ Esperando retiro</button>`;
+        }
+      } else if (tipoEntrega === "domicilio") {
+        if (estadoLower === "en espera de preparación") {
+          botonTomar = `<button class="btn btn-tomar" data-id="${id}">🛒 Tomar pedido</button>`;
+        } else if (estadoLower === "en preparación") {
+          botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">📦 Pedido enviado al bodeguero</button>`;
+        } else if (estadoLower === "en preparación - armando") {
+          botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">🛠️ En armado</button>`;
+        } else if (estadoLower === "en preparación - terminado") {
+          // Mostrar botón para notificar envío a domicilio
+          botonTomar = `<button class="btn btn-recibir-domicilio" data-id="${id}" data-email="${email}" data-nombre="${nombreTitular}" data-productos="${encodeURIComponent(productosTexto)}" data-calle="${calleNumero}" data-depto="${departamento}" data-region="${region}" data-comuna="${comuna}">🚚 Pedido enviado</button>`;
+        } else if (estadoLower === "listo para entrega/envío") {
+          // Mostrar botón para marcar como enviado (si se requiere)
+          botonTomar = `<button class="btn btn-enviado-domicilio" data-id="${id}" disabled style="opacity: 0.6; cursor: not-allowed;">✈️ Pedido enviado</button>`;
         }
       }
 
-      hayHistorial = true;
-
-      const fila = document.createElement("tr");
       fila.innerHTML = `
         <td colspan="9">
           <div class="contenedor-pedido-grid">
             <div class="lado-datos">
               <div class="lado-izquierdo">
-                ${
-                  tipoPago === "tarjeta" && tipoEntrega === "tienda"
-                    ? `
-                      <p><strong>Correo:</strong> ${data.email || "-"}</p>
-                      <p><strong>Usuario:</strong> ${nombreUsuario}</p>
-                    `
-                    : `
-                      <p><strong>RUT:</strong> ${data.rutTitular || "-"}</p>
-                      <p><strong>Nombre:</strong> ${data.nombreTitular || "-"}</p>
-                      <p><strong>Banco:</strong> ${data.banco || "-"}</p>
-                    `
-                }
-                <p><strong>Pago:</strong> ${data.tipoDePago || "-"}</p>
+                <p><strong>RUT:</strong> ${rut}</p>
+                <p><strong>Nombre:</strong> ${nombreTitular}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Estado pedido:</strong> ${estadoPedido}</p>
+                <p><strong>Entrega:</strong> ${tipoEntrega}</p>
+                <p><strong>Comuna:</strong> ${comuna}</p>
+                <p><strong>Región:</strong> ${region}</p>
+                ${tipoEntrega === "domicilio" ? `<p><strong>Dirección:</strong> ${direccionCompleta}</p>` : ""}
               </div>
               <div class="lado-derecho">
-                <p><strong>Entrega:</strong> ${entrega}</p>
                 <p><strong>Productos:</strong></p>
-                ${productosHTML}
+                ${productos}
               </div>
             </div>
             <div class="fila-inferior">
               <div><strong>Total:</strong> ${total}</div>
-              <div><strong>Estado:</strong> ${estado}</div>
               <div><strong>Fecha:</strong> ${fechaCorta}</div>
+              <div class="contenedor-botones">
+                ${botonTomar}
+                <button class="btn btn-mensaje" data-id="${id}">📩 Enviar mensaje</button>
+              </div>
             </div>
           </div>
         </td>
       `;
-      tabla.appendChild(fila);
-    }
 
-    if (!hayHistorial) {
-      tabla.innerHTML = `
-        <tr>
-          <td colspan="9" style="text-align: center; padding: 20px;">
-            <em>📄 No hay historial de transferencias disponibles.</em>
-          </td>
-        </tr>
-      `;
-    }
-
-  } catch (error) {
-    console.error("❌ Error al cargar historial:", error);
-    alert("No se pudo cargar el historial de pagos.");
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 🟩 1. Función para llamar pedidos desde Firestore
-window.llamarPedidos = async function () {
-  try {
-    const ref = window.collection(window.firebaseDB, "pedidos");
-    const snapshot = await window.getDocs(ref);
-    const pedidos = [];
-    snapshot.forEach(docSnap => {
-      pedidos.push({ id: docSnap.id, ...docSnap.data() });
+      if (tipoEntrega === "domicilio") {
+        cuerpoDomicilio.appendChild(fila);
+      } else if (tipoEntrega === "tienda") {
+        cuerpoSucursal.appendChild(fila);
+      }
     });
-    return pedidos;
-  } catch (error) {
-    return [];
-  }
-};
 
-window.renderPedidos = function (pedidos) {
-  const cuerpoDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
-  const cuerpoSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
+    if (cuerpoDomicilio.children.length === 0) {
+      cuerpoDomicilio.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos a domicilio por preparar.</em></td></tr>`;
+    }
 
-  if (!cuerpoDomicilio || !cuerpoSucursal) return;
+    if (cuerpoSucursal.children.length === 0) {
+      cuerpoSucursal.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en sucursal por preparar.</em></td></tr>`;
+    }
+  };
 
-  cuerpoDomicilio.innerHTML = "";
-  cuerpoSucursal.innerHTML = "";
+  // 🚀 Tomar pedido y botones personalizados
+  document.addEventListener("click", async (event) => {
+    // Tomar pedido
+    if (event.target.classList.contains("btn-tomar")) {
+      const idPedido = event.target.dataset.id;
+      if (!idPedido) return;
 
-  const pedidosFiltrados = pedidos.filter(p => {
-    const estado = (p.pedido || "").toLowerCase();
-    return (
-      estado === "en espera de preparación" ||
-      estado === "en preparación" ||
-      estado === "en preparación - armando" ||
-      estado === "en preparación - terminado"
-    );
+      try {
+        const pedidoRef = window.doc(window.firebaseDB, "pedidos", idPedido);
+        const pedidoSnap = await window.getDoc(pedidoRef);
+
+        if (!pedidoSnap.exists()) {
+          alert("❌ El pedido no existe.");
+          return;
+        }
+
+        const data = pedidoSnap.data();
+
+        if ((data.pedido || "").toLowerCase() !== "en espera de preparación") {
+          alert("⚠️ Este pedido ya fue tomado por otro vendedor. Actualizando la página...");
+          location.reload();
+          return;
+        }
+
+        await window.updateDoc(pedidoRef, { pedido: "En preparación" });
+
+        alert("✅ Pedido tomado con éxito.");
+        if (typeof window.recargarPedidos === "function") window.recargarPedidos();
+
+      } catch (error) {
+        console.error("Error al tomar pedido:", error);
+        alert("❌ Ocurrió un error al intentar tomar el pedido.");
+      }
+    }
+
+    // Botón para notificar retiro en tienda
+    if (event.target.classList.contains("btn-recibir-tienda")) {
+      const idPedido = event.target.dataset.id;
+      const email = event.target.dataset.email;
+      const nombre = event.target.dataset.nombre;
+      const productos = decodeURIComponent(event.target.dataset.productos || "");
+      const region = event.target.dataset.region;
+      const comuna = event.target.dataset.comuna;
+
+      if (!idPedido) return;
+
+      try {
+        // Actualizar estado
+        const pedidoRef = window.doc(window.firebaseDB, "pedidos", idPedido);
+        await window.updateDoc(pedidoRef, { pedido: "listo para entrega" });
+
+        // Enviar correo
+        const asunto = "Pedido listo para retiro en sucursal";
+        const cuerpo = `Hola ${nombre},\n\nTu pedido (${idPedido}) con los siguientes productos:\n${productos}\n\nestá listo para ser retirado en la sucursal de ${region}, ${comuna} que seleccionaste.\n\nGracias por tu preferencia.`;
+
+        const enlace = document.createElement("a");
+        enlace.href = `mailto:${email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+        enlace.style.display = "none";
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+
+        alert("📦 El cliente ha sido notificado para retirar el pedido en sucursal.");
+        if (typeof window.recargarPedidos === "function") window.recargarPedidos();
+
+      } catch (error) {
+        console.error("Error al marcar como listo para retiro:", error);
+        alert("❌ Error al actualizar el pedido.");
+      }
+    }
+
+    // Botón para notificar envío a domicilio
+    if (event.target.classList.contains("btn-recibir-domicilio")) {
+      const idPedido = event.target.dataset.id;
+      const email = event.target.dataset.email;
+      const nombre = event.target.dataset.nombre;
+      const productos = decodeURIComponent(event.target.dataset.productos || "");
+      const calle = event.target.dataset.calle || "";
+      const depto = event.target.dataset.depto || "";
+      const region = event.target.dataset.region;
+      const comuna = event.target.dataset.comuna;
+      const direccion = `${calle} ${depto}`.trim();
+
+      if (!idPedido) return;
+
+      try {
+        // Actualizar estado
+        const pedidoRef = window.doc(window.firebaseDB, "pedidos", idPedido);
+        await window.updateDoc(pedidoRef, { pedido: "pedido enviado" });
+
+        // Enviar correo
+        const asunto = "Tu pedido ha sido enviado";
+        const cuerpo = `Hola ${nombre},\n\nTu pedido (${idPedido}) con los siguientes productos:\n${productos}\n\nha sido enviado a tu dirección: ${direccion}, ${comuna}, ${region}.\n\nGracias por tu preferencia.`;
+
+        const enlace = document.createElement("a");
+        enlace.href = `mailto:${email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+        enlace.style.display = "none";
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+
+        alert("🚚 El cliente ha sido notificado del envío a domicilio.");
+        if (typeof window.recargarPedidos === "function") window.recargarPedidos();
+
+      } catch (error) {
+        console.error("Error al marcar como enviado:", error);
+        alert("❌ Error al actualizar el pedido.");
+      }
+    }
+
+    // Botón para marcar como enviado (domicilio) - solo informativo, no hace nada extra
+    if (event.target.classList.contains("btn-enviado-domicilio")) {
+      alert("El pedido ya fue marcado como enviado.");
+    }
   });
 
-  pedidosFiltrados.forEach(p => {
-    const fila = document.createElement("tr");
 
-    let fechaCorta = "none";
-    try {
-      const fechaObj = typeof p.timestamp === "string"
-        ? new Date(p.timestamp)
-        : p.timestamp.toDate?.() || new Date(p.timestamp);
-      if (!isNaN(fechaObj)) {
-        fechaCorta = fechaObj.toLocaleDateString("es-CL");
-      }
-    } catch (e) {}
+  async function cargarPedidosEnTablas() {
+    const usuario = window.usuarioActual;
 
-    const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "none";
-    const tipoEntrega = (p.tipoEntrega || "").toLowerCase();
-    const estadoPedido = p.pedido || "none";
-    const id = p.uid || "none";
+    if (!usuario) {
+      setTimeout(cargarPedidosEnTablas, 100);
+      return;
+    }
 
-    const direccion = p.direccionDespacho || {};
-    const rut = p.rutTitular || direccion.rut || "none";
-    const nombreTitular = p.nombreTitular || direccion.nombre || "none";
-    const email = p.email || direccion.email || direccion.correo || "none";
-    const comuna = p.comuna || direccion.comuna || p.comunaSucursal || "none";
-    const region = p.region || direccion.region || p.regionSucursal || "none";
+    const pedidos = await window.llamarPedidos();
+    const filtro = document.getElementById("sucursal")?.value || "mi_sucursal";
 
-    const productosArray = Array.isArray(p.productos)
-      ? p.productos
-      : Array.isArray(p.carrito)
-        ? p.carrito
-        : [];
+    const comunaSucursal = normalizarTexto(usuario?.comunaSucursal || "");
+    const regionSucursal = normalizarTexto(usuario?.regionSucursal || "");
 
-    const productos = productosArray.length > 0
-      ? `<ul style="padding-left: 0; list-style: none;">${productosArray.map(prod => `
+    let pedidosFiltrados;
+
+    if (filtro === "enviados/listos") {
+      // Solo mostrar pedidos con estado "pedido enviado" o "listo para entrega"
+      pedidosFiltrados = pedidos.filter(p => {
+        const estado = (p.pedido || "").toLowerCase();
+        return estado === "pedido enviado" || estado === "listo para entrega";
+      });
+    } else if (filtro === "mi_sucursal") {
+      pedidosFiltrados = pedidos.filter(p => {
+        const comuna = normalizarTexto(p.comuna || p.comunaSucursal || p.direccionDespacho?.comuna || "");
+        const region = normalizarTexto(p.region || p.regionSucursal || p.direccionDespacho?.region || "");
+
+        const matchComuna = comuna === comunaSucursal;
+        const matchRegion = region.includes(regionSucursal) || regionSucursal.includes(region);
+
+        const perteneceAMiSucursal = matchComuna && matchRegion;
+
+        // Si el pedido no tiene región o comuna clara, lo mostramos
+        const direccionInvalida = comuna === "none" || region === "none";
+
+        // Mostrar si:
+        // - Pertenece a mi sucursal
+        // - O la dirección es inválida
+        const mostrar = perteneceAMiSucursal || direccionInvalida;
+
+        // Excluir los estados "pedido enviado" y "listo para entrega"
+        const estado = (p.pedido || "").toLowerCase();
+        if (estado === "pedido enviado" || estado === "listo para entrega") return false;
+
+        return mostrar;
+      });
+    } else if (filtro === "todos") {
+      // Mostrar todos, excepto los enviados/listos
+      pedidosFiltrados = pedidos.filter(p => {
+        const estado = (p.pedido || "").toLowerCase();
+        return estado !== "pedido enviado" && estado !== "listo para entrega";
+      });
+    } else {
+      pedidosFiltrados = pedidos;
+    }
+
+    window.renderPedidos(pedidosFiltrados);
+  }
+
+  // ✅ Función para limpiar texto: minúsculas, sin espacios dobles ni acentos
+  function normalizarTexto(texto) {
+    return texto
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // elimina tildes
+      .replace(/\s+/g, " "); // colapsa múltiples espacios en uno
+  }
+
+
+
+  document.getElementById("sucursal")?.addEventListener("change", () => {
+    cargarPedidosEnTablas();
+  });
+
+  //---------------------------------
+  //
+  // tabla de pedidos por armar
+  //
+  //---------------------------------
+  window.cargarPedidosAArmar = async function () {
+    const tabla = document.querySelector("#tabla-armar-pedidos-pedidos-sucursal tbody");
+    if (!tabla) return;
+
+    tabla.innerHTML = "";
+    const pedidos = await window.llamarPedidos();
+    const usuario = window.usuarioActual;
+
+    const comunaSucursal = normalizarTexto(usuario?.comunaSucursal || "");
+    const regionSucursal = normalizarTexto(usuario?.regionSucursal || "");
+    const filtro = document.getElementById("sucursal")?.value || "mi_sucursal";
+
+    const pedidosFiltrados = pedidos.filter(p => {
+      const estado = (p.pedido || "").toLowerCase();
+      const esPreparacion = estado === "en preparación" || estado === "en preparación - armando";
+      if (!esPreparacion) return false;
+
+      const comuna = normalizarTexto(p.comuna || p.comunaSucursal || p.direccionDespacho?.comuna || "");
+      const region = normalizarTexto(p.region || p.regionSucursal || p.direccionDespacho?.region || "");
+      if (filtro === "todos") return true;
+
+      const matchComuna = comuna === comunaSucursal;
+      const matchRegion = region.includes(regionSucursal) || regionSucursal.includes(region);
+      return matchComuna && matchRegion;
+    });
+
+    if (pedidosFiltrados.length === 0) {
+      tabla.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos por armar en esta vista.</em></td></tr>`;
+      return;
+    }
+
+    pedidosFiltrados.forEach(p => {
+      const fila = document.createElement("tr");
+
+      let fechaCorta = "none";
+      try {
+        const fechaObj = typeof p.timestamp === "string"
+          ? new Date(p.timestamp)
+          : p.timestamp.toDate?.() || new Date(p.timestamp);
+        if (!isNaN(fechaObj)) fechaCorta = fechaObj.toLocaleDateString("es-CL");
+      } catch (e) {}
+
+      const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "none";
+      const estadoPedido = p.pedido || "none";
+      const idDoc = p.id || null;
+
+      const direccion = p.direccionDespacho || {};
+      const rut = p.rutTitular || direccion.rut || "none";
+      const nombreTitular = p.nombreTitular || direccion.nombre || "none";
+      const comuna = p.comuna || direccion.comuna || p.comunaSucursal || "none";
+      const region = p.region || direccion.region || p.regionSucursal || "none";
+
+      const productosArray = Array.isArray(p.productos) ? p.productos : (Array.isArray(p.carrito) ? p.carrito : []);
+      const productos = productosArray.length > 0
+        ? `<ul style="padding-left: 0; list-style: none;">${productosArray.map(prod => `
           <li style="display: flex; align-items: center; margin-bottom: 6px;">
             ${prod.imagen ? `<img src="${prod.imagen}" alt="${prod.nombre}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 4px;">` : ""}
             <span>${prod.cantidad || 1} × ${prod.nombre || "Producto"} — $${prod.precio?.toLocaleString("es-CL") || "0"}</span>
           </li>`).join("")}</ul>`
-      : "<em>No hay productos</em>";
+        : "<em>No hay productos</em>";
 
-    // 🔘 Botón según estado del pedido
-    let botonTomar = "";
-    const estadoLower = estadoPedido.toLowerCase();
+      let boton = "";
+      const estadoLower = estadoPedido.toLowerCase();
+      if (estadoLower === "en preparación") {
+        boton = `<button class="btn btn-armar" data-id="${idDoc}">🛠️ Armar pedido</button>`;
+      } else if (estadoLower === "en preparación - armando") {
+        boton = `<button class="btn btn-terminar" data-id="${idDoc}">✅ Pedido terminado</button>`;
+      }
 
-    if (estadoLower === "en espera de preparación") {
-      botonTomar = `<button class="btn btn-tomar" data-id="${id}">🛒 Tomar pedido</button>`;
-    } else if (estadoLower === "en preparación") {
-      botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">📦 Pedido enviado al bodeguero</button>`;
-    } else if (estadoLower === "en preparación - armando") {
-      botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">🛠️ En armado</button>`;
-    } else if (estadoLower === "en preparación - terminado") {
-      botonTomar = `<button class="btn btn-recibir" data-id="${id}">✅ Pedido recibido</button>`;
-    }
-
-    fila.innerHTML = `
-      <td colspan="9">
-        <div class="contenedor-pedido-grid">
-          <div class="lado-datos">
-            <div class="lado-izquierdo">
-              <p><strong>RUT:</strong> ${rut}</p>
-              <p><strong>Nombre:</strong> ${nombreTitular}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Estado pedido:</strong> ${estadoPedido}</p>
-              <p><strong>Entrega:</strong> ${tipoEntrega}</p>
-              <p><strong>Comuna:</strong> ${comuna}</p>
-              <p><strong>Región:</strong> ${region}</p>
+      fila.innerHTML = `
+        <td colspan="9">
+          <div class="contenedor-pedido-grid">
+            <div class="lado-datos">
+              <div class="lado-izquierdo">
+                <p><strong>RUT:</strong> ${rut}</p>
+                <p><strong>Nombre:</strong> ${nombreTitular}</p>
+                <p><strong>Estado pedido:</strong> ${estadoPedido}</p>
+                <p><strong>Comuna:</strong> ${comuna}</p>
+                <p><strong>Región:</strong> ${region}</p>
+              </div>
+              <div class="lado-derecho">
+                <p><strong>Productos:</strong></p>
+                ${productos}
+              </div>
             </div>
-            <div class="lado-derecho">
-              <p><strong>Productos:</strong></p>
-              ${productos}
+            <div class="fila-inferior">
+              <div><strong>Total:</strong> ${total}</div>
+              <div><strong>Fecha:</strong> ${fechaCorta}</div>
+              <div class="contenedor-botones">${boton}</div>
             </div>
           </div>
-          <div class="fila-inferior">
-            <div><strong>Total:</strong> ${total}</div>
-            <div><strong>Fecha:</strong> ${fechaCorta}</div>
-            <div class="contenedor-botones">
-              ${botonTomar}
-              <button class="btn btn-mensaje" data-id="${id}">📩 Enviar mensaje</button>
-            </div>
-          </div>
-        </div>
-      </td>
-    `;
-
-    if (tipoEntrega === "domicilio") {
-      cuerpoDomicilio.appendChild(fila);
-    } else if (tipoEntrega === "tienda") {
-      cuerpoSucursal.appendChild(fila);
-    }
-  });
-
-  if (cuerpoDomicilio.children.length === 0) {
-    cuerpoDomicilio.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos a domicilio por preparar.</em></td></tr>`;
-  }
-
-  if (cuerpoSucursal.children.length === 0) {
-    cuerpoSucursal.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en sucursal por preparar.</em></td></tr>`;
-  }
-};
-
-
-
-
-
-
-// 🚀 Evento para tomar pedido desde Firestore
-document.addEventListener("click", async (event) => {
-  if (!event.target.classList.contains("btn-tomar")) return;
-
-  const idPedido = event.target.dataset.id;
-  if (!idPedido) return;
-
-  try {
-    const pedidoRef = window.doc(window.firebaseDB, "pedidos", idPedido);
-    const pedidoSnap = await window.getDoc(pedidoRef);
-
-    if (!pedidoSnap.exists()) {
-      alert("❌ El pedido no existe.");
-      return;
-    }
-
-    const data = pedidoSnap.data();
-
-    if ((data.pedido || "").toLowerCase() !== "en espera de preparación") {
-      alert("⚠️ Este pedido ya fue tomado por otro vendedor. Actualizando la página...");
-      location.reload(); // 🔄 Refresca la página automáticamente
-      return;
-    }
-
-    await window.updateDoc(pedidoRef, { pedido: "En preparación" });
-
-    alert("✅ Pedido tomado con éxito.");
-
-    if (typeof window.recargarPedidos === "function") {
-      window.recargarPedidos();
-    }
-
-  } catch (error) {
-    console.error("Error al tomar pedido:", error);
-    alert("❌ Ocurrió un error al intentar tomar el pedido.");
-  }
-});
-
-
-
-
-
-async function cargarPedidosEnTablas() {
-  const usuario = window.usuarioActual;
-
-  if (!usuario) {
-    setTimeout(cargarPedidosEnTablas, 100);
-    return;
-  }
-
-  const pedidos = await window.llamarPedidos();
-  const filtro = document.getElementById("sucursal")?.value || "mi_sucursal";
-
-  const comunaSucursal = normalizarTexto(usuario?.comunaSucursal || "");
-  const regionSucursal = normalizarTexto(usuario?.regionSucursal || "");
-
-  let pedidosFiltrados;
-
-  if (filtro === "mi_sucursal") {
-    pedidosFiltrados = pedidos.filter(p => {
-      const comuna = normalizarTexto(p.comuna || p.comunaSucursal || p.direccionDespacho?.comuna || "");
-      const region = normalizarTexto(p.region || p.regionSucursal || p.direccionDespacho?.region || "");
-
-      const matchComuna = comuna === comunaSucursal;
-      const matchRegion = region.includes(regionSucursal) || regionSucursal.includes(region);
-
-      const perteneceAMiSucursal = matchComuna && matchRegion;
-
-      // Si el pedido no tiene región o comuna clara, lo mostramos
-      const direccionInvalida = comuna === "none" || region === "none";
-
-      // Mostrar si:
-      // - Pertenece a mi sucursal
-      // - O la dirección es inválida
-      const mostrar = perteneceAMiSucursal || direccionInvalida;
-
-
-      return mostrar;
+        </td>`;
+      tabla.appendChild(fila);
     });
-  } else {
-    pedidosFiltrados = pedidos;
-  }
-
-  window.renderPedidos(pedidosFiltrados);
-}
+  };
 
 
+  // 🟥 Evento para botones "Armar" y "Terminar"
+  document.body.addEventListener("click", async (e) => {
+    const id = e.target.dataset.id;
+    if (!id) return;
 
-// ✅ Función para limpiar texto: minúsculas, sin espacios dobles ni acentos
-function normalizarTexto(texto) {
-  return texto
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // elimina tildes
-    .replace(/\s+/g, " "); // colapsa múltiples espacios en uno
-}
+    if (e.target.classList.contains("btn-armar")) {
+      const pedidoRef = window.doc(window.firebaseDB, "pedidos", id);
+      const snap = await window.getDoc(pedidoRef);
+      if (!snap.exists()) return mostrarMensaje("❌ No existe el pedido.");
 
+      const data = snap.data();
+      if ((data.pedido || "").toLowerCase() !== "en preparación") {
+        mostrarMensaje("⚠️ El pedido ya fue tomado.");
+        return location.reload();
+      }
 
-
-document.getElementById("sucursal")?.addEventListener("change", () => {
-  cargarPedidosEnTablas();
-});
-
-
-
-// 🟨 2. Renderizar pedidos por armar
-window.cargarPedidosAArmar = async function () {
-  const tabla = document.querySelector("#tabla-armar-pedidos-pedidos-sucursal tbody");
-  if (!tabla) return;
-
-  tabla.innerHTML = "";
-  const pedidos = await window.llamarPedidos();
-  const usuario = window.usuarioActual;
-
-  const comunaSucursal = normalizarTexto(usuario?.comunaSucursal || "");
-  const regionSucursal = normalizarTexto(usuario?.regionSucursal || "");
-  const filtro = document.getElementById("sucursal")?.value || "mi_sucursal";
-
-  const pedidosFiltrados = pedidos.filter(p => {
-    const estado = (p.pedido || "").toLowerCase();
-    const esPreparacion = estado === "en preparación" || estado === "en preparación - armando";
-    if (!esPreparacion) return false;
-
-    const comuna = normalizarTexto(p.comuna || p.comunaSucursal || p.direccionDespacho?.comuna || "");
-    const region = normalizarTexto(p.region || p.regionSucursal || p.direccionDespacho?.region || "");
-    if (filtro === "todos") return true;
-
-    const matchComuna = comuna === comunaSucursal;
-    const matchRegion = region.includes(regionSucursal) || regionSucursal.includes(region);
-    return matchComuna && matchRegion;
-  });
-
-  if (pedidosFiltrados.length === 0) {
-    tabla.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos por armar en esta vista.</em></td></tr>`;
-    return;
-  }
-
-  pedidosFiltrados.forEach(p => {
-    const fila = document.createElement("tr");
-
-    let fechaCorta = "none";
-    try {
-      const fechaObj = typeof p.timestamp === "string"
-        ? new Date(p.timestamp)
-        : p.timestamp.toDate?.() || new Date(p.timestamp);
-      if (!isNaN(fechaObj)) fechaCorta = fechaObj.toLocaleDateString("es-CL");
-    } catch (e) {}
-
-    const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "none";
-    const estadoPedido = p.pedido || "none";
-    const idDoc = p.id || null;
-
-    const direccion = p.direccionDespacho || {};
-    const rut = p.rutTitular || direccion.rut || "none";
-    const nombreTitular = p.nombreTitular || direccion.nombre || "none";
-    const comuna = p.comuna || direccion.comuna || p.comunaSucursal || "none";
-    const region = p.region || direccion.region || p.regionSucursal || "none";
-
-    const productosArray = Array.isArray(p.productos) ? p.productos : (Array.isArray(p.carrito) ? p.carrito : []);
-    const productos = productosArray.length > 0
-      ? `<ul style="padding-left: 0; list-style: none;">${productosArray.map(prod => `
-        <li style="display: flex; align-items: center; margin-bottom: 6px;">
-          ${prod.imagen ? `<img src="${prod.imagen}" alt="${prod.nombre}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 4px;">` : ""}
-          <span>${prod.cantidad || 1} × ${prod.nombre || "Producto"} — $${prod.precio?.toLocaleString("es-CL") || "0"}</span>
-        </li>`).join("")}</ul>`
-      : "<em>No hay productos</em>";
-
-    let boton = "";
-    const estadoLower = estadoPedido.toLowerCase();
-    if (estadoLower === "en preparación") {
-      boton = `<button class="btn btn-armar" data-id="${idDoc}">🛠️ Armar pedido</button>`;
-    } else if (estadoLower === "en preparación - armando") {
-      boton = `<button class="btn btn-terminar" data-id="${idDoc}">✅ Pedido terminado</button>`;
-    }
-
-    fila.innerHTML = `
-      <td colspan="9">
-        <div class="contenedor-pedido-grid">
-          <div class="lado-datos">
-            <div class="lado-izquierdo">
-              <p><strong>RUT:</strong> ${rut}</p>
-              <p><strong>Nombre:</strong> ${nombreTitular}</p>
-              <p><strong>Estado pedido:</strong> ${estadoPedido}</p>
-              <p><strong>Comuna:</strong> ${comuna}</p>
-              <p><strong>Región:</strong> ${region}</p>
-            </div>
-            <div class="lado-derecho">
-              <p><strong>Productos:</strong></p>
-              ${productos}
-            </div>
-          </div>
-          <div class="fila-inferior">
-            <div><strong>Total:</strong> ${total}</div>
-            <div><strong>Fecha:</strong> ${fechaCorta}</div>
-            <div class="contenedor-botones">${boton}</div>
-          </div>
-        </div>
-      </td>`;
-    tabla.appendChild(fila);
-  });
-};
-
-
-// 🟥 Evento para botones "Armar" y "Terminar"
-document.body.addEventListener("click", async (e) => {
-  const id = e.target.dataset.id;
-  if (!id) return;
-
-  if (e.target.classList.contains("btn-armar")) {
-    const pedidoRef = window.doc(window.firebaseDB, "pedidos", id);
-    const snap = await window.getDoc(pedidoRef);
-    if (!snap.exists()) return mostrarMensaje("❌ No existe el pedido.");
-
-    const data = snap.data();
-    if ((data.pedido || "").toLowerCase() !== "en preparación") {
-      mostrarMensaje("⚠️ El pedido ya fue tomado.");
+      await window.updateDoc(pedidoRef, { pedido: "En preparación - armando" });
+      mostrarMensaje("✅ Pedido tomado correctamente.");
       return location.reload();
     }
 
-    await window.updateDoc(pedidoRef, { pedido: "En preparación - armando" });
-    mostrarMensaje("✅ Pedido tomado correctamente.");
-    return location.reload();
+    if (e.target.classList.contains("btn-terminar")) {
+      const pedidoRef = window.doc(window.firebaseDB, "pedidos", id);
+      const snap = await window.getDoc(pedidoRef);
+      if (!snap.exists()) return mostrarMensaje("❌ No existe el pedido.");
+
+      const data = snap.data();
+      if ((data.pedido || "").toLowerCase() !== "en preparación - armando") {
+        mostrarMensaje("⚠️ El pedido ya fue terminado.");
+        return location.reload();
+      }
+
+      const productos = Array.isArray(data.productos) ? data.productos : (Array.isArray(data.carrito) ? data.carrito : []);
+      for (const item of productos) {
+        const uid = item.uid;
+        const cantidad = item.cantidad || 1;
+        if (!uid) continue;
+
+        const prodRef = window.doc(window.firebaseDB, "productos", uid);
+        const prodSnap = await window.getDoc(prodRef);
+        if (!prodSnap.exists()) continue;
+
+        const stock = prodSnap.data().stock || 0;
+        await window.setDoc(prodRef, { stock: Math.max(0, stock - cantidad) }, { merge: true });
+      }
+
+      await window.setDoc(pedidoRef, {
+        pedido: "En preparación - terminado",
+        terminadoEn: new Date()
+      }, { merge: true });
+
+      mostrarMensaje("✅ Pedido terminado y stock descontado.");
+      location.reload();
+    }
+  });
+
+  // 🟨 Esperador para cargar pedidos a armar correctamente
+  function esperarFirebaseYcargarPedidosAArmar() {
+    if (
+      typeof window.firebaseDB !== "undefined" &&
+      typeof window.collection === "function" &&
+      typeof window.getDocs === "function" &&
+      typeof window.usuarioActual !== "undefined" &&
+      window.usuarioActual !== null
+    ) {
+      window.cargarPedidosAArmar();
+    } else {
+      setTimeout(esperarFirebaseYcargarPedidosAArmar, 100);
+    }
   }
 
-  if (e.target.classList.contains("btn-terminar")) {
-    const pedidoRef = window.doc(window.firebaseDB, "pedidos", id);
-    const snap = await window.getDoc(pedidoRef);
-    if (!snap.exists()) return mostrarMensaje("❌ No existe el pedido.");
+  // 🟩 Llamar la función al iniciar
+  esperarFirebaseYcargarPedidosAArmar();
 
-    const data = snap.data();
-    if ((data.pedido || "").toLowerCase() !== "en preparación - armando") {
-      mostrarMensaje("⚠️ El pedido ya fue terminado.");
-      return location.reload();
-    }
-
-    const productos = Array.isArray(data.productos) ? data.productos : (Array.isArray(data.carrito) ? data.carrito : []);
-    for (const item of productos) {
-      const uid = item.uid;
-      const cantidad = item.cantidad || 1;
-      if (!uid) continue;
-
-      const prodRef = window.doc(window.firebaseDB, "productos", uid);
-      const prodSnap = await window.getDoc(prodRef);
-      if (!prodSnap.exists()) continue;
-
-      const stock = prodSnap.data().stock || 0;
-      await window.setDoc(prodRef, { stock: Math.max(0, stock - cantidad) }, { merge: true });
-    }
-
-    await window.setDoc(pedidoRef, {
-      pedido: "En preparación - terminado",
-      terminadoEn: new Date()
-    }, { merge: true });
-
-    mostrarMensaje("✅ Pedido terminado y stock descontado.");
-    location.reload();
-  }
-});
-
-
-// 🟨 Esperador para cargar pedidos a armar correctamente
-function esperarFirebaseYcargarPedidosAArmar() {
-  if (
-    typeof window.firebaseDB !== "undefined" &&
-    typeof window.collection === "function" &&
-    typeof window.getDocs === "function" &&
-    typeof window.usuarioActual !== "undefined" &&
-    window.usuarioActual !== null
-  ) {
+  // 🔁 También cuando cambia el select de sucursal
+  document.getElementById("sucursal")?.addEventListener("change", () => {
     window.cargarPedidosAArmar();
-  } else {
-    setTimeout(esperarFirebaseYcargarPedidosAArmar, 100);
-  }
-}
+  });
 
-// 🟩 Llamar la función al iniciar
-esperarFirebaseYcargarPedidosAArmar();
 
-// 🔁 También cuando cambia el select de sucursal
-document.getElementById("sucursal")?.addEventListener("change", () => {
   window.cargarPedidosAArmar();
-});
 
+  //---------------------------------
+  //
+  // tabla de historial de pedidos
+  //
+  //---------------------------------
+  window.cargarHistorialPedidos = async function () {
+    const tabla = document.querySelector("#tabla-historial-pedidos tbody");
+    if (!tabla) return;
 
+    tabla.innerHTML = "<tr><td colspan='9'>Cargando pedidos...</td></tr>";
 
+    try {
+      const ref = window.collection(window.firebaseDB, "pedidos");
+      const snapshot = await window.getDocs(ref);
 
-window.cargarPedidosAArmar();
+      tabla.innerHTML = "";
 
+      if (snapshot.empty) {
+        tabla.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en el historial.</em></td></tr>`;
+        return;
+      }
 
+      snapshot.forEach((docSnap) => {
+        const p = docSnap.data();
+        const id = docSnap.id;
 
+        let fechaCorta = "-";
+        try {
+          const fechaObj = typeof p.timestamp === "string"
+            ? new Date(p.timestamp)
+            : p.timestamp?.toDate?.() || new Date(p.timestamp);
+          if (!isNaN(fechaObj)) fechaCorta = fechaObj.toLocaleDateString("es-CL");
+        } catch {}
 
+        const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "-";
+        const estadoPedido = p.pedido || "-";
+        const rut = p.rutTitular || p.direccionDespacho?.rut || "-";
+        const nombreTitular = p.nombreTitular || p.direccionDespacho?.nombre || "-";
+        const comuna = p.comuna || p.direccionDespacho?.comuna || p.comunaSucursal || "-";
+        const region = p.region || p.direccionDespacho?.region || p.regionSucursal || "-";
 
+        const productosArray = Array.isArray(p.productos)
+          ? p.productos
+          : Array.isArray(p.carrito)
+            ? p.carrito
+            : [];
+        const productos = productosArray.length > 0
+          ? `<ul style="padding-left: 0; list-style: none;">${productosArray.map(prod => `
+              <li style="display: flex; align-items: center; margin-bottom: 6px;">
+                ${prod.imagen ? `<img src="${prod.imagen}" alt="${prod.nombre}" style="width: 40px; height: 40px; object-fit: cover; margin-right: 8px; border-radius: 4px;">` : ""}
+                <span>${prod.cantidad || 1} × ${prod.nombre || "Producto"} — $${prod.precio?.toLocaleString("es-CL") || "0"}</span>
+              </li>`).join("")}</ul>`
+          : "<em>No hay productos</em>";
 
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td colspan="9">
+            <div class="contenedor-pedido-grid">
+              <div class="lado-datos">
+                <div class="lado-izquierdo">
+                  <p><strong>RUT:</strong> ${rut}</p>
+                  <p><strong>Nombre:</strong> ${nombreTitular}</p>
+                  <p><strong>Estado pedido:</strong> ${estadoPedido}</p>
+                  <p><strong>Comuna:</strong> ${comuna}</p>
+                  <p><strong>Región:</strong> ${region}</p>
+                </div>
+                <div class="lado-derecho">
+                  <p><strong>Productos:</strong></p>
+                  ${productos}
+                </div>
+              </div>
+              <div class="fila-inferior">
+                <div><strong>Total:</strong> ${total}</div>
+                <div><strong>Fecha:</strong> ${fechaCorta}</div>
+                <div><strong>ID Pedido:</strong> ${id}</div>
+              </div>
+            </div>
+          </td>
+        `;
+        tabla.appendChild(fila);
+      });
 
+    } catch (error) {
+      console.error("❌ Error al cargar historial de pedidos:", error);
+      tabla.innerHTML = `<tr><td colspan="9">Ocurrió un error al cargar los pedidos.</td></tr>`;
+    }
+  };
 
+  // Puedes llamar esta función cuando abras el modal:
+  document.getElementById("modal-historial")?.addEventListener("show", () => {
+    window.cargarHistorialPedidos();
+  });
 
+  // O simplemente llama window.cargarHistorialPedidos() cuando quieras mostrar el historial.
 
 });
 
