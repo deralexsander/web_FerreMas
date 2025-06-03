@@ -5,6 +5,7 @@ let db,
   setDoc,
   deleteDoc,
   getDoc,
+  updateDoc, // ✅ Añadido aquí
   Timestamp,
   query,
   orderBy,
@@ -47,6 +48,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   setDoc = firestoreModule.setDoc;
   deleteDoc = firestoreModule.deleteDoc;
   getDoc = firestoreModule.getDoc;
+  updateDoc = firestoreModule.updateDoc; // ✅ Añadido aquí
   Timestamp = firestoreModule.Timestamp;
   query = firestoreModule.query;
   orderBy = firestoreModule.orderBy;
@@ -66,6 +68,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.authModule = authModule;
   window.firebaseAuth = auth;
   window.firebaseDB = db;
+  
 
   window.collection = window.collection || collection;
   window.getDocs = window.getDocs || getDocs;
@@ -73,6 +76,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.setDoc = window.setDoc || setDoc;
   window.deleteDoc = window.deleteDoc || deleteDoc;
   window.getDoc = window.getDoc || getDoc;
+  window.updateDoc = window.updateDoc || updateDoc; // ✅ Añadido aquí
   window.Timestamp = window.Timestamp || Timestamp;
   window.query = window.query || query;
   window.orderBy = window.orderBy || orderBy;

@@ -101,9 +101,9 @@ def crear_preferencia(request):
             preferencia_data = {
                 "items": items,
                 "back_urls": {
-                    "success": "https://projectors-miscellaneous-hourly-peak.trycloudflare.com/carrito?status=success",
-                    "failure": "https://projectors-miscellaneous-hourly-peak.trycloudflare.com/carrito?status=failure",
-                    "pending": "https://projectors-miscellaneous-hourly-peak.trycloudflare.com/carrito?status=pending"
+                    "success": "https://assistant-percentage-hurricane-protest.trycloudflare.com/carrito?status=success",
+                    "failure": "https://assistant-percentage-hurricane-protest.trycloudflare.com/carrito?status=failure",
+                    "pending": "https://assistant-percentage-hurricane-protest.trycloudflare.com/carrito?status=pending"
                 },
                 "auto_return": "approved"
             }

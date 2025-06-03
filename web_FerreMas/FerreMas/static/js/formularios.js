@@ -337,9 +337,9 @@ window.formTransferencias = async function () {
     }
 
     const ref = collection(firebaseDB, "pedidos");
-    await addDoc(ref, {
+    const nuevoDoc = await addDoc(ref, {
       uidCliente: user.uid,
-      email: user.email, // 👈 Aquí se guarda el correo del cliente
+      email: user.email,
       nombreTitular,
       rutTitular,
       banco,
@@ -354,6 +354,8 @@ window.formTransferencias = async function () {
       timestamp: Timestamp.now()
     });
 
+    // Guardamos el ID real como campo uid
+    await setDoc(nuevoDoc, { uid: nuevoDoc.id }, { merge: true });
 
     mostrarMensaje("✅ Solicitud enviada correctamente. Validaremos el pago.");
 
@@ -373,7 +375,8 @@ window.formTransferencias = async function () {
     console.error("Error al guardar transferencia:", error);
     mostrarMensaje("❌ Ocurrió un error al enviar la solicitud. Intenta nuevamente.");
   }
-}
+};
+
 
 
 

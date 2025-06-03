@@ -886,7 +886,7 @@ function aplicarAnimacionSiEsRegistroPersonal() {
   contenedor.classList.remove("pop-in", "pop-out");
 
   // Rutas que deben activar pop-out + marcar pop-in para después
-  const rutasQueAniman = ["/registro_personal/", "/crear_producto/", "/datos_personales/", "/pedidos_realizados/", "/trasferencias/"];
+  const rutasQueAniman = ["/registro_personal/", "/crear_producto/", "/datos_personales/", "/pedidos_realizados/", "/trasferencias/", "/armado_pedidos/"];
 
   if (rutasQueAniman.includes(path)) {
     contenedor.classList.add("pop-out");

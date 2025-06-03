@@ -2412,7 +2412,36 @@ hr {
 }
 
 
+  .segment-select {
+    padding: 10px 20px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position-x: calc(100% - 10px);
+    background-position-y: center;
+    padding-right: 40px;
+  }
 
+  .segment-select:hover {
+    background-color: rgba(10, 74, 130, 0.4);
+  }
+
+  .segment-select:focus {
+    outline: none;
+    border-color: rgba(10, 74, 130, 0.7);
+    background-color: rgba(10, 74, 130, 0.7);
+  }
 
 
 

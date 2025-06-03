@@ -36,18 +36,26 @@ function esperarOnFirebaseAuthStateChanged() {
           const datos = docSnap.data();
           console.log("Datos del usuario:", datos);
 
+          // ✅ Guardar usuario globalmente
+          window.usuarioActual = datos;
+
           const ruta = window.location.pathname;
+
           if (
             ruta === "/direccion/" &&
             typeof cargarDirecciones === "function" &&
             document.getElementById("tbody-direcciones")
           ) {
-            await cargarDirecciones(); // 🟢 cargar tabla
+            await cargarDirecciones();
 
-            // 🟢 Esperar a que la tabla esté completamente renderizada antes de buscar filas
+            // Esperar un poco antes de buscar la dirección seleccionada
             setTimeout(async () => {
               try {
-                const refSeleccion = window.doc(window.firebaseDB, "direccionesSeleccionadas", user.uid);
+                const refSeleccion = window.doc(
+                  window.firebaseDB,
+                  "direccionesSeleccionadas",
+                  user.uid
+                );
                 const snapSeleccion = await window.getDoc(refSeleccion);
 
                 if (snapSeleccion.exists()) {
@@ -61,7 +69,12 @@ function esperarOnFirebaseAuthStateChanged() {
               } catch (e) {
                 console.warn("⚠️ No se pudo recuperar la dirección seleccionada:", e);
               }
-            }, 300); // Espera breve para que el DOM se estabilice
+            }, 300);
+          }
+
+          // ✅ Si estamos en la vista de pedidos, cargar pedidos inmediatamente
+          if (ruta === "/pedidos_realizados/" && typeof cargarPedidosEnTablas === "function") {
+            cargarPedidosEnTablas();
           }
 
         } else {
@@ -77,6 +90,7 @@ function esperarOnFirebaseAuthStateChanged() {
 }
 
 esperarOnFirebaseAuthStateChanged();
+
 
 
 
@@ -601,7 +615,8 @@ async function cargarTransferencias() {
             window.doc(window.firebaseDB, "pedidos", id),
             {
               estadoTransferencia: "pago validado",
-              pedido: "En espera de preparación"
+              pedido: "En espera de preparación",
+              boleta: "enviada"
             },
             { merge: true }
           );
@@ -618,7 +633,6 @@ async function cargarTransferencias() {
     });
 
 
-    // Acción: Rechazar
     // Acción: Rechazar
     document.querySelectorAll(".btn.btn-rechazar").forEach((btn) => {
       btn.addEventListener("click", async () => {
@@ -681,6 +695,7 @@ async function cargarTransferencias() {
 
 
 
+
 function esperarFirebaseYCargar() {
   if (
     typeof window.firebaseDB !== "undefined" &&
@@ -710,6 +725,8 @@ window.cargarHistorialTransferencias = async function () {
     const snapshot = await window.getDocs(ref);
 
     tabla.innerHTML = "";
+
+    let hayHistorial = false;
 
     for (const docSnap of snapshot.docs) {
       const data = docSnap.data();
@@ -761,9 +778,6 @@ window.cargarHistorialTransferencias = async function () {
 
       const entrega = `${tipoEntrega} / ${comuna}, ${region}`;
 
-      // ------------------------------
-      // Buscar nombre desde trabajadores si está vacío
-      // ------------------------------
       let nombreUsuario = data.nombreTitular || "-";
       if (
         tipoPago === "tarjeta" &&
@@ -782,6 +796,8 @@ window.cargarHistorialTransferencias = async function () {
           console.warn("No se pudo obtener trabajador para:", data.userId);
         }
       }
+
+      hayHistorial = true;
 
       const fila = document.createElement("tr");
       fila.innerHTML = `
@@ -820,11 +836,22 @@ window.cargarHistorialTransferencias = async function () {
       tabla.appendChild(fila);
     }
 
+    if (!hayHistorial) {
+      tabla.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align: center; padding: 20px;">
+            <em>📄 No hay historial de transferencias disponibles.</em>
+          </td>
+        </tr>
+      `;
+    }
+
   } catch (error) {
     console.error("❌ Error al cargar historial:", error);
     alert("No se pudo cargar el historial de pagos.");
   }
 };
+
 
 
 
@@ -852,17 +879,11 @@ window.llamarPedidos = async function () {
     const ref = window.collection(window.firebaseDB, "pedidos");
     const snapshot = await window.getDocs(ref);
     const pedidos = [];
-
     snapshot.forEach(docSnap => {
-      pedidos.push({
-        id: docSnap.id,
-        ...docSnap.data()
-      });
+      pedidos.push({ id: docSnap.id, ...docSnap.data() });
     });
-
     return pedidos;
   } catch (error) {
-    console.error("❌ Error al llamar pedidos:", error);
     return [];
   }
 };
@@ -871,17 +892,20 @@ window.renderPedidos = function (pedidos) {
   const cuerpoDomicilio = document.querySelector("#tabla-pedidos-domicilio tbody");
   const cuerpoSucursal = document.querySelector("#tabla-pedidos-sucursal tbody");
 
-  if (!cuerpoDomicilio || !cuerpoSucursal) {
-    console.warn("❌ No se encontraron las tablas en el HTML.");
-    return;
-  }
+  if (!cuerpoDomicilio || !cuerpoSucursal) return;
 
   cuerpoDomicilio.innerHTML = "";
   cuerpoSucursal.innerHTML = "";
 
-  const pedidosFiltrados = pedidos.filter(p =>
-    (p.pedido || "").toLowerCase() === "en espera de preparación"
-  );
+  const pedidosFiltrados = pedidos.filter(p => {
+    const estado = (p.pedido || "").toLowerCase();
+    return (
+      estado === "en espera de preparación" ||
+      estado === "en preparación" ||
+      estado === "en preparación - armando" ||
+      estado === "en preparación - terminado"
+    );
+  });
 
   pedidosFiltrados.forEach(p => {
     const fila = document.createElement("tr");
@@ -894,12 +918,10 @@ window.renderPedidos = function (pedidos) {
       if (!isNaN(fechaObj)) {
         fechaCorta = fechaObj.toLocaleDateString("es-CL");
       }
-    } catch (e) {
-      console.warn("Error al convertir fecha:", e);
-    }
+    } catch (e) {}
 
     const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "none";
-    const tipoEntrega = (p.tipoEntrega || "").toLowerCase(); // 🔑 normaliza
+    const tipoEntrega = (p.tipoEntrega || "").toLowerCase();
     const estadoPedido = p.pedido || "none";
     const id = p.uid || "none";
 
@@ -924,6 +946,20 @@ window.renderPedidos = function (pedidos) {
           </li>`).join("")}</ul>`
       : "<em>No hay productos</em>";
 
+    // 🔘 Botón según estado del pedido
+    let botonTomar = "";
+    const estadoLower = estadoPedido.toLowerCase();
+
+    if (estadoLower === "en espera de preparación") {
+      botonTomar = `<button class="btn btn-tomar" data-id="${id}">🛒 Tomar pedido</button>`;
+    } else if (estadoLower === "en preparación") {
+      botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">📦 Pedido enviado al bodeguero</button>`;
+    } else if (estadoLower === "en preparación - armando") {
+      botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">🛠️ En armado</button>`;
+    } else if (estadoLower === "en preparación - terminado") {
+      botonTomar = `<button class="btn btn-recibir" data-id="${id}">✅ Pedido recibido</button>`;
+    }
+
     fila.innerHTML = `
       <td colspan="9">
         <div class="contenedor-pedido-grid">
@@ -946,16 +982,14 @@ window.renderPedidos = function (pedidos) {
             <div><strong>Total:</strong> ${total}</div>
             <div><strong>Fecha:</strong> ${fechaCorta}</div>
             <div class="contenedor-botones">
-              <button class="btn btn-tomar" data-id="${id}">🛒 Tomar pedido</button>
+              ${botonTomar}
               <button class="btn btn-mensaje" data-id="${id}">📩 Enviar mensaje</button>
-              <button class="btn btn-cancelar" data-id="${id}">❌ Cancelar pedido</button>
             </div>
           </div>
         </div>
       </td>
     `;
 
-    // ✅ Condicional bien normalizado
     if (tipoEntrega === "domicilio") {
       cuerpoDomicilio.appendChild(fila);
     } else if (tipoEntrega === "tienda") {
@@ -963,7 +997,6 @@ window.renderPedidos = function (pedidos) {
     }
   });
 
-  // ✅ Mostrar mensajes si no hay pedidos
   if (cuerpoDomicilio.children.length === 0) {
     cuerpoDomicilio.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos a domicilio por preparar.</em></td></tr>`;
   }
@@ -971,8 +1004,6 @@ window.renderPedidos = function (pedidos) {
   if (cuerpoSucursal.children.length === 0) {
     cuerpoSucursal.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en sucursal por preparar.</em></td></tr>`;
   }
-
-  console.log(`✅ Se cargaron ${pedidosFiltrados.length} pedidos 'en espera de preparación'`);
 };
 
 
@@ -980,40 +1011,294 @@ window.renderPedidos = function (pedidos) {
 
 
 
+// 🚀 Evento para tomar pedido desde Firestore
+document.addEventListener("click", async (event) => {
+  if (!event.target.classList.contains("btn-tomar")) return;
+
+  const idPedido = event.target.dataset.id;
+  if (!idPedido) return;
+
+  try {
+    const pedidoRef = window.doc(window.firebaseDB, "pedidos", idPedido);
+    const pedidoSnap = await window.getDoc(pedidoRef);
+
+    if (!pedidoSnap.exists()) {
+      alert("❌ El pedido no existe.");
+      return;
+    }
+
+    const data = pedidoSnap.data();
+
+    if ((data.pedido || "").toLowerCase() !== "en espera de preparación") {
+      alert("⚠️ Este pedido ya fue tomado por otro vendedor. Actualizando la página...");
+      location.reload(); // 🔄 Refresca la página automáticamente
+      return;
+    }
+
+    await window.updateDoc(pedidoRef, { pedido: "En preparación" });
+
+    alert("✅ Pedido tomado con éxito.");
+
+    if (typeof window.recargarPedidos === "function") {
+      window.recargarPedidos();
+    }
+
+  } catch (error) {
+    console.error("Error al tomar pedido:", error);
+    alert("❌ Ocurrió un error al intentar tomar el pedido.");
+  }
+});
 
 
 
 
 
-// 🟩 3. Función que llama y dibuja
 async function cargarPedidosEnTablas() {
+  const usuario = window.usuarioActual;
+
+  if (!usuario) {
+    setTimeout(cargarPedidosEnTablas, 100);
+    return;
+  }
+
   const pedidos = await window.llamarPedidos();
-  window.renderPedidos(pedidos);
+  const filtro = document.getElementById("sucursal")?.value || "mi_sucursal";
+
+  const comunaSucursal = normalizarTexto(usuario?.comunaSucursal || "");
+  const regionSucursal = normalizarTexto(usuario?.regionSucursal || "");
+
+  let pedidosFiltrados;
+
+  if (filtro === "mi_sucursal") {
+    pedidosFiltrados = pedidos.filter(p => {
+      const comuna = normalizarTexto(p.comuna || p.comunaSucursal || p.direccionDespacho?.comuna || "");
+      const region = normalizarTexto(p.region || p.regionSucursal || p.direccionDespacho?.region || "");
+
+      const matchComuna = comuna === comunaSucursal;
+      const matchRegion = region.includes(regionSucursal) || regionSucursal.includes(region);
+
+      const perteneceAMiSucursal = matchComuna && matchRegion;
+
+      // Si el pedido no tiene región o comuna clara, lo mostramos
+      const direccionInvalida = comuna === "none" || region === "none";
+
+      // Mostrar si:
+      // - Pertenece a mi sucursal
+      // - O la dirección es inválida
+      const mostrar = perteneceAMiSucursal || direccionInvalida;
+
+
+      return mostrar;
+    });
+  } else {
+    pedidosFiltrados = pedidos;
+  }
+
+  window.renderPedidos(pedidosFiltrados);
 }
 
-// 🟩 4. Esperador para que Firebase esté listo
-function esperarFirebaseYcargarPedidos() {
+
+
+// ✅ Función para limpiar texto: minúsculas, sin espacios dobles ni acentos
+function normalizarTexto(texto) {
+  return texto
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // elimina tildes
+    .replace(/\s+/g, " "); // colapsa múltiples espacios en uno
+}
+
+
+
+document.getElementById("sucursal")?.addEventListener("change", () => {
+  cargarPedidosEnTablas();
+});
+
+
+
+// 🟨 2. Renderizar pedidos por armar
+window.cargarPedidosAArmar = async function () {
+  const tabla = document.querySelector("#tabla-armar-pedidos-pedidos-sucursal tbody");
+  if (!tabla) return;
+
+  tabla.innerHTML = "";
+  const pedidos = await window.llamarPedidos();
+  const usuario = window.usuarioActual;
+
+  const comunaSucursal = normalizarTexto(usuario?.comunaSucursal || "");
+  const regionSucursal = normalizarTexto(usuario?.regionSucursal || "");
+  const filtro = document.getElementById("sucursal")?.value || "mi_sucursal";
+
+  const pedidosFiltrados = pedidos.filter(p => {
+    const estado = (p.pedido || "").toLowerCase();
+    const esPreparacion = estado === "en preparación" || estado === "en preparación - armando";
+    if (!esPreparacion) return false;
+
+    const comuna = normalizarTexto(p.comuna || p.comunaSucursal || p.direccionDespacho?.comuna || "");
+    const region = normalizarTexto(p.region || p.regionSucursal || p.direccionDespacho?.region || "");
+    if (filtro === "todos") return true;
+
+    const matchComuna = comuna === comunaSucursal;
+    const matchRegion = region.includes(regionSucursal) || regionSucursal.includes(region);
+    return matchComuna && matchRegion;
+  });
+
+  if (pedidosFiltrados.length === 0) {
+    tabla.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos por armar en esta vista.</em></td></tr>`;
+    return;
+  }
+
+  pedidosFiltrados.forEach(p => {
+    const fila = document.createElement("tr");
+
+    let fechaCorta = "none";
+    try {
+      const fechaObj = typeof p.timestamp === "string"
+        ? new Date(p.timestamp)
+        : p.timestamp.toDate?.() || new Date(p.timestamp);
+      if (!isNaN(fechaObj)) fechaCorta = fechaObj.toLocaleDateString("es-CL");
+    } catch (e) {}
+
+    const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "none";
+    const estadoPedido = p.pedido || "none";
+    const idDoc = p.id || null;
+
+    const direccion = p.direccionDespacho || {};
+    const rut = p.rutTitular || direccion.rut || "none";
+    const nombreTitular = p.nombreTitular || direccion.nombre || "none";
+    const comuna = p.comuna || direccion.comuna || p.comunaSucursal || "none";
+    const region = p.region || direccion.region || p.regionSucursal || "none";
+
+    const productosArray = Array.isArray(p.productos) ? p.productos : (Array.isArray(p.carrito) ? p.carrito : []);
+    const productos = productosArray.length > 0
+      ? `<ul style="padding-left: 0; list-style: none;">${productosArray.map(prod => `
+        <li style="display: flex; align-items: center; margin-bottom: 6px;">
+          ${prod.imagen ? `<img src="${prod.imagen}" alt="${prod.nombre}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 4px;">` : ""}
+          <span>${prod.cantidad || 1} × ${prod.nombre || "Producto"} — $${prod.precio?.toLocaleString("es-CL") || "0"}</span>
+        </li>`).join("")}</ul>`
+      : "<em>No hay productos</em>";
+
+    let boton = "";
+    const estadoLower = estadoPedido.toLowerCase();
+    if (estadoLower === "en preparación") {
+      boton = `<button class="btn btn-armar" data-id="${idDoc}">🛠️ Armar pedido</button>`;
+    } else if (estadoLower === "en preparación - armando") {
+      boton = `<button class="btn btn-terminar" data-id="${idDoc}">✅ Pedido terminado</button>`;
+    }
+
+    fila.innerHTML = `
+      <td colspan="9">
+        <div class="contenedor-pedido-grid">
+          <div class="lado-datos">
+            <div class="lado-izquierdo">
+              <p><strong>RUT:</strong> ${rut}</p>
+              <p><strong>Nombre:</strong> ${nombreTitular}</p>
+              <p><strong>Estado pedido:</strong> ${estadoPedido}</p>
+              <p><strong>Comuna:</strong> ${comuna}</p>
+              <p><strong>Región:</strong> ${region}</p>
+            </div>
+            <div class="lado-derecho">
+              <p><strong>Productos:</strong></p>
+              ${productos}
+            </div>
+          </div>
+          <div class="fila-inferior">
+            <div><strong>Total:</strong> ${total}</div>
+            <div><strong>Fecha:</strong> ${fechaCorta}</div>
+            <div class="contenedor-botones">${boton}</div>
+          </div>
+        </div>
+      </td>`;
+    tabla.appendChild(fila);
+  });
+};
+
+
+// 🟥 Evento para botones "Armar" y "Terminar"
+document.body.addEventListener("click", async (e) => {
+  const id = e.target.dataset.id;
+  if (!id) return;
+
+  if (e.target.classList.contains("btn-armar")) {
+    const pedidoRef = window.doc(window.firebaseDB, "pedidos", id);
+    const snap = await window.getDoc(pedidoRef);
+    if (!snap.exists()) return mostrarMensaje("❌ No existe el pedido.");
+
+    const data = snap.data();
+    if ((data.pedido || "").toLowerCase() !== "en preparación") {
+      mostrarMensaje("⚠️ El pedido ya fue tomado.");
+      return location.reload();
+    }
+
+    await window.updateDoc(pedidoRef, { pedido: "En preparación - armando" });
+    mostrarMensaje("✅ Pedido tomado correctamente.");
+    return location.reload();
+  }
+
+  if (e.target.classList.contains("btn-terminar")) {
+    const pedidoRef = window.doc(window.firebaseDB, "pedidos", id);
+    const snap = await window.getDoc(pedidoRef);
+    if (!snap.exists()) return mostrarMensaje("❌ No existe el pedido.");
+
+    const data = snap.data();
+    if ((data.pedido || "").toLowerCase() !== "en preparación - armando") {
+      mostrarMensaje("⚠️ El pedido ya fue terminado.");
+      return location.reload();
+    }
+
+    const productos = Array.isArray(data.productos) ? data.productos : (Array.isArray(data.carrito) ? data.carrito : []);
+    for (const item of productos) {
+      const uid = item.uid;
+      const cantidad = item.cantidad || 1;
+      if (!uid) continue;
+
+      const prodRef = window.doc(window.firebaseDB, "productos", uid);
+      const prodSnap = await window.getDoc(prodRef);
+      if (!prodSnap.exists()) continue;
+
+      const stock = prodSnap.data().stock || 0;
+      await window.setDoc(prodRef, { stock: Math.max(0, stock - cantidad) }, { merge: true });
+    }
+
+    await window.setDoc(pedidoRef, {
+      pedido: "En preparación - terminado",
+      terminadoEn: new Date()
+    }, { merge: true });
+
+    mostrarMensaje("✅ Pedido terminado y stock descontado.");
+    location.reload();
+  }
+});
+
+
+// 🟨 Esperador para cargar pedidos a armar correctamente
+function esperarFirebaseYcargarPedidosAArmar() {
   if (
     typeof window.firebaseDB !== "undefined" &&
     typeof window.collection === "function" &&
-    typeof window.getDocs === "function"
+    typeof window.getDocs === "function" &&
+    typeof window.usuarioActual !== "undefined" &&
+    window.usuarioActual !== null
   ) {
-    cargarPedidosEnTablas();
+    window.cargarPedidosAArmar();
   } else {
-    setTimeout(esperarFirebaseYcargarPedidos, 100);
+    setTimeout(esperarFirebaseYcargarPedidosAArmar, 100);
   }
 }
 
-esperarFirebaseYcargarPedidos();
+// 🟩 Llamar la función al iniciar
+esperarFirebaseYcargarPedidosAArmar();
+
+// 🔁 También cuando cambia el select de sucursal
+document.getElementById("sucursal")?.addEventListener("change", () => {
+  window.cargarPedidosAArmar();
+});
 
 
 
 
-
-
-
-
-
+window.cargarPedidosAArmar();
 
 
 
