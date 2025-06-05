@@ -102,9 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
         contenedorSucursales.innerHTML = "";
 
         data.forEach(regionData => {
-          const regionTitulo = document.createElement("h3");
-          regionTitulo.textContent = regionData.region;
-          contenedorSucursales.appendChild(regionTitulo);
 
           regionData.sucursales.forEach(sucursal => {
             const div = document.createElement("div");

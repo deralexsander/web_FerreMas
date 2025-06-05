@@ -1,0 +1,90 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block nombrePag %}
+<title>Perfil</title>
+{% endblock %}
+
+{% block contenido %}
+
+
+
+<div class="contenedor_informacion">
+  <div class="bloque_info">
+    <div class="columna_info">
+      iconos
+    </div>
+
+    <div class="columna_form">
+
+      <!-- Gestión de personal -->
+      <a href="{% url 'registro_personal' %}">
+        <button class="boton-perfil" >
+           Registro de personal
+        </button>
+      </a>
+
+
+
+      <!-- Gestión de productos -->
+      <a href="{% url 'crear_producto' %}">
+        <button class="boton-perfil" >
+           Crear un nuevo producto
+        </button>
+      </a>
+
+
+
+      <!-- Gestión de pedidos -->
+      <a href="{% url 'pedidos_realizados' %}">
+        <button class="boton-perfil" >
+           Pedidos
+        </button>
+      </a>
+
+      <a href="{% url 'armado_pedidos' %}">
+        <button class="boton-perfil" >
+           Preparar pedidos
+        </button>
+      </a>
+
+      <a href="{% url 'historial_pedidos' %}">
+        <button class="boton-perfil" >
+           Historial de pedidos
+        </button>
+      </a>
+
+
+
+      <!-- Finanzas -->
+      <a href="{% url 'trasferencias' %}">
+        <button class="boton-perfil" >
+           Transferencias
+        </button>
+      </a>
+
+
+
+      <!-- Datos personales -->
+      <a href="{% url 'datos_personales' %}">
+        <button class="boton-perfil">
+         Direcciones
+        </button>
+      </a>
+
+
+
+  
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+{% endblock %}

@@ -355,62 +355,61 @@ esperarOnFirebaseAuthStateChanged();
           </div>
         `;
 
-        tarjeta.addEventListener("click", () => {
-          const modal = document.getElementById("modal-producto");
-          modal.classList.remove("saliendo");
-          modal.style.display = "flex";
-          modal.classList.add("activo");
+      tarjeta.addEventListener("click", () => {
+        const modal = document.getElementById("modal-producto");
+        modal.classList.remove("saliendo");
+        modal.style.display = "flex";
+        modal.classList.add("activo");
 
-          document.getElementById("modal-nombre").textContent = producto.nombre || "Producto sin nombre";
-          document.getElementById("modal-categoria").textContent = producto.categoria || "Sin categoría";
-          document.getElementById("modal-descripcion").textContent = producto.descripcion || "Sin descripción";
-          document.getElementById("modal-marca").textContent = `Marca: ${producto.marca || "Sin marca"}`;
-          document.getElementById("modal-precio").textContent = `$${(producto.precio || 0).toLocaleString('es-CL')}`;
-          
-          // Stock con color y mensaje
-          const stockElemento = document.getElementById("modal-stock");
-          if (producto.stock > 0) {
-            stockElemento.textContent = `${producto.stock} Disponibles`;
-            stockElemento.style.color = "#00c853"; // verde
-          } else {
-            stockElemento.textContent = "No disponible";
-            stockElemento.style.color = "#d50000"; // rojo
-          }
+        document.getElementById("modal-nombre").textContent = producto.nombre || "Producto sin nombre";
+        document.getElementById("modal-categoria").textContent = `Categoría: ${producto.categoria || "Sin categoría"}`;
+        document.getElementById("modal-descripcion").textContent = producto.descripcion || "Sin descripción";
+        document.getElementById("modal-marca").textContent = `Marca: ${producto.marca || "Sin marca"}`;
+        document.getElementById("modal-precio").textContent = `${(producto.precio || 0).toLocaleString('es-CL')}`;
 
-          document.getElementById("modal-codigo").textContent = `Código: ${producto.codigo || "Sin código"}`;
-          document.getElementById("modal-potencia").textContent = producto.potencia || "N/A";
-          document.getElementById("modal-voltaje").textContent = producto.voltaje || "N/A";
-          document.getElementById("modal-color").textContent = producto.color || "N/A";
-          document.getElementById("modal-tamano").textContent = producto.tamano || "N/A";
-          document.getElementById("modal-material").textContent = producto.material || "N/A";
-          document.getElementById("modal-presentacion").textContent = producto.presentacion || "N/A";
-          document.getElementById("modal-garantia").textContent = producto.garantia || "N/A";
-          document.getElementById("modal-uso").textContent = producto.uso || "N/A";
-          document.getElementById("modal-peso").textContent = `${producto.peso || "N/A"} kg`;
-          document.getElementById("modal-dimensiones").textContent = producto.dimensiones || "N/A";
-          document.getElementById("modal-vencimiento").textContent = producto.vencimiento || "N/A";
-          document.getElementById("modal-imagen").src = imagenUrl;
-          modal.setAttribute("data-uid", doc.id);
-          const inputCantidad = document.getElementById("cantidad");
-          if (inputCantidad) {
-            inputCantidad.value = 1;
-            inputCantidad.dataset.stock = producto.stock || 0;
+        // Stock con color y mensaje
+        const stockElemento = document.getElementById("modal-stock");
+        if (producto.stock > 0) {
+          stockElemento.textContent = `${producto.stock} disponibles`;
+          stockElemento.style.color = "#00c853"; // verde
+        } else {
+          stockElemento.textContent = "No disponible";
+          stockElemento.style.color = "#d50000"; // rojo
+        }
 
-            // Elimina listeners anteriores para evitar duplicados
-            const nuevoInput = inputCantidad.cloneNode(true);
-            inputCantidad.parentNode.replaceChild(nuevoInput, inputCantidad);
+        document.getElementById("modal-codigo").textContent = `Código: ${producto.codigo || "Sin código"}`;
+        document.getElementById("modal-potencia").textContent = `Potencia: ${producto.potencia || "N/A"}`;
+        document.getElementById("modal-voltaje").textContent = `Voltaje: ${producto.voltaje || "N/A"}`;
+        document.getElementById("modal-color").textContent = `Color: ${producto.color || "N/A"}`;
+        document.getElementById("modal-tamano").textContent = `Tamaño: ${producto.tamano || "N/A"}`;
+        document.getElementById("modal-material").textContent = `Material: ${producto.material || "N/A"}`;
+        document.getElementById("modal-presentacion").textContent = `Presentación: ${producto.presentacion || "N/A"}`;
+        document.getElementById("modal-garantia").textContent = `Garantía: ${producto.garantia || "N/A"}`;
+        document.getElementById("modal-uso").textContent = `Uso: ${producto.uso || "N/A"}`;
+        document.getElementById("modal-peso").textContent = `Peso: ${producto.peso || "N/A"} kg`;
+        document.getElementById("modal-dimensiones").textContent = `Dimensiones: ${producto.dimensiones || "N/A"}`;
+        document.getElementById("modal-vencimiento").textContent = `Vencimiento: ${producto.vencimiento || "N/A"}`;
+        document.getElementById("modal-imagen").src = imagenUrl;
 
-            // Reasignar clase y atributos necesarios
-            nuevoInput.classList.add("cantidad-productos");
+        modal.setAttribute("data-uid", doc.id);
 
-            // Volver a inicializar botones de suma/resta con el nuevo input
-            inicializarControlesCantidad();
-          }
+        const inputCantidad = document.getElementById("cantidad");
+        if (inputCantidad) {
+          inputCantidad.value = 1;
+          inputCantidad.dataset.stock = producto.stock || 0;
 
+          // Elimina listeners anteriores para evitar duplicados
+          const nuevoInput = inputCantidad.cloneNode(true);
+          inputCantidad.parentNode.replaceChild(nuevoInput, inputCantidad);
 
+          // Reasignar clase y atributos necesarios
+          nuevoInput.classList.add("cantidad-productos");
 
-        
+          // Volver a inicializar botones de suma/resta con el nuevo input
+          inicializarControlesCantidad();
+        }
       });
+
       contenedor.appendChild(tarjeta);
     });
 
@@ -890,7 +889,8 @@ esperarFirebaseYCargar();
         estado === "en preparación - terminado" ||
         estado === "listo para entrega/envío" ||
         estado === "listo para entrega" ||
-        estado === "pedido enviado" 
+        estado === "pedido enviado" ||
+        estado === "entregado" 
       );
     });
 

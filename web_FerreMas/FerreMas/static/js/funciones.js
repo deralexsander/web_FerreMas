@@ -188,7 +188,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         } catch (err) {
           console.error("❌ Error al guardar en Firestore:", err);
-          mostrarMensaje("❌ No se pudo registrar el pedido.");
+          mostrarMensaje("❌ No se pudo registrar el pedido.", "error");
         }
       });
     } else {
@@ -229,13 +229,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
       const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
       if (carrito.length === 0) {
-        mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.");
+        mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.", "error");
         return;
       }
 
       const user = window.firebaseAuth?.currentUser;
       if (!user) {
-        mostrarMensaje("⚠️ Debes iniciar sesión antes de pagar.");
+        mostrarMensaje("Debes iniciar sesión antes de pagar.", "error");
         return;
       }
 
@@ -244,17 +244,17 @@ window.addEventListener('DOMContentLoaded', async () => {
       const comuna = document.getElementById("comuna-sucursal")?.value;
 
       if (!tipoEntrega) {
-        mostrarMensaje("Debes seleccionar un tipo de entrega.");
+        mostrarMensaje("Debes seleccionar un tipo de entrega.", "error");
         return;
       }
 
       if (tipoEntrega === "tienda") {
         if (!region) {
-          mostrarMensaje("Debes seleccionar una región para el retiro en tienda.");
+          mostrarMensaje("Debes seleccionar una región para el retiro en tienda.", "error");
           return;
         }
         if (!comuna) {
-          mostrarMensaje("Debes seleccionar una comuna para el retiro en tienda.");
+          mostrarMensaje("Debes seleccionar una comuna para el retiro en tienda.", "error");
           return;
         }
       }
@@ -262,7 +262,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       if (tipoEntrega === "domicilio") {
         const direccionSeleccionada = localStorage.getItem("direccionSeleccionada");
         if (!direccionSeleccionada) {
-          mostrarMensaje("⚠️ Debes seleccionar una dirección para el despacho a domicilio.");
+          mostrarMensaje("Debes seleccionar una dirección para el despacho a domicilio.", "error");
           return;
         }
 
@@ -273,12 +273,12 @@ window.addEventListener('DOMContentLoaded', async () => {
           const snap = await window.getDoc(ref);
 
           if (!snap.exists()) {
-            mostrarMensaje("⚠️ No hay ninguna dirección disponible. Agrega una antes de continuar.");
+            mostrarMensaje("No hay ninguna dirección disponible. Agrega una antes de continuar.", "error");
             return;
           }
         } catch (err) {
           console.error("❌ Error al validar dirección:", err);
-          mostrarMensaje("❌ Error al verificar tu dirección. Intenta nuevamente.");
+          mostrarMensaje("❌ Error al verificar tu dirección. Intenta nuevamente.", "error");
           return;
         }
       }
@@ -327,34 +327,38 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Mensajes
   //
   //---------------------------------
-  mostrarMensaje = function(texto, tipo = 'error') {
-    const contenedor = document.getElementById('contenedor-mensaje');
-    const mensajeTexto = document.getElementById('mensaje-texto');
+  function mostrarMensaje(texto, tipo = 'error') {
+    const esError = tipo === 'error';
+
+    const contenedor = document.getElementById(
+      esError ? 'contenedor-mensaje' : 'contenedor-mensaje-success'
+    );
+    const mensajeTexto = document.getElementById(
+      esError ? 'mensaje-texto' : 'mensaje-texto-success'
+    );
 
     if (contenedor && mensajeTexto) {
       mensajeTexto.textContent = texto;
 
-      // Asegura visibilidad y aplica animación de entrada
       contenedor.style.display = 'block';
       contenedor.classList.remove('animacion-salida', 'oculto');
       contenedor.classList.add('animacion-entrada');
 
-      // Después de 4s inicia la salida
       setTimeout(() => {
         contenedor.classList.remove('animacion-entrada');
         contenedor.classList.add('animacion-salida');
 
-        // Luego de 0.4s oculta completamente
         setTimeout(() => {
           contenedor.classList.remove('animacion-salida');
           contenedor.classList.add('oculto');
           contenedor.style.display = 'none';
-        }, 400); // duración de popOut
+        }, 400);
       }, 4000);
     } else {
       alert(texto);
     }
-  };
+  }
+
 
   //---------------------------------
   //
@@ -372,18 +376,18 @@ window.addEventListener('DOMContentLoaded', async () => {
       const password = inputs[1]?.value.trim();
 
       if (!email) {
-        mostrarMensaje("Por favor ingresa tu correo.");
+        mostrarMensaje("Por favor ingresa tu correo.", "error");
         return;
       }
 
       const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!regexCorreo.test(email)) {
-        mostrarMensaje("El correo ingresado no es válido.");
+        mostrarMensaje("El correo ingresado no es válido.", "error");
         return;
       }
 
       if (!password) {
-        mostrarMensaje("Por favor ingresa tu contraseña.");
+        mostrarMensaje("Por favor ingresa tu contraseña.", "error");
         return;
       }
 
@@ -398,9 +402,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         // Muestra errores comunes con mensajes claros
         if (error.code === "auth/too-many-requests") {
-          mostrarMensaje("Demasiados intentos fallidos, Intenta más tarde.");
+          mostrarMensaje("Demasiados intentos fallidos, Intenta más tarde.", "error");
         } else {
-          mostrarMensaje("Correo o contraseña son incorrectos.");
+          mostrarMensaje("Correo o contraseña son incorrectos.", "error");
         }
       }
     });
@@ -427,32 +431,32 @@ window.addEventListener('DOMContentLoaded', async () => {
       const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!email) {
-        mostrarMensaje("Por favor ingresa tu correo.");
+        mostrarMensaje("Por favor ingresa tu correo.", "error");
         return;
       }
 
       if (!regexCorreo.test(email)) {
-        mostrarMensaje("El correo ingresado no es válido.");
+        mostrarMensaje("El correo ingresado no es válido.", "error");
         return;
       }
 
       if (!usuario) {
-        mostrarMensaje("Por favor ingresa tu nombre de usuario.");
+        mostrarMensaje("Por favor ingresa tu nombre de usuario.", "error");
         return;
       }
 
       if (!password) {
-        mostrarMensaje("Por favor ingresa tu contraseña.");
+        mostrarMensaje("Por favor ingresa tu contraseña.", "error");
         return;
       }
 
       if (!confirmPassword) {
-        mostrarMensaje("Confirma tu contraseña.");
+        mostrarMensaje("Confirma tu contraseña.", "error");
         return;
       }
 
       if (password !== confirmPassword) {
-        mostrarMensaje("Las contraseñas no coinciden.");
+        mostrarMensaje("Las contraseñas no coinciden.", "error");
         return;
       }
 
@@ -470,11 +474,11 @@ window.addEventListener('DOMContentLoaded', async () => {
         console.error("Error al registrar:", error);
 
         if (error.code === "auth/email-already-in-use") {
-          mostrarMensaje("Este correo ya está registrado.");
+          mostrarMensaje("Este correo ya está registrado.", "error");
         } else if (error.code === "auth/weak-password") {
-          mostrarMensaje("La contraseña debe tener al menos 6 caracteres.");
+          mostrarMensaje("La contraseña debe tener al menos 6 caracteres.", "error");
         } else {
-          mostrarMensaje("Ocurrió un error al registrarte. Intenta nuevamente.");
+          mostrarMensaje("Ocurrió un error al registrarte. Intenta nuevamente.", "error");
         }
       }
     });
@@ -496,12 +500,12 @@ window.addEventListener('DOMContentLoaded', async () => {
       const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!email) {
-        mostrarMensaje("Por favor ingresa tu correo.");
+        mostrarMensaje("Por favor ingresa tu correo.", "error");
         return;
       }
 
       if (!regexCorreo.test(email)) {
-        mostrarMensaje("El correo ingresado no es válido.");
+        mostrarMensaje("El correo ingresado no es válido.", "error");
         return;
       }
 
@@ -512,15 +516,15 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         // Enviar correo de recuperación
         await sendPasswordResetEmail(firebaseAuth, email);
-        mostrarMensaje("📬 Te hemos enviado un correo para restablecer tu contraseña.");
+        mostrarMensaje("Te hemos enviado un correo para restablecer tu contraseña.", "success");
         formularioRecuperar.reset();
       } catch (error) {
         console.error("Error al procesar la recuperación:", error);
 
         if (error.code === "auth/too-many-requests") {
-          mostrarMensaje("Demasiados intentos. Intenta más tarde.");
+          mostrarMensaje("Demasiados intentos. Intenta más tarde.", "error");
         } else {
-          mostrarMensaje("Ocurrió un error. Intenta nuevamente.");
+          mostrarMensaje("Ocurrió un error. Intenta nuevamente.", "error");
         }
       }
     });
@@ -541,7 +545,7 @@ if (formTransferencia) {
     // 1. Validar productos en el carrito
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     if (carrito.length === 0) {
-      mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.");
+      mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.", "error");
       return;
     }
 
@@ -552,11 +556,11 @@ if (formTransferencia) {
 
     if (tipoEntrega === "tienda") {
       if (!region) {
-        mostrarMensaje("Debes seleccionar una región para el retiro en tienda.");
+        mostrarMensaje("Debes seleccionar una región para el retiro en tienda.", "error");
         return;
       }
       if (!comuna) {
-        mostrarMensaje("Debes seleccionar una comuna para el retiro en tienda.");
+        mostrarMensaje("Debes seleccionar una comuna para el retiro en tienda.", "error");
         return;
       }
     }
@@ -570,26 +574,26 @@ if (formTransferencia) {
     const regexRut = /^\d{7,8}-[\dkK]$/;
 
     if (!nombre) {
-      mostrarMensaje("Por favor ingresa el nombre del titular.");
+      mostrarMensaje("Por favor ingresa el nombre del titular.", "error");
       return;
     }
     if (!rut || !regexRut.test(rut)) {
-      mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9");
+      mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9", "error");
       return;
     }
     if (!banco) {
-      mostrarMensaje("Debes seleccionar un banco.");
+      mostrarMensaje("Debes seleccionar un banco.", "error");
       return;
     }
     if (!acepta) {
-      mostrarMensaje("Debes aceptar que el pago será validado manualmente.");
+      mostrarMensaje("Debes aceptar que el pago será validado manualmente.", "error");
       return;
     }
 
     // 4. Verificar si el usuario ha iniciado sesión
     const user = firebaseAuth?.currentUser;
     if (!user) {
-      mostrarMensaje("⚠️ Debes iniciar sesión para realizar la transferencia.");
+      mostrarMensaje("Debes iniciar sesión para realizar la transferencia.", "error");
       return;
     }
 
@@ -600,19 +604,19 @@ if (formTransferencia) {
         const direccionesSnap = await getDocs(query(direccionesRef, orderBy("fechaGuardado", "desc"), limit(1)));
 
         if (direccionesSnap.empty) {
-          mostrarMensaje("⚠️ No tienes ninguna dirección guardada. Agrega una antes de continuar.");
+          mostrarMensaje("No tienes ninguna dirección guardada. Agrega una antes de continuar.", "error");
           return;
         }
 
       } catch (error) {
         console.error("Error al validar la dirección:", error);
-        mostrarMensaje("❌ Ocurrió un error al validar tu dirección. Intenta nuevamente.");
+        mostrarMensaje(" Ocurrió un error al validar tu dirección. Intenta nuevamente.", "error");
         return;
       }
     }
 
     // 6. Todo validado, mostrar mensaje de carga
-    mostrarMensaje("⏳ Transfiriendo... Por favor, espera.", "info");
+    mostrarMensaje(" Guardando carrito, Por favor no recargar. ", "info", "success");
 
     // 7. Ejecutar función que guarda la transferencia
     await formTransferencias();
@@ -731,7 +735,7 @@ if (formTransferencia) {
     // Copiar al portapapeles
     if (navigator.clipboard) {
       navigator.clipboard.writeText(texto).then(() => {
-        mostrarMensaje('Correo y contraseña copiados al portapapeles');
+        mostrarMensaje('Correo y contraseña copiados al portapapeles', "success");
       });
     } else {
       // Fallback para navegadores antiguos
@@ -741,7 +745,7 @@ if (formTransferencia) {
       tempInput.select();
       document.execCommand("copy");
       document.body.removeChild(tempInput);
-      mostrarMensaje('Correo y contraseña copiados al portapapeles');
+      mostrarMensaje('Correo y contraseña copiados al portapapeles', "success");
     }
   }
 //---------------------------------
@@ -796,13 +800,13 @@ if (window.location.pathname === "/registro_personal/") {
       const apellidoP = form.querySelector('#apellido-paterno-trabajador');
       const apellidoM = form.querySelector('#apellido-materno-trabajador');
       if (!nombre.value.trim()) {
-        mostrarMensaje("Por favor ingresa el nombre del trabajador.");
+        mostrarMensaje("Por favor ingresa el nombre del trabajador.", "error");
         valido = false;
       } else if (!apellidoP.value.trim()) {
-        mostrarMensaje("Por favor ingresa el apellido paterno.");
+        mostrarMensaje("Por favor ingresa el apellido paterno.", "error");
         valido = false;
       } else if (!apellidoM.value.trim()) {
-        mostrarMensaje("Por favor ingresa el apellido materno.");
+        mostrarMensaje("Por favor ingresa el apellido materno.", "error");
         valido = false;
       }
     } else if (index === 1) {
@@ -812,19 +816,19 @@ if (window.location.pathname === "/registro_personal/") {
       const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const regexRut = /^\d{7,8}-[\dkK]$/;
       if (!correo.value.trim()) {
-        mostrarMensaje("Por favor ingresa el correo del trabajador.");
+        mostrarMensaje("Por favor ingresa el correo del trabajador.", "error");
         valido = false;
       } else if (!regexCorreo.test(correo.value.trim())) {
-        mostrarMensaje("El correo ingresado no es válido.");
+        mostrarMensaje("El correo ingresado no es válido.", "error");
         valido = false;
       } else if (!rut.value.trim()) {
-        mostrarMensaje("Por favor ingresa el RUT del trabajador.");
+        mostrarMensaje("Por favor ingresa el RUT del trabajador.", "error");
         valido = false;
       } else if (!regexRut.test(rut.value.trim())) {
-        mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9");
+        mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9", "error");
         valido = false;
       } else if (!rol.value) {
-        mostrarMensaje("Debes seleccionar un rol para el trabajador.");
+        mostrarMensaje("Debes seleccionar un rol para el trabajador.", "error");
         valido = false;
       }
     }
@@ -1282,7 +1286,7 @@ function agregarAlCarrito() {
   localStorage.setItem("carrito", JSON.stringify(carrito));
   renderizarCarrito();
   actualizarContadorProductosDiferentes();
-  mostrarMensaje("✔️ Producto agregado al carrito", "success");
+  mostrarMensaje(" Producto agregado al carrito", "success");
 }
 
 // ======= MODIFICAR CANTIDAD Y ELIMINAR =======
@@ -1314,7 +1318,7 @@ function renderizarCarrito() {
   if (!contenedor || !totalPagar || !btnPagar) return;
 
   if (carrito.length === 0) {
-    contenedor.innerHTML = "<h1 class='titulo-form-center'>No hay productos en el carrito. Debes tener al menos un producto para continuar con la compra.</h1>";
+    contenedor.innerHTML = "<h1 class='titulo-form-center'>No hay productos en el carrito.</h1>";
     totalPagar.textContent = "$0";
     return;
   }
@@ -1581,7 +1585,7 @@ window.guardarDireccion = async function () {
 
   const user = window.firebaseAuth?.currentUser;
   if (!user) {
-    mostrarMensaje("⚠️ Debes iniciar sesión para guardar tu dirección.", "error");
+    mostrarMensaje("Debes iniciar sesión para guardar tu dirección.", "error");
     return;
   }
 
@@ -1613,7 +1617,7 @@ window.guardarDireccion = async function () {
     const ref = window.collection(window.firebaseDB, "direcciones", user.uid, "items");
     const docRef = await window.addDoc(ref, direccion);
 
-    mostrarMensaje("✅ Dirección guardada correctamente.", "success");
+    mostrarMensaje(" Dirección guardada correctamente.", "success");
 
     // Limpiar formularios
     const paso1 = document.getElementById('paso-1-direccion');
@@ -1635,8 +1639,7 @@ window.guardarDireccion = async function () {
     }
 
   } catch (error) {
-    console.error("❌ Error al guardar dirección:", error);
-    mostrarMensaje("🚫 Error al guardar la dirección. Intenta nuevamente.", "error");
+    mostrarMensaje("Error al guardar la dirección. Intenta nuevamente.", "error");
   }
 };
 

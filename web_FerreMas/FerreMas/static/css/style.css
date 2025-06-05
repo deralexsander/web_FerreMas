@@ -731,6 +731,7 @@ a {
 }
 
 
+
 /* Columnas reutilizables */
 .columna_info {
     flex: 1;
@@ -741,13 +742,96 @@ a {
     gap: 1.5vh; /* Reduce el espacio entre elementos dentro de la columna */
 }
 
+.boton-perfil {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 18px 24px;
+  margin-bottom: 14px;
+  background-color: hsla(194, 89%, 45%, 1);
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  border: none;
+  border-radius: 15px;
+  transition: background-color 0.25s ease, transform 0.1s ease;
+  cursor: pointer; /* <- cambio aquí */
+}
+
+.boton-perfil:hover {
+  background-color: hsla(186, 88%, 46%, 1);
+  transform: translateY(-1px);
+}
+
+
+
+/* Centrar contenido horizontal y verticalmente */
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.icono_perfil {
+  width: var(--icon-size, 400px);
+  height: var(--icon-size, 400px);
+  stroke: white;
+  position: absolute;
+}
+
+/* Responsive: ajusta el tamaño en pantallas pequeñas */
+@media (max-width: 800px) {
+  .icono_perfil {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+
+
+.bloque_perfil {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    flex-direction: row;
+    width: 100%;
+    padding: 50px 30px 0px 30px; /* arriba derecha abajo izquierda */
+    box-sizing: border-box;
+    align-items: stretch;
+}
+
+
+/* Estilo del botón vaciar carrito */
+.btn-cerrar-sesion {
+  background-color: transparent;
+  border: 1.5px solid hsla(0, 0%, 100%, 0.4);
+  color: white;
+  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-cerrar-sesion:hover {
+  background-color: hsla(0, 80%, 55%, 0.7);
+  border-color: transparent;
+}
+
+
+
 .columna_form {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: stretch; /* en vez de center */
   text-align: left;
-  gap: 1.5vh;
+  gap: 1vh;
   width: 100%;
   padding: 1rem;
   box-sizing: border-box;
@@ -1615,12 +1699,22 @@ select option {
   
 .contenedor_productos {
   display: flex;
-  flex-wrap: wrap;           /* Permite que se bajen si no caben en la misma fila */
-  gap: 1.5rem;               /* Espacio entre tarjetas */
-  justify-content: center;  /* Centrado horizontal */
-  padding: 90px 10px 0px 10px;  /* ← Aquí está el cambio: padding-top de 50px */
-  height: 360px;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  padding: 90px 10px 40px 10px;
+  min-height: 100vh;
 }
+
+
+
+
+
+
+
+
+
+
 
 
   .contenedor_productos_categoria {
@@ -1763,6 +1857,21 @@ select option {
   justify-content: center;
 }
 
+#contenedor-mensaje-success {
+  position: fixed;
+  top: 10vh;
+  left: 37%;
+  transform: translateX(-37%);
+  z-index: 10000;
+  width: 90vw;
+  max-width: 420px;
+  min-width: 220px;
+  box-sizing: border-box;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+}
+
 
 
 .error {
@@ -1798,6 +1907,44 @@ select option {
   font-size: 14px;
   color: #fff;
 }
+
+
+.success {
+  font-family: 'Poppins', sans-serif;
+  width: 100%;
+  max-width: 420px;
+  min-width: 220px;
+  padding: 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  border-radius: 15px;
+  background: linear-gradient(to right, #43a047, #00c853); /* Verde bosque a verde brillante */
+  box-shadow: 0 0px 10px rgba(0, 200, 83, 0.4); /* Sombra verde suave */
+  pointer-events: auto;
+  position: fixed;
+  z-index: 9999;
+  box-sizing: border-box;
+  color: #fff;
+}
+
+.success__icon,
+.success__close {
+  width: 20px;
+  height: 20px;
+  margin: 0 8px;
+}
+
+.success__title {
+  font-weight: 500;
+  font-size: 14px;
+  color: #fff;
+}
+
+
+
+
 
 .oculto {
   display: none;
@@ -1841,8 +1988,47 @@ select option {
     }
   }
 
+  
 
 
+.tarjeta-sucursal {
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  margin: 16px 0;
+  font-family: 'Poppins', sans-serif;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-left: 5px solid hsla(194, 89%, 45%, 1); /* acento verde Ferremas */
+}
+
+.tarjeta-sucursal:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.tarjeta-sucursal h4 {
+  font-size: 18px;
+  margin-bottom: 6px;
+  color: #0a4a82;
+}
+
+.tarjeta-sucursal p {
+  font-size: 14px;
+  margin: 4px 0;
+  color: hsla(194, 89%, 45%, 1);
+}
+
+
+#contenedor-sucursales h3 {
+  margin-top: 32px;
+  margin-bottom: 12px;
+  font-size: 20px;
+  color: #0a4a82;
+  border-bottom: 2px solid #0d55dc;
+  display: inline-block;
+  padding-bottom: 4px;
+}
 
 
 
@@ -2442,8 +2628,6 @@ hr {
     border-color: rgba(10, 74, 130, 0.7);
     background-color: rgba(10, 74, 130, 0.7);
   }
-
-
 
 
 

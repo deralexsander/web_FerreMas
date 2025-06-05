@@ -9,54 +9,187 @@
 
 
 
-<div class="contenedor_informacion" >
+<div class="contenedor_informacion " >
 
-  <div class="bloque_info">
+  <div class="bloque_perfil">
     <div class="columna_info">
+      <div class="center">
+
+        <svg xmlns="http://www.w3.org/2000/svg" class="icono_perfil" data-index="0" style="display: none;" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="8.5" cy="7" r="4"/>
+          <line x1="20" y1="8" x2="20" y2="14"/>
+          <line x1="23" y1="11" x2="17" y2="11"/>
+        </svg>
+
+
+
+        <svg xmlns="http://www.w3.org/2000/svg" class="icono_perfil" data-index="1" style="display: none;" width="24" height="24" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16.5 9.4 7.55 4.24"/>
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/>
+        <path d="m3.3 7 8.7 5 8.7-5"/>
+        <path d="M18 22v-6" transform="translate(0, -0.6)"/>
+        <path d="M15 19h6" transform="translate(0, -0.6)"/>
+        </svg>
+
+
+        <svg xmlns="http://www.w3.org/2000/svg" class="icono_perfil" data-index="2" style="display: none;" width="24" height="24" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+        <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+        <path d="M9 12h6"/>
+        <path d="M9 16h6"/>
+        </svg>
+
+
+
+        <svg xmlns="http://www.w3.org/2000/svg" class="icono_perfil" data-index="3" style="display: none;" width="24" height="24" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="6" width="20" height="12" rx="2"/>
+        <circle cx="12" cy="12" r="2"/>
+        <path d="M6 12h.01M18 12h.01"/>
+        </svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg" class="icono_perfil" data-index="4" style="display: none;" width="24" height="24" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16.5 9.4 7.55 4.24"/>
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <path d="m3.3 7 8.7 5 8.7-5"/>
+          <path d="M12 22V12"/>
+        </svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg" class="icono_perfil" data-index="5" style="display: none;" width="24" height="24" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 6-9 13-9 13S3 16 3 10a9 9 0 0 1 18 0Z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+
+
+
+        <svg xmlns="http://www.w3.org/2000/svg" class="icono_perfil" data-index="6" style="display: none;" width="24" height="24" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3v5h5"/>
+          <path d="M3.05 13a9 9 0 1 0 .5-4.5L3 8"/>
+          <path d="M12 7v5l4 2"/>
+        </svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg" class="icono_perfil" data-index="7" style="display: none;" width="24" height="24" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" x2="9" y1="12" y2="12"/>
+        </svg>
+
+
+      </div>
       
-      <a href="{% url 'registro_personal' %}">
-        <button class="button-submit " style="width: 300px;">Registro de personal</button>
-      </a>
-      <HR></HR>
-      <a href="{% url 'crear_producto' %}">
-        <button class="button-submit " style="width: 300px;">crear un nuevo producto.</button>
-      </a>
-
-      <HR></HR>
-
-      <a href="{% url 'pedidos_realizados' %}">
-        <button class="button-submit " style="width: 300px;">pedidos</button>
-      </a>
-      <a href="{% url 'trasferencias' %}">
-        <button class="button-submit " style="width: 300px;">transferencias</button>
-
-      <a href="{% url 'armado_pedidos' %}">
-        <button class="button-submit " style="width: 300px;">Preparar Pedidos</button>
-      </a>
-      <HR></HR>
-      <a href="{% url 'datos_personales' %}">
-        <button class="button-submit " style="width: 300px;">direcciones</button>
-      </a>
-      </a>
-        <a href="{% url 'historial_pedidos' %}">
-        <button class="button-submit " style="width: 300px;">historial_pedidos</button>
-      </a>
-      <button id="boton-logout" class="btn-vaciar-carrito" style="width: 300px;">Cerrar sesión</button>
     </div>
-<table id="tabla-todos-datos-usuario" border="1">
-  <thead>
-    <tr>
-      <th>Campo</th>
-      <th>Valor</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!-- Aquí se llenarán los datos dinámicamente -->
-  </tbody>
-</table>
+    <div class="columna_form">
+      
+
+    <a href="{% url 'registro_personal' %}">
+      <button class="boton-perfil" data-index="0">Registro de personal</button>
+    </a>
+    <a href="{% url 'crear_producto' %}">
+      <button class="boton-perfil" data-index="1">Crear nuevo producto</button>
+    </a>
+    <a href="{% url 'pedidos_realizados' %}">
+      <button class="boton-perfil" data-index="2">Pedidos realizados</button>
+    </a>
+    <a href="{% url 'trasferencias' %}">
+      <button class="boton-perfil" data-index="3">Transferencias</button>
+    </a>
+    <a href="{% url 'armado_pedidos' %}">
+      <button class="boton-perfil" data-index="4">Armado de pedidos</button>
+    </a>
+    <a href="{% url 'datos_personales' %}">
+      <button class="boton-perfil" data-index="5">Direcciones</button>
+    </a>
+    <a href="{% url 'historial_pedidos' %}">
+      <button class="boton-perfil" data-index="6">Historial de pedidos</button>
+    </a>
+
+
+      <button id="boton-logout" class="btn-cerrar-sesion" data-index="7">Cerrar sesión</button>
+    </div>
+
   </div>
 
 </div>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const botones = document.querySelectorAll(".boton-perfil, .btn-cerrar-sesion");
+    const iconos = document.querySelectorAll(".icono_perfil");
+    let iconoActivo = null;
+    let isAnimating = false;
+    let nextIndex = null;
+
+    function mostrarIcono(index) {
+      const nuevoIcono = document.querySelector(`.icono_perfil[data-index="${index}"]`);
+      if (!nuevoIcono) return;
+
+      if (iconoActivo === nuevoIcono) return; // Ya está mostrado
+
+      isAnimating = true;
+
+      // Animación de salida
+      if (iconoActivo) {
+        iconoActivo.classList.remove("animacion-entrada");
+        iconoActivo.classList.add("animacion-salida");
+
+        // Esperar a que termine la animación de salida
+        setTimeout(() => {
+          iconoActivo.style.display = "none";
+          iconoActivo.classList.remove("animacion-salida");
+
+          // Mostrar nuevo ícono
+          nuevoIcono.style.display = "block";
+          nuevoIcono.classList.add("animacion-entrada");
+
+          iconoActivo = nuevoIcono;
+          isAnimating = false;
+
+          // Si hubo un intento de cambio mientras animaba, lo ejecutamos ahora
+          if (nextIndex !== null) {
+            const indexPendiente = nextIndex;
+            nextIndex = null;
+            mostrarIcono(indexPendiente);
+          }
+        }, 400); // Debe coincidir con la duración de popOut
+      } else {
+        // No hay ícono activo, solo mostrar
+        nuevoIcono.style.display = "block";
+        nuevoIcono.classList.add("animacion-entrada");
+        iconoActivo = nuevoIcono;
+        isAnimating = false;
+      }
+    }
+
+    botones.forEach(boton => {
+      boton.addEventListener("mouseenter", () => {
+        const index = boton.getAttribute("data-index");
+
+        if (isAnimating) {
+          // Guarda el índice pendiente
+          nextIndex = index;
+        } else {
+          mostrarIcono(index);
+        }
+      });
+    });
+
+    // Mostrar el primero por defecto
+    const primerIcono = document.querySelector('.icono_perfil[data-index="0"]');
+    if (primerIcono) {
+      primerIcono.style.display = "block";
+      primerIcono.classList.add("animacion-entrada");
+      iconoActivo = primerIcono;
+    }
+  });
+</script>
 
 
 
