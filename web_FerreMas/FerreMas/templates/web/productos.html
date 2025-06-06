@@ -5,10 +5,19 @@
   <title>Productos</title>
 {% endblock %}
 
+{% block loader %}Productos{% endblock %}
+
 {% block contenido %}
 
-<div id="contenedor-productos" class="contenedor_productos">
-  <!-- Aquí se cargarán dinámicamente los productos -->
+
+
+
+<div class="layout_productos">
+  <!-- Categorías -->
+  <div id="lista-categorias" class="lista_categorias"></div>
+
+  <!-- Productos -->
+  <div id="contenedor-productos" class="contenedor_productos_horizontal"></div>
 </div>
 
 <div id="modal-producto" class="fondo-modal-productos">

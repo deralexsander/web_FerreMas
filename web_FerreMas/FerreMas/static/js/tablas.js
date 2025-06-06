@@ -5,93 +5,90 @@ window.addEventListener('DOMContentLoaded', () => {
   //
   //---------------------------------
 
-function esperarOnFirebaseAuthStateChanged() {
-  if (
-    typeof window.onFirebaseAuthStateChanged === "function" &&
-    typeof window.firebaseAuth !== "undefined"
-  ) {
-    window.onFirebaseAuthStateChanged(async (user) => {
-      if (!user) {
-        console.log("No hay usuario autenticado");
-        return;
-      }
-
-      // Asegurar funciones Firestore disponibles
-      if (
-        typeof window.doc !== "function" ||
-        typeof window.getDoc !== "function"
-      ) {
-        const { doc, getDoc } = await import(
-          "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"
-        );
-        window.doc = doc;
-        window.getDoc = getDoc;
-      }
-
-      try {
-        const docRef = window.doc(window.firebaseDB, "trabajadores", user.uid);
-        const docSnap = await window.getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const datos = docSnap.data();
-          console.log("Datos del usuario:", datos);
-
-          // ✅ Guardar usuario globalmente
-          window.usuarioActual = datos;
-
-          const ruta = window.location.pathname;
-
-          if (
-            ruta === "/direccion/" &&
-            typeof cargarDirecciones === "function" &&
-            document.getElementById("tbody-direcciones")
-          ) {
-            await cargarDirecciones();
-
-            // Esperar un poco antes de buscar la dirección seleccionada
-            setTimeout(async () => {
-              try {
-                const refSeleccion = window.doc(
-                  window.firebaseDB,
-                  "direccionesSeleccionadas",
-                  user.uid
-                );
-                const snapSeleccion = await window.getDoc(refSeleccion);
-
-                if (snapSeleccion.exists()) {
-                  const { direccionId } = snapSeleccion.data();
-                  const fila = document.querySelector(`tr[data-id="${direccionId}"]`);
-                  const boton = fila?.querySelector("button");
-                  if (fila && boton && typeof seleccionarDireccion === "function") {
-                    seleccionarDireccion(direccionId, boton);
-                  }
-                }
-              } catch (e) {
-                console.warn("⚠️ No se pudo recuperar la dirección seleccionada:", e);
-              }
-            }, 300);
-          }
-
-          // ✅ Si estamos en la vista de pedidos, cargar pedidos inmediatamente
-          if (ruta === "/pedidos_realizados/" && typeof cargarPedidosEnTablas === "function") {
-            cargarPedidosEnTablas();
-          }
-
-        } else {
-          console.warn("No se encontraron datos del trabajador");
+  function esperarOnFirebaseAuthStateChanged() {
+    if (
+      typeof window.onFirebaseAuthStateChanged === "function" &&
+      typeof window.firebaseAuth !== "undefined"
+    ) {
+      window.onFirebaseAuthStateChanged(async (user) => {
+        if (!user) {
+          console.log("No hay usuario autenticado");
+          // Limpia cache si no hay sesión
+          localStorage.removeItem("esTrabajador");
+          return;
         }
-      } catch (error) {
-        console.error("❌ Error al obtener datos del trabajador:", error);
-      }
-    });
-  } else {
-    setTimeout(esperarOnFirebaseAuthStateChanged, 100); // Esperar hasta que Firebase esté listo
+
+        const ruta = window.location.pathname;
+        if (ruta !== "/perfil/") return;
+
+        // Mostrar loader
+        if (typeof window.mostrarLoader === "function") window.mostrarLoader();
+
+        // Verificar si ya se sabe si es trabajador
+        const cacheTrabajador = localStorage.getItem("esTrabajador");
+
+        if (cacheTrabajador !== null) {
+          const esTrabajador = cacheTrabajador === "true";
+
+          document.querySelectorAll(".solo-trabajador").forEach((boton) => {
+            boton.style.display = esTrabajador ? "block" : "none";
+          });
+
+          if (typeof window.ocultarLoader === "function") window.ocultarLoader();
+          return; // ⏹ No seguimos, ya usamos el cache
+        }
+
+        // 🔄 Si no hay cache, verificar en Firestore
+        if (
+          typeof window.doc !== "function" ||
+          typeof window.getDoc !== "function"
+        ) {
+          const { doc, getDoc } = await import(
+            "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"
+          );
+          window.doc = doc;
+          window.getDoc = getDoc;
+        }
+
+        try {
+          const docRef = window.doc(window.firebaseDB, "trabajadores", user.uid);
+          const docSnap = await window.getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const datos = docSnap.data();
+            window.usuarioActual = datos;
+            localStorage.setItem("esTrabajador", "true");
+
+            document.querySelectorAll(".solo-trabajador").forEach((boton) => {
+              boton.style.display = "block";
+            });
+
+            if (!datos.activo) {
+              document.querySelectorAll(".btn-perfil").forEach((btn) => {
+                btn.disabled = true;
+                btn.classList.add("deshabilitado");
+              });
+            }
+          } else {
+            console.warn("No es trabajador");
+            localStorage.setItem("esTrabajador", "false");
+
+            document.querySelectorAll(".solo-trabajador").forEach((boton) => {
+              boton.style.display = "none";
+            });
+          }
+        } catch (error) {
+          console.error("❌ Error al obtener datos del trabajador:", error);
+        } finally {
+          if (typeof window.ocultarLoader === "function") window.ocultarLoader();
+        }
+      });
+    } else {
+      setTimeout(esperarOnFirebaseAuthStateChanged, 100);
+    }
   }
-}
 
-esperarOnFirebaseAuthStateChanged();
-
-
+  esperarOnFirebaseAuthStateChanged();
 
 
   //---------------------------------
@@ -292,68 +289,122 @@ esperarOnFirebaseAuthStateChanged();
 
   esperarFirebaseYcargarProductos();
 
-  //---------------------------------
-  //
-  // tabla de últimos productos (tarjetas)
-  //
-  //---------------------------------
-  window.cargarUltimosProductos = async function () {
-    const contenedor = document.getElementById("contenedor-productos");
+//---------------------------------
+//
+// tabla de últimos productos (tarjetas)
+//
+//---------------------------------
+window.cargarUltimosProductos = async function () {
+  const contenedor = document.getElementById("contenedor-productos");
+  const listaCategorias = document.getElementById("lista-categorias");
 
-    if (!contenedor || contenedor.dataset.cargado === "true") return;
+  if (!contenedor || contenedor.dataset.cargado === "true") return;
 
-    contenedor.dataset.cargado = "true";
-    contenedor.innerHTML = "";
+  contenedor.dataset.cargado = "true";
+  contenedor.innerHTML = "";
+  listaCategorias.innerHTML = "";
 
-    if (
-      !window.firebaseDB ||
-      !window.collection ||
-      !window.getDocs ||
-      !window.query ||
-      !window.orderBy
-    ) {
-      console.error("❌ Firebase no está listo para cargar productos");
-      setTimeout(window.cargarUltimosProductos, 100);
-      return;
+  if (
+    !window.firebaseDB ||
+    !window.collection ||
+    !window.getDocs ||
+    !window.query ||
+    !window.orderBy
+  ) {
+    console.error("❌ Firebase no está listo para cargar productos");
+    setTimeout(window.cargarUltimosProductos, 100);
+    return;
+  }
+
+  mostrarLoader();
+
+  const productosRef = window.collection(window.firebaseDB, "productos");
+  const q = window.query(productosRef, window.orderBy("creadoEn", "desc"));
+
+  try {
+    const snapshot = await window.getDocs(q);
+
+    const productosPorCategoria = {};
+    const todosLosProductos = [];
+
+    snapshot.forEach((doc) => {
+      const producto = doc.data();
+      const categoria = producto.categoria || "Sin categoría";
+
+      if (!productosPorCategoria[categoria]) {
+        productosPorCategoria[categoria] = [];
+      }
+
+      productosPorCategoria[categoria].push({ id: doc.id, data: producto });
+      todosLosProductos.push({ id: doc.id, data: producto });
+    });
+
+    // Botón "Todos"
+    const btnTodos = document.createElement("button");
+    btnTodos.textContent = "Todos";
+    btnTodos.onclick = () => {
+      document.querySelectorAll("#lista-categorias button").forEach(b => b.classList.remove("active"));
+      btnTodos.classList.add("active");
+      renderProductos(todosLosProductos);
+    };
+    listaCategorias.appendChild(btnTodos);
+
+    // Botones por categoría
+    for (const categoria in productosPorCategoria) {
+      const btn = document.createElement("button");
+      btn.textContent = categoria;
+      btn.onclick = () => {
+        document.querySelectorAll("#lista-categorias button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderProductos(productosPorCategoria[categoria]);
+      };
+      listaCategorias.appendChild(btn);
     }
 
-    const productosRef = window.collection(window.firebaseDB, "productos");
-    const q = window.query(productosRef, window.orderBy("creadoEn", "desc"));
+    // Mostrar todos por defecto
+    btnTodos.classList.add("active");
+    renderProductos(todosLosProductos);
 
-    try {
-      const snapshot = await window.getDocs(q);
+  } catch (e) {
+    console.error("❌ Error al cargar productos:", e);
+  } finally {
+    ocultarLoader();
+  }
 
-      snapshot.forEach((doc) => {
-        const producto = doc.data();
-        const imagenUrl = producto.codigoImagen && producto.codigoImagen.length > 10
-          ? `/media/productos/${producto.codigoImagen}.jpg`
-          : '/static/media/imagen-no-disponible.jpg';
+  // Función interna para renderizar productos
+  function renderProductos(lista) {
+    contenedor.innerHTML = "";
 
-        const tarjeta = document.createElement("div");
-        tarjeta.className = "tarjeta-producto";
-        tarjeta.innerHTML = `
-          <div class="tarjeta-producto__shine"></div>
-          <div class="tarjeta-producto__glow"></div>
-          <div class="tarjeta-producto__content">
-            <div class="tarjeta-producto__image">
-              <img src="${imagenUrl}" alt="Producto"
-                style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;"
-                onerror="this.src='/static/media/imagen-no-disponible.jpg'" />
-            </div>
-            <div class="tarjeta-producto__text">
-              <p class="tarjeta-producto__title">${producto.nombre || "Producto sin nombre"}</p>
-              <p class="tarjeta-producto__description">${producto.descripcion || ""}</p>
-            </div>
-            <div class="tarjeta-producto__footer">
-              <div class="tarjeta-producto__price">$${(producto.precio || 0).toLocaleString('es-CL')}</div>
-              <div class="tarjeta-producto__button">
-                <svg height="16" width="16" viewBox="0 0 24 24">
-                  <path stroke-width="2" stroke="currentColor" d="M4 12H20M12 4V20" fill="currentColor"></path>
-                </svg>
-              </div>
+    lista.forEach(({ id, data: producto }) => {
+      const imagenUrl = producto.codigoImagen && producto.codigoImagen.length > 10
+        ? `/media/productos/${producto.codigoImagen}.jpg`
+        : '/static/media/imagen-no-disponible.jpg';
+
+      const tarjeta = document.createElement("div");
+      tarjeta.className = "tarjeta-producto";
+      tarjeta.innerHTML = `
+        <div class="tarjeta-producto__shine"></div>
+        <div class="tarjeta-producto__glow"></div>
+        <div class="tarjeta-producto__content">
+          <div class="tarjeta-producto__image">
+            <img src="${imagenUrl}" alt="Producto"
+              style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;"
+              onerror="this.src='/static/media/imagen-no-disponible.jpg'" />
+          </div>
+          <div class="tarjeta-producto__text">
+            <p class="tarjeta-producto__title">${producto.nombre || "Producto sin nombre"}</p>
+            <p class="tarjeta-producto__description">${producto.descripcion || ""}</p>
+          </div>
+          <div class="tarjeta-producto__footer">
+            <div class="tarjeta-producto__price">$${(producto.precio || 0).toLocaleString('es-CL')}</div>
+            <div class="tarjeta-producto__button">
+              <svg height="16" width="16" viewBox="0 0 24 24">
+                <path stroke-width="2" stroke="currentColor" d="M4 12H20M12 4V20" fill="currentColor"></path>
+              </svg>
             </div>
           </div>
-        `;
+        </div>
+      `;
 
       tarjeta.addEventListener("click", () => {
         const modal = document.getElementById("modal-producto");
@@ -367,14 +418,13 @@ esperarOnFirebaseAuthStateChanged();
         document.getElementById("modal-marca").textContent = `Marca: ${producto.marca || "Sin marca"}`;
         document.getElementById("modal-precio").textContent = `${(producto.precio || 0).toLocaleString('es-CL')}`;
 
-        // Stock con color y mensaje
         const stockElemento = document.getElementById("modal-stock");
         if (producto.stock > 0) {
           stockElemento.textContent = `${producto.stock} disponibles`;
-          stockElemento.style.color = "#00c853"; // verde
+          stockElemento.style.color = "#00c853";
         } else {
           stockElemento.textContent = "No disponible";
-          stockElemento.style.color = "#d50000"; // rojo
+          stockElemento.style.color = "#d50000";
         }
 
         document.getElementById("modal-codigo").textContent = `Código: ${producto.codigo || "Sin código"}`;
@@ -391,30 +441,25 @@ esperarOnFirebaseAuthStateChanged();
         document.getElementById("modal-vencimiento").textContent = `Vencimiento: ${producto.vencimiento || "N/A"}`;
         document.getElementById("modal-imagen").src = imagenUrl;
 
-        modal.setAttribute("data-uid", doc.id);
+        modal.setAttribute("data-uid", id);
 
         const inputCantidad = document.getElementById("cantidad");
         if (inputCantidad) {
           inputCantidad.value = 1;
           inputCantidad.dataset.stock = producto.stock || 0;
 
-          // Elimina listeners anteriores para evitar duplicados
           const nuevoInput = inputCantidad.cloneNode(true);
           inputCantidad.parentNode.replaceChild(nuevoInput, inputCantidad);
-
-          // Reasignar clase y atributos necesarios
           nuevoInput.classList.add("cantidad-productos");
 
-          // Volver a inicializar botones de suma/resta con el nuevo input
-          inicializarControlesCantidad();
+          if (typeof inicializarControlesCantidad === "function") {
+            inicializarControlesCantidad();
+          }
         }
       });
 
       contenedor.appendChild(tarjeta);
     });
-
-  } catch (e) {
-    console.error("❌ Error al cargar productos:", e);
   }
 };
 

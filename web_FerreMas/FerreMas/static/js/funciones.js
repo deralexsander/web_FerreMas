@@ -632,12 +632,17 @@ if (formTransferencia) {
   //
   //---------------------------------
 
-    const botonLogout = document.getElementById('boton-logout');
+  const botonLogout = document.getElementById('boton-logout');
   if (botonLogout) {
     botonLogout.addEventListener('click', async () => {
       try {
+        // 🧹 Elimina el flag de trabajador del localStorage
+        localStorage.removeItem("esTrabajador");
+
+        // 🔒 Cierra la sesión en Firebase
         await window.firebaseAuth.signOut();
-        // Redirige al usuario a la página de inicio o login
+
+        // 🚀 Redirige al login o inicio
         window.location.href = '/acceso/';
       } catch (error) {
         alert('Error al cerrar sesión');
@@ -645,6 +650,7 @@ if (formTransferencia) {
       }
     });
   }
+
 
   //---------------------------------
   //
@@ -1725,9 +1731,29 @@ window.guardarSeleccionDireccion = async function (direccionId) {
 
 
 
+window.mostrarLoader = function () {
+  const loader = document.getElementById("pantalla-carga");
+  if (loader) {
+    loader.style.display = "flex"; // Asegura que esté visible
+    requestAnimationFrame(() => {
+      loader.classList.remove("desaparecer");
+      loader.style.opacity = "1";
+      loader.style.visibility = "visible";
+    });
+  }
+};
 
+window.ocultarLoader = function () {
+  const loader = document.getElementById("pantalla-carga");
+  if (loader) {
+    loader.classList.add("desaparecer");
 
-
+    // Esperamos a que termine la transición antes de ocultarlo completamente
+    setTimeout(() => {
+      loader.style.display = "none";
+    }, 400); // Debe coincidir con tu transition: 0.4s
+  }
+};
 
 
 
@@ -1953,6 +1979,21 @@ function cambiarDeModal(destino) {
     btnPendientes.classList.remove("active");
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
