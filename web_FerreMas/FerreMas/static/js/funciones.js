@@ -98,6 +98,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   //-----------------------------
   // Escritura en Firestore si ?status=success|failure|pending
   //-----------------------------
@@ -213,6 +228,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (estadosValidos.includes(status)) {
     esperarGuardarPedidoConAuth(status);
   }
+
+
 
 
 
@@ -632,24 +649,25 @@ if (formTransferencia) {
   //
   //---------------------------------
 
-  const botonLogout = document.getElementById('boton-logout');
-  if (botonLogout) {
-    botonLogout.addEventListener('click', async () => {
-      try {
-        // 🧹 Elimina el flag de trabajador del localStorage
-        localStorage.removeItem("esTrabajador");
+  // 👇 Esto lo agregas en el logout
+const botonLogout = document.getElementById('boton-logout');
+if (botonLogout) {
+  botonLogout.addEventListener('click', async () => {
+    try {
+      await window.firebaseAuth.signOut();
 
-        // 🔒 Cierra la sesión en Firebase
-        await window.firebaseAuth.signOut();
+      // 🧹 Limpieza al cerrar sesión
+      localStorage.removeItem("esTrabajador");
+      document.cookie = "esTrabajador=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
 
-        // 🚀 Redirige al login o inicio
-        window.location.href = '/acceso/';
-      } catch (error) {
-        alert('Error al cerrar sesión');
-        console.error(error);
-      }
-    });
-  }
+      window.location.href = '/acceso/';
+    } catch (error) {
+      alert('Error al cerrar sesión');
+      console.error(error);
+    }
+  });
+}
+
 
 
   //---------------------------------

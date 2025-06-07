@@ -5,90 +5,96 @@ window.addEventListener('DOMContentLoaded', () => {
   //
   //---------------------------------
 
-  function esperarOnFirebaseAuthStateChanged() {
-    if (
-      typeof window.onFirebaseAuthStateChanged === "function" &&
-      typeof window.firebaseAuth !== "undefined"
-    ) {
-      window.onFirebaseAuthStateChanged(async (user) => {
-        if (!user) {
-          console.log("No hay usuario autenticado");
-          // Limpia cache si no hay sesión
-          localStorage.removeItem("esTrabajador");
-          return;
-        }
+function esperarOnFirebaseAuthStateChanged() {
+  if (
+    typeof window.onFirebaseAuthStateChanged === "function" &&
+    typeof window.firebaseAuth !== "undefined"
+  ) {
+    window.onFirebaseAuthStateChanged(async (user) => {
+      if (!user) {
+        console.log("No hay usuario autenticado");
 
-        const ruta = window.location.pathname;
-        if (ruta !== "/perfil/") return;
+        localStorage.removeItem("esTrabajador");
+        document.cookie = "esTrabajador=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
 
-        // Mostrar loader
-        if (typeof window.mostrarLoader === "function") window.mostrarLoader();
+        return;
+      }
 
-        // Verificar si ya se sabe si es trabajador
-        const cacheTrabajador = localStorage.getItem("esTrabajador");
+      const ruta = window.location.pathname;
+      const mostrarLoader = ruta === "/perfil/" && typeof window.mostrarLoader === "function";
+      const ocultarLoader = ruta === "/perfil/" && typeof window.ocultarLoader === "function";
 
-        if (cacheTrabajador !== null) {
-          const esTrabajador = cacheTrabajador === "true";
+      if (mostrarLoader) window.mostrarLoader();
 
+      if (!window.doc || !window.getDoc || !window.updateDoc) {
+        const { doc, getDoc, updateDoc } = await import(
+          "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"
+        );
+        window.doc = doc;
+        window.getDoc = getDoc;
+        window.updateDoc = updateDoc;
+      }
+
+      try {
+        const docRef = window.doc(window.firebaseDB, "trabajadores", user.uid);
+        const docSnap = await window.getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const datos = docSnap.data();
+          window.usuarioActual = datos;
+
+          // ✅ Guardar rol como trabajador
+          localStorage.setItem("esTrabajador", "true");
+          document.cookie = "esTrabajador=true; path=/";
+
+          const mostrarBotones = datos.cambiarContraseña === false;
           document.querySelectorAll(".solo-trabajador").forEach((boton) => {
-            boton.style.display = esTrabajador ? "block" : "none";
+            boton.style.display = mostrarBotones ? "block" : "none";
           });
 
-          if (typeof window.ocultarLoader === "function") window.ocultarLoader();
-          return; // ⏹ No seguimos, ya usamos el cache
-        }
-
-        // 🔄 Si no hay cache, verificar en Firestore
-        if (
-          typeof window.doc !== "function" ||
-          typeof window.getDoc !== "function"
-        ) {
-          const { doc, getDoc } = await import(
-            "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"
-          );
-          window.doc = doc;
-          window.getDoc = getDoc;
-        }
-
-        try {
-          const docRef = window.doc(window.firebaseDB, "trabajadores", user.uid);
-          const docSnap = await window.getDoc(docRef);
-
-          if (docSnap.exists()) {
-            const datos = docSnap.data();
-            window.usuarioActual = datos;
-            localStorage.setItem("esTrabajador", "true");
-
-            document.querySelectorAll(".solo-trabajador").forEach((boton) => {
-              boton.style.display = "block";
-            });
-
-            if (!datos.activo) {
-              document.querySelectorAll(".btn-perfil").forEach((btn) => {
-                btn.disabled = true;
-                btn.classList.add("deshabilitado");
-              });
-            }
-          } else {
-            console.warn("No es trabajador");
-            localStorage.setItem("esTrabajador", "false");
-
-            document.querySelectorAll(".solo-trabajador").forEach((boton) => {
-              boton.style.display = "none";
+          if (!datos.activo) {
+            document.querySelectorAll(".btn-perfil").forEach((btn) => {
+              btn.disabled = true;
+              btn.classList.add("deshabilitado");
             });
           }
-        } catch (error) {
-          console.error("❌ Error al obtener datos del trabajador:", error);
-        } finally {
-          if (typeof window.ocultarLoader === "function") window.ocultarLoader();
-        }
-      });
-    } else {
-      setTimeout(esperarOnFirebaseAuthStateChanged, 100);
-    }
-  }
 
-  esperarOnFirebaseAuthStateChanged();
+          if (datos.cambiarContraseña === true) {
+            const modal = document.getElementById("passwordChangeModal");
+            const overlay = document.getElementById("bloqueoTotal");
+            if (modal) modal.style.display = "block";
+            if (overlay) overlay.style.display = "block";
+          }
+
+        } else {
+          // ❌ No es trabajador
+          console.warn("No es trabajador");
+
+          localStorage.setItem("esTrabajador", "false");
+          document.cookie = "esTrabajador=false; path=/";
+
+          document.querySelectorAll(".solo-trabajador").forEach((boton) => {
+            boton.style.display = "none";
+          });
+        }
+      } catch (error) {
+        console.error("❌ Error al obtener datos del trabajador:", error);
+      } finally {
+        if (ocultarLoader) window.ocultarLoader();
+      }
+    });
+  } else {
+    setTimeout(esperarOnFirebaseAuthStateChanged, 100);
+  }
+}
+
+esperarOnFirebaseAuthStateChanged();
+
+
+
+
+
+
 
 
   //---------------------------------
@@ -1367,16 +1373,16 @@ esperarFirebaseYCargar();
     if (e.target.classList.contains("btn-armar")) {
       const pedidoRef = window.doc(window.firebaseDB, "pedidos", id);
       const snap = await window.getDoc(pedidoRef);
-      if (!snap.exists()) return mostrarMensaje("❌ No existe el pedido.");
+      if (!snap.exists()) return mostrarMensaje(" No existe el pedido.");
 
       const data = snap.data();
       if ((data.pedido || "").toLowerCase() !== "en preparación") {
-        mostrarMensaje("⚠️ El pedido ya fue tomado.");
+        mostrarMensaje(" El pedido ya fue tomado.");
         return location.reload();
       }
 
       await window.updateDoc(pedidoRef, { pedido: "En preparación - armando" });
-      mostrarMensaje("✅ Pedido tomado correctamente.");
+      mostrarMensaje(" Pedido tomado correctamente.",);
       return location.reload();
     }
 

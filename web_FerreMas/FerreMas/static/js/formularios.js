@@ -383,7 +383,64 @@ window.formTransferencias = async function () {
 
 
 
+document.getElementById("changePasswordForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
+  const currentPassword = document.getElementById("currentPassword").value.trim();
+  const newPassword = document.getElementById("newPassword").value.trim();
+  const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    mostrarMensaje("Por favor completa todos los campos.", "error");
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    mostrarMensaje("La nueva contraseña debe tener al menos 6 caracteres.", "error");
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    mostrarMensaje("❌ Las contraseñas nuevas no coinciden.", "error");
+    return;
+  }
+
+  if (newPassword === currentPassword) {
+    mostrarMensaje("❌ La nueva contraseña no puede ser igual a la actual.", "error");
+    return;
+  }
+
+  const user = window.firebaseAuth.currentUser;
+  if (!user || !user.email) {
+    mostrarMensaje("No se pudo validar tu sesión.", "error");
+    return;
+  }
+
+  try {
+    const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } = await import(
+      "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"
+    );
+
+    const credenciales = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credenciales);
+    await updatePassword(user, newPassword);
+
+    const docRef = window.doc(window.firebaseDB, "trabajadores", user.uid);
+    await window.updateDoc(docRef, { cambiarContraseña: false });
+
+    mostrarMensaje("✅ Contraseña actualizada correctamente. Serás redirigido al inicio.", "success");
+
+    // Ocultar el modal y redirigir
+    document.getElementById("bloqueoTotal").style.display = "none";
+
+    setTimeout(() => {
+      window.location.href = "/acceso/";
+    }, 2000);
+  } catch (err) {
+    console.error("❌ Error al cambiar contraseña:", err);
+    mostrarMensaje("Error al actualizar la contraseña. Asegúrate de que la contraseña actual sea correcta.", "error");
+  }
+});
 
 
 
