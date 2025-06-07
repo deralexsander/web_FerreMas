@@ -2261,6 +2261,14 @@ select option {
   padding-bottom: 4px;
 }
 
+.grid-sucursales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  width: 100%;
+  margin-top: 24px;
+  align-items: stretch;
+}
 
 
   .modal-producto {
