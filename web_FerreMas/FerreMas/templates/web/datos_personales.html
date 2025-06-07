@@ -7,7 +7,7 @@
 
 {% block contenido %}
 
-<a class="button-volver contenedor_boton_volver" href="{% url 'perfil' %}">
+<a class="button-volver contenedor_boton_volver oculto" href="{% url 'perfil' %}">
   ⬅ Volver
 </a>
 
@@ -139,14 +139,19 @@
 <!-- MODAL de tabla de direcciones -->
 <!-- ======================= -->
 <div id="modal-direcciones" class="fondo-modal-trabajadores" style="display: none;">
-  <div class="modal-content">
-    <span id="cerrar-modal-direcciones" class="cerrar-modal">&times;</span>
+    <div id="cerrar-modal-direcciones" class="boton_salir oculto">
+    <svg data-lucide="x" class="icono-salir"></svg>
+  </div>
+
+  
+  <div class="modal_productos">
+
     <h2>Direcciones guardadas</h2>
-    <table class="tabla-direcciones">
+    <table class="">
       <tbody id="tbody-direcciones"></tbody>
     </table>
 
-    <div id="direccion-seleccionada-box" style="margin-top: 1rem; font-weight: bold;"></div>
+    <div id="direccion-seleccionada-box" ></div>
   </div>
 </div>
 

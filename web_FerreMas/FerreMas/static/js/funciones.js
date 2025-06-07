@@ -4,10 +4,50 @@
 //
 //---------------------------------
 let centrarLogin;
-let mostrarMensaje;
 let correoTrabajadorActual = "";
 let passwordTrabajadorActual = "";
 
+//---------------------------------
+// Utilidades generales y globales
+//---------------------------------
+function mostrarMensaje(texto, tipo = 'error') {
+  const esError = tipo === 'error';
+  const contenedor = document.getElementById(
+    esError ? 'contenedor-mensaje' : 'contenedor-mensaje-success'
+  );
+  const mensajeTexto = document.getElementById(
+    esError ? 'mensaje-texto' : 'mensaje-texto-success'
+  );
+  if (contenedor && mensajeTexto) {
+    mensajeTexto.textContent = texto;
+    contenedor.style.display = 'block';
+    contenedor.classList.remove('animacion-salida', 'oculto');
+    contenedor.classList.add('animacion-entrada');
+    setTimeout(() => {
+      contenedor.classList.remove('animacion-entrada');
+      contenedor.classList.add('animacion-salida');
+      setTimeout(() => {
+        contenedor.classList.remove('animacion-salida');
+        contenedor.classList.add('oculto');
+        contenedor.style.display = 'none';
+      }, 400);
+    }, 4000);
+  } else {
+    alert(texto);
+  }
+}
+window.mostrarMensaje = mostrarMensaje;
+
+function cambiarFormulario(desde, hacia) {
+  if (!desde || !hacia) return;
+  desde.style.display = "none";
+  hacia.style.display = "block";
+}
+window.cambiarFormulario = cambiarFormulario;
+
+//---------------------------------
+// DOMContentLoaded principal
+//---------------------------------
 window.addEventListener('DOMContentLoaded', async () => {
   aplicarAnimacionSiEsRegistroPersonal();
 
@@ -97,21 +137,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       cambiarFormulario(formTransferencia, seccionMetodosPago);
     });
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   //-----------------------------
   // Escritura en Firestore si ?status=success|failure|pending
@@ -212,12 +237,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-
-
-
-
-
-
   //-----------------------------
   // Detectar si hay status en la URL
   //-----------------------------
@@ -228,12 +247,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (estadosValidos.includes(status)) {
     esperarGuardarPedidoConAuth(status);
   }
-
-
-
-
-
-
 
   //---------------------------------
   //
@@ -334,48 +347,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
-
-
-
-
-
-  //---------------------------------
-  //
-  // Mensajes
-  //
-  //---------------------------------
-  function mostrarMensaje(texto, tipo = 'error') {
-    const esError = tipo === 'error';
-
-    const contenedor = document.getElementById(
-      esError ? 'contenedor-mensaje' : 'contenedor-mensaje-success'
-    );
-    const mensajeTexto = document.getElementById(
-      esError ? 'mensaje-texto' : 'mensaje-texto-success'
-    );
-
-    if (contenedor && mensajeTexto) {
-      mensajeTexto.textContent = texto;
-
-      contenedor.style.display = 'block';
-      contenedor.classList.remove('animacion-salida', 'oculto');
-      contenedor.classList.add('animacion-entrada');
-
-      setTimeout(() => {
-        contenedor.classList.remove('animacion-entrada');
-        contenedor.classList.add('animacion-salida');
-
-        setTimeout(() => {
-          contenedor.classList.remove('animacion-salida');
-          contenedor.classList.add('oculto');
-          contenedor.style.display = 'none';
-        }, 400);
-      }, 4000);
-    } else {
-      alert(texto);
-    }
-  }
-
 
   //---------------------------------
   //
@@ -555,90 +526,90 @@ window.addEventListener('DOMContentLoaded', async () => {
   //
   //---------------------------------
 
-if (formTransferencia) {
-  formTransferencia.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  if (formTransferencia) {
+    formTransferencia.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    // 1. Validar productos en el carrito
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    if (carrito.length === 0) {
-      mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.", "error");
-      return;
-    }
-
-    // 2. Validar tipo de entrega
-    const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value;
-    const region = document.getElementById("region-sucursal")?.value;
-    const comuna = document.getElementById("comuna-sucursal")?.value;
-
-    if (tipoEntrega === "tienda") {
-      if (!region) {
-        mostrarMensaje("Debes seleccionar una región para el retiro en tienda.", "error");
+      // 1. Validar productos en el carrito
+      const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      if (carrito.length === 0) {
+        mostrarMensaje("Tu carrito está vacío. Debes agregar productos antes de pagar.", "error");
         return;
       }
-      if (!comuna) {
-        mostrarMensaje("Debes seleccionar una comuna para el retiro en tienda.", "error");
-        return;
-      }
-    }
 
-    // 3. Validar campos del formulario
-    const nombre = formTransferencia.querySelector('input[name="nombre"]')?.value.trim();
-    const rut = formTransferencia.querySelector('input[name="rut"]')?.value.trim();
-    const banco = document.getElementById("banco")?.value;
-    const acepta = formTransferencia.querySelector('input[name="acepta"]')?.checked;
+      // 2. Validar tipo de entrega
+      const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value;
+      const region = document.getElementById("region-sucursal")?.value;
+      const comuna = document.getElementById("comuna-sucursal")?.value;
 
-    const regexRut = /^\d{7,8}-[\dkK]$/;
-
-    if (!nombre) {
-      mostrarMensaje("Por favor ingresa el nombre del titular.", "error");
-      return;
-    }
-    if (!rut || !regexRut.test(rut)) {
-      mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9", "error");
-      return;
-    }
-    if (!banco) {
-      mostrarMensaje("Debes seleccionar un banco.", "error");
-      return;
-    }
-    if (!acepta) {
-      mostrarMensaje("Debes aceptar que el pago será validado manualmente.", "error");
-      return;
-    }
-
-    // 4. Verificar si el usuario ha iniciado sesión
-    const user = firebaseAuth?.currentUser;
-    if (!user) {
-      mostrarMensaje("Debes iniciar sesión para realizar la transferencia.", "error");
-      return;
-    }
-
-    // 5. Validar dirección SOLO si es despacho a domicilio
-    if (tipoEntrega === "domicilio") {
-      try {
-        const direccionesRef = collection(firebaseDB, "direcciones", user.uid, "items");
-        const direccionesSnap = await getDocs(query(direccionesRef, orderBy("fechaGuardado", "desc"), limit(1)));
-
-        if (direccionesSnap.empty) {
-          mostrarMensaje("No tienes ninguna dirección guardada. Agrega una antes de continuar.", "error");
+      if (tipoEntrega === "tienda") {
+        if (!region) {
+          mostrarMensaje("Debes seleccionar una región para el retiro en tienda.", "error");
           return;
         }
+        if (!comuna) {
+          mostrarMensaje("Debes seleccionar una comuna para el retiro en tienda.", "error");
+          return;
+        }
+      }
 
-      } catch (error) {
-        console.error("Error al validar la dirección:", error);
-        mostrarMensaje(" Ocurrió un error al validar tu dirección. Intenta nuevamente.", "error");
+      // 3. Validar campos del formulario
+      const nombre = formTransferencia.querySelector('input[name="nombre"]')?.value.trim();
+      const rut = formTransferencia.querySelector('input[name="rut"]')?.value.trim();
+      const banco = document.getElementById("banco")?.value;
+      const acepta = formTransferencia.querySelector('input[name="acepta"]')?.checked;
+
+      const regexRut = /^\d{7,8}-[\dkK]$/;
+
+      if (!nombre) {
+        mostrarMensaje("Por favor ingresa el nombre del titular.", "error");
         return;
       }
-    }
+      if (!rut || !regexRut.test(rut)) {
+        mostrarMensaje("El RUT ingresado no es válido. Ej: 12345678-9", "error");
+        return;
+      }
+      if (!banco) {
+        mostrarMensaje("Debes seleccionar un banco.", "error");
+        return;
+      }
+      if (!acepta) {
+        mostrarMensaje("Debes aceptar que el pago será validado manualmente.", "error");
+        return;
+      }
 
-    // 6. Todo validado, mostrar mensaje de carga
-    mostrarMensaje(" Guardando carrito, Por favor no recargar. ", "info", "success");
+      // 4. Verificar si el usuario ha iniciado sesión
+      const user = firebaseAuth?.currentUser;
+      if (!user) {
+        mostrarMensaje("Debes iniciar sesión para realizar la transferencia.", "error");
+        return;
+      }
 
-    // 7. Ejecutar función que guarda la transferencia
-    await formTransferencias();
-  });
-}
+      // 5. Validar dirección SOLO si es despacho a domicilio
+      if (tipoEntrega === "domicilio") {
+        try {
+          const direccionesRef = collection(firebaseDB, "direcciones", user.uid, "items");
+          const direccionesSnap = await getDocs(query(direccionesRef, orderBy("fechaGuardado", "desc"), limit(1)));
+
+          if (direccionesSnap.empty) {
+            mostrarMensaje("No tienes ninguna dirección guardada. Agrega una antes de continuar.", "error");
+            return;
+          }
+
+        } catch (error) {
+          console.error("Error al validar la dirección:", error);
+          mostrarMensaje(" Ocurrió un error al validar tu dirección. Intenta nuevamente.", "error");
+          return;
+        }
+      }
+
+      // 6. Todo validado, mostrar mensaje de carga
+      mostrarMensaje(" Guardando carrito, Por favor no recargar. ", "info", "success");
+
+      // 7. Ejecutar función que guarda la transferencia
+      await formTransferencias();
+    });
+  }
 
 
 
@@ -650,23 +621,23 @@ if (formTransferencia) {
   //---------------------------------
 
   // 👇 Esto lo agregas en el logout
-const botonLogout = document.getElementById('boton-logout');
-if (botonLogout) {
-  botonLogout.addEventListener('click', async () => {
-    try {
-      await window.firebaseAuth.signOut();
+  const botonLogout = document.getElementById('boton-logout');
+  if (botonLogout) {
+    botonLogout.addEventListener('click', async () => {
+      try {
+        await window.firebaseAuth.signOut();
 
-      // 🧹 Limpieza al cerrar sesión
-      localStorage.removeItem("esTrabajador");
-      document.cookie = "esTrabajador=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        // 🧹 Limpieza al cerrar sesión
+        localStorage.removeItem("esTrabajador");
+        document.cookie = "esTrabajador=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
 
-      window.location.href = '/acceso/';
-    } catch (error) {
-      alert('Error al cerrar sesión');
-      console.error(error);
-    }
-  });
-}
+        window.location.href = '/acceso/';
+      } catch (error) {
+        alert('Error al cerrar sesión');
+        console.error(error);
+      }
+    });
+  }
 
 
 
@@ -772,7 +743,7 @@ if (botonLogout) {
       mostrarMensaje('Correo y contraseña copiados al portapapeles', "success");
     }
   }
-//---------------------------------
+  //---------------------------------
 //
 // función para hacer los pasos de registro de trabajador
 //
@@ -1174,18 +1145,6 @@ if (window.location.pathname === "/crear_producto/") {
     console.error("❌ No se encontró alguno de los elementos del modal.");
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 window.inicializarControlesCantidad = function () {
   const contenedor = document.querySelector('.input-cantidad-container');
@@ -1973,6 +1932,9 @@ iniciarSesionCliente();
       btnHistorial.classList.remove("active");
     } else {
       cambiarFormulario(modalPendientes, modalHistorial);
+      if (typeof cargarHistorialTransferencias === "function") {
+        cargarHistorialTransferencias(); // ← Carga tabla al abrir historial
+      }
       btnHistorial.classList.add("active");
       btnPendientes.classList.remove("active");
     }
@@ -1982,37 +1944,4 @@ iniciarSesionCliente();
     btnPendientes.addEventListener("click", () => cambiarDeModal("pendientes"));
     btnHistorial.addEventListener("click", () => cambiarDeModal("historial"));
   }
-
-
-
-function cambiarDeModal(destino) {
-  if (destino === "pendientes") {
-    cambiarFormulario(modalHistorial, modalPendientes);
-    btnPendientes.classList.add("active");
-    btnHistorial.classList.remove("active");
-  } else {
-    cambiarFormulario(modalPendientes, modalHistorial);
-    cargarHistorialTransferencias(); // ← Carga tabla al abrir historial
-    btnHistorial.classList.add("active");
-    btnPendientes.classList.remove("active");
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 });
