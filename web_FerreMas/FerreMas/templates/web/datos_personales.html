@@ -7,7 +7,7 @@
 
 {% block contenido %}
 
-<a class="button-volver contenedor_boton_volver oculto" href="{% url 'perfil' %}">
+<a class="button-volver contenedor_boton_volver" href="{% url 'perfil' %}">
   ⬅ Volver
 </a>
 
@@ -146,13 +146,26 @@
   
   <div class="modal_productos">
 
-    <h2>Direcciones guardadas</h2>
-    <table class="">
+    <h2 class="centrar-titulo-modal">Direcciones guardadas</h2>
+
+    <div class="contenedor_informacion">
+
+    <table class="tabla-transferencias ">
       <tbody id="tbody-direcciones"></tbody>
     </table>
 
-    <div id="direccion-seleccionada-box" ></div>
+    </div>
+
+
+
+
+    
   </div>
+
+
+
+
+  
 </div>
 
 

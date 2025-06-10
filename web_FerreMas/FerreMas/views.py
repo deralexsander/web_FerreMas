@@ -82,7 +82,7 @@ def crear_preferencia(request):
     if request.method == 'POST':
         try:
             datos = json.loads(request.body)
-            sdk = mercadopago.SDK("TU_ACCESS_TOKEN_AQUI")
+            sdk = mercadopago.SDK("APP_USR-3060994062731939-051521-21ad6cf9dbf496c7174f3213cbc90788-445521183")
             items = [{
                 "title": item["nombre"],
                 "quantity": int(item["cantidad"]),

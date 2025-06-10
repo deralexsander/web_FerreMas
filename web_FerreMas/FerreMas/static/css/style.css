@@ -2962,6 +2962,15 @@ hr {
 }
 
 
+.grid-sucursales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  width: 100%;
+  margin-top: 24px;
+  align-items: stretch;
+}
+
 /* Estados base */
 #modal-producto {
   display: none;
@@ -3072,7 +3081,11 @@ hr {
   border-radius: 10px;
 }
 
-
+.centrar-titulo-modal {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
 
 
 
@@ -3167,6 +3180,21 @@ hr {
   flex-direction: column;
   gap: 1rem;
   background-color: #0a4a829c;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 0 0 2px hsla(186, 88%, 46%, 1);
+  color: rgb(255, 255, 255);
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px;
+}
+
+
+
+.contenedor-pedido-grid-seleccionado {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: #0b67b79c;
   padding: 16px;
   border-radius: 12px;
   box-shadow: 0 0 0 2px hsla(186, 88%, 46%, 1);
