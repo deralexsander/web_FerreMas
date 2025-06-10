@@ -279,15 +279,10 @@ if (form) {
 
 
 
-
-
 window.formTransferencias = async function () {
   try {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    if (carrito.length === 0) {
-      mostrarMensaje("Tu carrito está vacío.");
-      return;
-    }
+    if (carrito.length === 0) return;
 
     const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.value || "tienda";
 
@@ -296,17 +291,10 @@ window.formTransferencias = async function () {
     const rutTitular = document.querySelector('input[name="rut"]')?.value.trim();
     const banco = document.getElementById("banco")?.value;
 
-    // Validación básica
-    if (!nombreTitular || !rutTitular || !banco) {
-      mostrarMensaje("Faltan datos de transferencia.");
-      return;
-    }
+    if (!nombreTitular || !rutTitular || !banco) return;
 
     const user = firebaseAuth?.currentUser;
-    if (!user) {
-      mostrarMensaje("Debes iniciar sesión para continuar.");
-      return;
-    }
+    if (!user) return;
 
     // Calcular total base
     const totalBase = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
@@ -318,24 +306,23 @@ window.formTransferencias = async function () {
     if (tipoEntrega === "tienda") {
       region = document.getElementById("region-sucursal")?.value;
       comuna = document.getElementById("comuna-sucursal")?.value;
-
-      if (!region || !comuna) {
-        mostrarMensaje("Debes seleccionar región y comuna para el retiro.");
-        return;
-      }
+      if (!region || !comuna) return;
     } else if (tipoEntrega === "domicilio") {
-      const direccionesRef = collection(firebaseDB, "direcciones", user.uid, "items");
-      const direccionesSnap = await getDocs(query(direccionesRef, orderBy("fechaGuardado", "desc"), limit(1)));
+      // ✅ Obtener dirección seleccionada desde Firestore
+      const refSeleccion = doc(firebaseDB, "direccionesSeleccionadas", user.uid);
+      const snapSeleccion = await getDoc(refSeleccion);
+      if (!snapSeleccion.exists()) return;
 
-      if (direccionesSnap.empty) {
-        mostrarMensaje("No tienes una dirección registrada para despacho.");
-        return;
-      }
+      const direccionIdSeleccionada = snapSeleccion.data().direccionId;
+      const direccionRef = doc(firebaseDB, "direcciones", user.uid, "items", direccionIdSeleccionada);
+      const direccionSnap = await getDoc(direccionRef);
+      if (!direccionSnap.exists()) return;
 
-      direccionSeleccionada = direccionesSnap.docs[0].data();
+      direccionSeleccionada = direccionSnap.data();
       totalFinal += 5000;
     }
 
+    // Crear pedido
     const ref = collection(firebaseDB, "pedidos");
     const nuevoDoc = await addDoc(ref, {
       uidCliente: user.uid,
@@ -354,26 +341,23 @@ window.formTransferencias = async function () {
       timestamp: Timestamp.now()
     });
 
-    // Guardamos el ID real como campo uid
+    // Guardar uid del documento dentro del documento
     await setDoc(nuevoDoc, { uid: nuevoDoc.id }, { merge: true });
 
-    mostrarMensaje("✅ Solicitud enviada correctamente. Validaremos el pago.");
-
-    // 🧹 Limpiar el carrito y actualizar interfaz
+    // Limpiar carrito y recargar interfaz
     localStorage.removeItem("carrito");
 
     if (typeof window.renderizarCarrito === "function") {
       window.renderizarCarrito();
     }
 
-    // 🔁 Refrescar la página después de 2 segundos
     setTimeout(() => {
       location.reload();
     }, 2000);
 
   } catch (error) {
-    console.error("Error al guardar transferencia:", error);
-    mostrarMensaje("❌ Ocurrió un error al enviar la solicitud. Intenta nuevamente.");
+    console.warn("Error al guardar transferencia:", error);
+    return;
   }
 };
 
