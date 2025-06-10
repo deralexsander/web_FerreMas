@@ -97,59 +97,123 @@ esperarOnFirebaseAuthStateChanged();
 
 
 
-  //---------------------------------
-  //
-  // tabla de todos los trabajadores
-  //
-  //---------------------------------
-  window.cargarTrabajadores = async function () {
-    try {
-      if (!window.firebaseDB || !window.getDocs || !window.collection) {
-        setTimeout(window.cargarTrabajadores, 100);
-        return;
-      }
-
-      const db = window.firebaseDB;
-      const tbody = document.querySelector("#tabla-trabajadores tbody");
-      if (!tbody) return;
-
-      tbody.innerHTML = "";
-
-      const querySnapshot = await window.getDocs(window.collection(db, "trabajadores"));
-
-      querySnapshot.forEach((docSnap) => {
-        const trabajador = docSnap.data();
-        const uid = docSnap.id;
-
-        const fila = document.createElement("tr");
-
-        fila.innerHTML = `
-          <td>${trabajador.nombre || ""} ${trabajador.apellidoPaterno || ""}</td>
-          <td>${trabajador.correo || ""}</td>
-          <td>${trabajador.rut || ""}</td>
-          <td>${trabajador.rol || ""}</td>
-          <td>${trabajador.creadoEn?.toDate().toLocaleString() || ""}</td>
-          <td>${trabajador.passwordInicio || ""}</td>
-          <td>${trabajador.cambiarContraseña ? "Sí" : "No"}</td>
-          <td>
-            <button class="btn-eliminar" data-id="${uid}">❌</button>
-            <button class="btn-cambiar" data-id="${uid}">🔒</button>
-          </td>
-        `;
-
-        tbody.appendChild(fila);
-      });
-
-      if (typeof window.agregarEventosTabla === "function") {
-        window.agregarEventosTabla();
-      }
-
-    } catch (error) {
-      console.error("❌ Error al cargar trabajadores:", error);
+//---------------------------------
+//
+// tabla de todos los trabajadores
+//
+//---------------------------------
+window.cargarTrabajadores = async function () {
+  try {
+    if (!window.firebaseDB || !window.getDocs || !window.collection || !window.doc || !window.deleteDoc || !window.updateDoc) {
+      setTimeout(window.cargarTrabajadores, 100);
+      return;
     }
-  };
 
-  cargarTrabajadores();
+    const db = window.firebaseDB;
+    const tbody = document.querySelector("#tabla-trabajadores tbody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "<tr><td colspan='8'>Cargando trabajadores...</td></tr>";
+
+    const querySnapshot = await window.getDocs(window.collection(db, "trabajadores"));
+
+    if (querySnapshot.empty) {
+      tbody.innerHTML = "<tr><td colspan='8'>No hay trabajadores registrados.</td></tr>";
+      return;
+    }
+
+    tbody.innerHTML = "";
+
+    querySnapshot.forEach((docSnap) => {
+      const trabajador = docSnap.data();
+      const uid = docSnap.id;
+
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td colspan="8">
+          <div class="contenedor-pedido-grid">
+            <div class="lado-datos">
+              <div class="lado-izquierdo">
+                <p><strong>Nombre:</strong> ${trabajador.nombre || ""} ${trabajador.apellidoPaterno || ""} ${trabajador.apellidoMaterno || ""}</p>
+                <p><strong>Correo:</strong> ${trabajador.correo || "-"}</p>
+                <p><strong>RUT:</strong> ${trabajador.rut || "-"}</p>
+              </div>
+              <div class="lado-derecho">
+                <p><strong>Rol actual:</strong> <span class="rol-actual">${trabajador.rol || "-"}</span></p>
+                <p><strong>Fecha creación:</strong> ${trabajador.creadoEn?.toDate().toLocaleString() || "-"}</p>
+                <p><strong>Contraseña inicial:</strong> ${trabajador.password || "-"}</p>
+                <p><strong>Cambiar contraseña:</strong> ${trabajador.cambiarContraseña ? "Sí" : "No"}</p>
+              </div>
+            </div>
+            <div class="fila-inferior">
+              <div class="contenedor-botones">
+                <select class="btn selector-rol" data-id="${uid}">
+                  <option value="" disabled selected>🔁 Cambiar rol</option>
+                  <option value="admin">Administrador</option>
+                  <option value="vendedor">Vendedor</option>
+                  <option value="contador">Contador</option>
+                  <option value="bodeguero">Bodeguero</option>
+                </select>
+                <button class="btn btn-rechazar" data-id="${uid}">❌ Eliminar</button>
+              </div>
+            </div>
+          </div>
+        </td>
+      `;
+
+      tbody.appendChild(fila);
+    });
+
+    // Eventos para eliminar
+    document.querySelectorAll(".btn-rechazar").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        const id = e.currentTarget.dataset.id;
+        if (!id) return;
+        if (!confirm("¿Seguro que deseas eliminar este trabajador?")) return;
+        try {
+          await window.deleteDoc(window.doc(window.firebaseDB, "trabajadores", id));
+          mostrarMensaje("Trabajador eliminado correctamente", "success");
+          window.cargarTrabajadores();
+        } catch (err) {
+          console.error("❌ Error al eliminar trabajador:", err);
+          mostrarMensaje("Error al eliminar trabajador");
+        }
+      });
+    });
+
+    // Eventos para cambiar rol
+    document.querySelectorAll(".selector-rol").forEach((select) => {
+      select.addEventListener("change", async (e) => {
+        const id = e.currentTarget.dataset.id;
+        const nuevoRol = e.currentTarget.value;
+        if (!id || !nuevoRol) return;
+
+        const confirmar = confirm(`¿Estás seguro que quieres cambiar el rol de este trabajador a "${nuevoRol}"?`);
+        if (!confirmar) return;
+
+        try {
+          const ref = window.doc(window.firebaseDB, "trabajadores", id);
+          await window.updateDoc(ref, { rol: nuevoRol });
+          mostrarMensaje("Rol actualizado correctamente", "success");
+          window.cargarTrabajadores();
+        } catch (err) {
+          console.error("❌ Error al cambiar rol:", err);
+          mostrarMensaje("Error al actualizar rol");
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error("❌ Error al cargar trabajadores:", error);
+    const tbody = document.querySelector("#tabla-trabajadores tbody");
+    if (tbody) {
+      tbody.innerHTML = "<tr><td colspan='8'>Error al cargar los datos.</td></tr>";
+    }
+  }
+};
+
+window.cargarTrabajadores();
+
 
   //---------------------------------
   //

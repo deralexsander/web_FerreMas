@@ -207,27 +207,32 @@
 
 </div>
 
-<!-- Modal de tabla trabajadores -->
-<div id="modal-tabla-trabajadores" class="modal">
-  <div class="modal-contenido">
-    <span id="cerrar-modal" class="cerrar">&times;</span>
-    <table id="tabla-trabajadores" border="1">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Correo</th>
-          <th>RUT</th>
-          <th>Rol</th>
-          <th>Fecha creación</th>
-          <th>Contraseña de inicio</th>
-          <th>Cambiar contraseña</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+<!-- ======================= -->
+<!-- MODAL de tabla de trabajadores -->
+<!-- ======================= -->
+<div id="modal-tabla-trabajadores" class="fondo-modal-trabajadores" style="display: none;">
+  <div id="cerrar-modal" class="boton_salir oculto">
+    <svg data-lucide="x" class="icono-salir"></svg>
+  </div>
+
+  <div class="modal_productos">
+    <h2 class="centrar-titulo-modal">Trabajadores registrados</h2>
+
+    <div class="contenedor_informacion">
+      <table id="tabla-trabajadores" class="tabla-transferencias">
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 </div>
+
+
+
+
+
+  
+</div>
+
 
 
 

@@ -4,11 +4,52 @@
 //
 //---------------------------------
 let centrarLogin;
-let mostrarMensaje;
 let correoTrabajadorActual = "";
 let passwordTrabajadorActual = "";
 
+
+
+
 window.addEventListener('DOMContentLoaded', async () => {
+
+  //---------------------------------
+  //
+  // Función global para mostrar mensajes
+  //
+  //---------------------------------
+  window.mostrarMensaje = function (texto, tipo = 'error') {
+    const esError = tipo === 'error';
+
+    const contenedor = document.getElementById(
+      esError ? 'contenedor-mensaje' : 'contenedor-mensaje-success'
+    );
+    const mensajeTexto = document.getElementById(
+      esError ? 'mensaje-texto' : 'mensaje-texto-success'
+    );
+
+    if (contenedor && mensajeTexto) {
+      mensajeTexto.textContent = texto;
+
+      contenedor.style.display = 'block';
+      contenedor.classList.remove('animacion-salida', 'oculto');
+      contenedor.classList.add('animacion-entrada');
+
+      setTimeout(() => {
+        contenedor.classList.remove('animacion-entrada');
+        contenedor.classList.add('animacion-salida');
+
+        setTimeout(() => {
+          contenedor.classList.remove('animacion-salida');
+          contenedor.classList.add('oculto');
+          contenedor.style.display = 'none';
+        }, 400);
+      }, 4000);
+    } else {
+      alert(texto);
+    }
+  };
+
+
   aplicarAnimacionSiEsRegistroPersonal();
 
   //---------------------------------
@@ -337,44 +378,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
 
-
-
-  //---------------------------------
-  //
-  // Mensajes
-  //
-  //---------------------------------
-  function mostrarMensaje(texto, tipo = 'error') {
-    const esError = tipo === 'error';
-
-    const contenedor = document.getElementById(
-      esError ? 'contenedor-mensaje' : 'contenedor-mensaje-success'
-    );
-    const mensajeTexto = document.getElementById(
-      esError ? 'mensaje-texto' : 'mensaje-texto-success'
-    );
-
-    if (contenedor && mensajeTexto) {
-      mensajeTexto.textContent = texto;
-
-      contenedor.style.display = 'block';
-      contenedor.classList.remove('animacion-salida', 'oculto');
-      contenedor.classList.add('animacion-entrada');
-
-      setTimeout(() => {
-        contenedor.classList.remove('animacion-entrada');
-        contenedor.classList.add('animacion-salida');
-
-        setTimeout(() => {
-          contenedor.classList.remove('animacion-salida');
-          contenedor.classList.add('oculto');
-          contenedor.style.display = 'none';
-        }, 400);
-      }, 4000);
-    } else {
-      alert(texto);
-    }
-  }
 
 
   //---------------------------------
@@ -1668,15 +1671,6 @@ window.guardarDireccion = async function () {
 };
 
 
-// ---------- Mostrar mensaje en consola ----------
-window.mostrarMensaje = function (texto, tipo = 'info') {
-  const prefix = {
-    error: '❌ ERROR:',
-    success: '✅ ÉXITO:',
-    info: 'ℹ️ INFO:'
-  }[tipo] || '';
-  console.log(`${prefix} ${texto}`);
-};
 
 // ---------- Exponer funciones ----------
 window.mostrarPaso = mostrarPaso;
@@ -1846,7 +1840,7 @@ window.seleccionarDireccion = async function (id, boton = null) {
       const contenedorFecha = contenedor.querySelector(".fila-inferior > div:first-child");
       if (contenedorFecha) {
         const fecha = formatearFecha(direccion.fechaGuardado);
-        contenedorFecha.innerHTML = `<strong>Guardado:</strong> ${fecha}<br><strong>✅ Dirección seleccionada</strong>`;
+        contenedorFecha.innerHTML = `<strong>Guardado:</strong> ${fecha}<br><strong>Dirección seleccionada</strong>`;
       }
     }
 
@@ -1859,8 +1853,10 @@ window.seleccionarDireccion = async function (id, boton = null) {
 
   } catch (error) {
     console.error("❌ Error al seleccionar dirección:", error);
+    mostrarMensaje("❌ Hubo un error al seleccionar la dirección.", "error");
   }
 };
+
 
 
 
