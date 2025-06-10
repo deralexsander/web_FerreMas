@@ -477,13 +477,11 @@ window.cargarUltimosProductos = async function () {
   //
   //---------------------------------
   window.cargarDirecciones = async function () {
-    const user = window.firebaseAuth?.currentUser;
+    // Evitar ejecución si no existe el contenedor (por ejemplo, en otras páginas)
     const tbody = document.getElementById("tbody-direcciones");
+    if (!tbody) return;
 
-    if (!tbody) {
-      console.warn("No se encontró el elemento <tbody> con ID 'tbody-direcciones'.");
-      return;
-    }
+    const user = window.firebaseAuth?.currentUser;
 
     if (!user) {
       console.warn("⚠️ No hay usuario autenticado. No se pueden cargar direcciones.");
