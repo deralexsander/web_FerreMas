@@ -494,31 +494,68 @@ window.cargarUltimosProductos = async function () {
     tbody.innerHTML = "<tr><td colspan='6'>Cargando direcciones...</td></tr>";
 
     try {
-      const ref = window.collection(window.firebaseDB, "direcciones", user.uid, "items");
-      const snapshot = await window.getDocs(ref);
+      const refDirecciones = window.collection(window.firebaseDB, "direcciones", user.uid, "items");
+      const snapshot = await window.getDocs(refDirecciones);
+
+      const refSeleccion = window.doc(window.firebaseDB, "direccionesSeleccionadas", user.uid);
+      const docSeleccionado = await window.getDoc(refSeleccion);
+      const direccionSeleccionadaId = docSeleccionado.exists() ? docSeleccionado.data().direccionId : null;
 
       if (snapshot.empty) {
-        tbody.innerHTML = "<tr><td colspan='6'>No hay direcciones guardadas.</td></tr>";
+        tbody.innerHTML = "<tr><td>No hay direcciones guardadas.</td></tr>";
         return;
       }
 
-      tbody.innerHTML = ""; // Limpiar contenido previo
+      tbody.innerHTML = "";
 
       snapshot.forEach((doc) => {
         const d = doc.data();
         const id = doc.id;
 
         const fila = document.createElement("tr");
-        fila.setAttribute("data-id", id); // 👈 esto es clave
+        fila.setAttribute("data-id", id);
+
+        const esSeleccionada = direccionSeleccionadaId === id;
+        const claseContenedor = esSeleccionada
+          ? "contenedor-pedido-grid-seleccionado"
+          : "contenedor-pedido-grid";
+
+        const textoFecha = `<strong>Guardado:</strong> ${formatearFecha(d.fechaGuardado)}`;
+        const textoSeleccionada = esSeleccionada
+          ? `<div><strong>Dirección seleccionada</strong></div>`
+          : "";
+
         fila.innerHTML = `
-          <td>${d.nombre || "-"}</td>
-          <td>${d.correo || "-"}</td>
-          <td>${d.telefono || "-"}</td>
-          <td>${d.calleNumero || ""} ${d.departamento || ""}</td>
-          <td>${d.comuna || ""}, ${d.region || ""}</td>
-          <td>${formatearFecha(d.fechaGuardado)}</td>
-          <td><button onclick="seleccionarDireccion('${id}', this)">Seleccionar</button></td>
+          <td colspan="9">
+            <div class="${claseContenedor}">
+              <div class="lado-datos">
+                <div class="lado-izquierdo">
+                  <p><strong>Nombre:</strong> ${d.nombre || "-"}</p>
+                  <p><strong>Correo:</strong> ${d.correo || "-"}</p>
+                  <p><strong>Teléfono:</strong> ${d.telefono || "-"}</p>
+                </div>
+                <div class="lado-derecho">
+                  <p><strong>Dirección:</strong></p>
+                  <ul>
+                    <li>${d.calleNumero || ""} ${d.departamento || ""}</li>
+                    <li>${d.comuna || ""}, ${d.region || ""}</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="fila-inferior">
+                <div>
+                  ${textoFecha}
+                  ${textoSeleccionada}
+                </div>
+                <div class="contenedor-botones">
+                  <button class="btn btn-validar" onclick="seleccionarDireccion('${id}', this)">Seleccionar</button>
+                  <button class="btn btn-rechazar" onclick="eliminarDireccion('${id}', this)">Eliminar</button>
+                </div>
+              </div>
+            </div>
+          </td>
         `;
+
         tbody.appendChild(fila);
       });
 
@@ -527,6 +564,33 @@ window.cargarUltimosProductos = async function () {
       tbody.innerHTML = "<tr><td colspan='6'>Ocurrió un error al cargar las direcciones.</td></tr>";
     }
   };
+
+
+
+
+
+
+  window.eliminarDireccion = async function (id, boton) {
+    const user = window.firebaseAuth?.currentUser;
+    if (!user || !id) return;
+
+    if (!confirm("¿Estás seguro de que quieres eliminar esta dirección?")) return;
+
+    try {
+      const ref = window.doc(window.firebaseDB, "direcciones", user.uid, "items", id);
+      await window.deleteDoc(ref);
+
+      // Quita la fila del DOM
+      const fila = boton.closest("tr");
+      if (fila) fila.remove();
+
+    } catch (error) {
+      console.error("❌ Error al eliminar dirección:", error);
+    }
+  };
+
+
+
 
   // Utilidad para mostrar la fecha de forma legible
   function formatearFecha(fecha) {
