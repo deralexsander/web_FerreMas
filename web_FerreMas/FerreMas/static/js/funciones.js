@@ -549,11 +549,11 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
 
-  //---------------------------------
-  //
-  // Validación del formulario de carrito
-  //
-  //---------------------------------
+//---------------------------------
+//
+// Validación del formulario de carrito
+//
+//---------------------------------
 
 if (formTransferencia) {
   formTransferencia.addEventListener("submit", async (e) => {
@@ -1814,8 +1814,9 @@ window.seleccionarDireccion = async function (id, boton = null) {
   await asegurarFirestore();
 
   try {
-    const ref = window.doc(window.firebaseDB, "direcciones", user.uid, "items", id);
-    const snap = await window.getDoc(ref);
+    // 🔄 Obtener datos de la dirección seleccionada
+    const refDireccion = window.doc(window.firebaseDB, "direcciones", user.uid, "items", id);
+    const snap = await window.getDoc(refDireccion);
     if (!snap.exists()) {
       console.warn("⚠️ La dirección seleccionada no existe.");
       return;
@@ -1824,20 +1825,36 @@ window.seleccionarDireccion = async function (id, boton = null) {
     const direccion = snap.data();
     window.direccionSeleccionada = direccion;
 
-    console.log(`Datos del usuario (ID: ${id}):`, direccion);
+    // ✅ Guardar selección en Firestore
+    const refSeleccion = window.doc(window.firebaseDB, "direccionesSeleccionadas", user.uid);
+    await window.setDoc(refSeleccion, { direccionId: id }, { merge: true });
 
-    const box = document.getElementById("direccion-seleccionada-box");
-    if (box) {
-      box.innerText = `📍 Dirección seleccionada: ${direccion.calleNumero || ""} ${direccion.departamento || ""}, ${direccion.comuna || ""}, ${direccion.region || ""}`;
+    // ✅ Guardar también en localStorage
+    localStorage.setItem("direccionSeleccionada", id);
+
+    // ✅ Aplicar clase visual de inmediato
+    document.querySelectorAll(".contenedor-pedido-grid-seleccionado").forEach(div => {
+      div.classList.remove("contenedor-pedido-grid-seleccionado");
+      div.classList.add("contenedor-pedido-grid");
+    });
+
+    const contenedor = boton?.closest(".contenedor-pedido-grid");
+    if (contenedor) {
+      contenedor.classList.remove("contenedor-pedido-grid");
+      contenedor.classList.add("contenedor-pedido-grid-seleccionado");
+
+      const contenedorFecha = contenedor.querySelector(".fila-inferior > div:first-child");
+      if (contenedorFecha) {
+        const fecha = formatearFecha(direccion.fechaGuardado);
+        contenedorFecha.innerHTML = `<strong>Guardado:</strong> ${fecha}<br><strong>✅ Dirección seleccionada</strong>`;
+      }
     }
 
-    document.querySelectorAll("#tbody-direcciones tr").forEach(f => f.classList.remove("fila-seleccionada"));
-    const fila = boton ? boton.closest("tr") : document.querySelector(`tr[data-id="${id}"]`);
-    if (fila) fila.classList.add("fila-seleccionada");
-
-    localStorage.setItem("direccionSeleccionada", id);
-    if (typeof window.guardarSeleccionDireccion === "function") {
-      await window.guardarSeleccionDireccion(id);
+    // ✅ Recargar tabla completa desde Firestore
+    if (typeof window.cargarDirecciones === "function") {
+      await window.cargarDirecciones();
+    } else {
+      console.warn("⚠️ window.cargarDirecciones no está definida");
     }
 
   } catch (error) {
@@ -1845,33 +1862,48 @@ window.seleccionarDireccion = async function (id, boton = null) {
   }
 };
 
-async function cargarDireccionSeleccionada(uid) {
-  await asegurarFirestore();
 
-  const idGuardado = localStorage.getItem("direccionSeleccionada");
-  if (idGuardado) {
-    console.log("📦 Recuperando dirección seleccionada desde localStorage:", idGuardado);
-    await window.seleccionarDireccion(idGuardado);
-    return;
-  }
 
-  try {
-    const colRef = window.collection(window.firebaseDB, "direcciones", uid, "items");
-    const snap = await window.getDocs(colRef);
 
-    if (snap.size === 1) {
-      const unica = snap.docs[0];
-      const id = unica.id;
-      console.log("📦 Solo hay una dirección, se usará por defecto:", id);
+
+
+  window.seleccionarDireccion = async function (id, boton = null) {
+    const user = window.firebaseAuth?.currentUser;
+    if (!user || !id) return;
+
+    await asegurarFirestore();
+
+    try {
+      // 🔄 Obtener datos de la dirección seleccionada (opcional)
+      const refDireccion = window.doc(window.firebaseDB, "direcciones", user.uid, "items", id);
+      const snap = await window.getDoc(refDireccion);
+      if (!snap.exists()) {
+        console.warn("⚠️ La dirección seleccionada no existe.");
+        return;
+      }
+
+      const direccion = snap.data();
+      window.direccionSeleccionada = direccion;
+
+      // ✅ Guardar la dirección seleccionada en Firestore
+      const refSeleccion = window.doc(window.firebaseDB, "direccionesSeleccionadas", user.uid);
+      await window.setDoc(refSeleccion, { direccionId: id }, { merge: true });
+
+      // ✅ Guardar también en localStorage (opcional)
       localStorage.setItem("direccionSeleccionada", id);
-      await window.seleccionarDireccion(id);
-    } else {
-      console.log("ℹ️ Usuario tiene varias direcciones. No se seleccionó ninguna automáticamente.");
+
+      // ✅ Refrescar visualmente solo la tabla
+      if (typeof window.cargarDirecciones === "function") {
+        await window.cargarDirecciones();
+      } else {
+        console.warn("⚠️ La función cargarDirecciones no está definida.");
+      }
+
+    } catch (error) {
+      console.error("❌ Error al seleccionar dirección:", error);
     }
-  } catch (e) {
-    console.error("❌ Error al cargar direcciones desde Firestore:", e);
-  }
-}
+  };
+
 
 // ✅ Mostrar dirección seleccionada en el paso de checkout
 window.mostrarDireccionSeleccionadaCliente = async function () {
