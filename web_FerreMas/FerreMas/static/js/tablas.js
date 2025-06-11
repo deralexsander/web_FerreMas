@@ -148,13 +148,17 @@ window.cargarTrabajadores = async function () {
             <div class="fila-inferior">
               <div class="contenedor-botones">
                 <select class="btn selector-rol" data-id="${uid}">
-                  <option value="" disabled selected>🔁 Cambiar rol</option>
+                  <option value="" disabled selected>
+                    Cambiar rol
+                  </option>
                   <option value="admin">Administrador</option>
                   <option value="vendedor">Vendedor</option>
                   <option value="contador">Contador</option>
                   <option value="bodeguero">Bodeguero</option>
                 </select>
-                <button class="btn btn-rechazar" data-id="${uid}">❌ Eliminar</button>
+                <button class="btn btn-rechazar" data-id="${uid}">
+                  <i class="fas fa-trash-alt"></i> Eliminar
+                </button>
               </div>
             </div>
           </div>
@@ -211,6 +215,7 @@ window.cargarTrabajadores = async function () {
     }
   }
 };
+
 
 window.cargarTrabajadores();
 
@@ -541,7 +546,6 @@ window.cargarUltimosProductos = async function () {
   //
   //---------------------------------
   window.cargarDirecciones = async function () {
-    // Evitar ejecución si no existe el contenedor (por ejemplo, en otras páginas)
     const tbody = document.getElementById("tbody-direcciones");
     if (!tbody) return;
 
@@ -574,9 +578,6 @@ window.cargarUltimosProductos = async function () {
         const d = doc.data();
         const id = doc.id;
 
-        const fila = document.createElement("tr");
-        fila.setAttribute("data-id", id);
-
         const esSeleccionada = direccionSeleccionadaId === id;
         const claseContenedor = esSeleccionada
           ? "contenedor-pedido-grid-seleccionado"
@@ -587,6 +588,14 @@ window.cargarUltimosProductos = async function () {
           ? `<div><strong>Dirección seleccionada</strong></div>`
           : "";
 
+        const botonSeleccionar = esSeleccionada
+          ? `<button class="btn btn-validar" disabled><i class="fas fa-check-circle"></i> Seleccionada</button>`
+          : `<button class="btn btn-validar" onclick="seleccionarDireccion('${id}', this)"><i class="fas fa-check"></i> Seleccionar</button>`;
+
+        const botonEliminar = `<button class="btn btn-rechazar" onclick="eliminarDireccion('${id}', this)"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
+
+        const fila = document.createElement("tr");
+        fila.setAttribute("data-id", id);
         fila.innerHTML = `
           <td colspan="9">
             <div class="${claseContenedor}">
@@ -610,8 +619,8 @@ window.cargarUltimosProductos = async function () {
                   ${textoSeleccionada}
                 </div>
                 <div class="contenedor-botones">
-                  <button class="btn btn-validar" onclick="seleccionarDireccion('${id}', this)">Seleccionar</button>
-                  <button class="btn btn-rechazar" onclick="eliminarDireccion('${id}', this)">Eliminar</button>
+                  ${botonSeleccionar}
+                  ${botonEliminar}
                 </div>
               </div>
             </div>

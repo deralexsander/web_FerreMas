@@ -167,108 +167,152 @@
 
 
 
-<!-- MODAL -->
-<div id="modal-tabla-productos" class="modal oculto">
-  <div class="modal-contenido">
-    <span id="cerrar-modal" class="cerrar">&times;</span>
+<!-- MODAL MEJORADO -->
+<div id="modal-tabla-productos" class="fondo-modal-trabajadores oculto">
+  <div class="modal_productos">
+    <span id="cerrar-modal" class="cerrar oculto">&times;</span>
 
-<div class="contenedor-bodega" style="padding: 20px;">
-  <h2 class="titulo-seccion">🟠 Productos a Reponer (stock ≤ 5)</h2>
-  <div class="tabla-responsive">
-    <table class="tabla-estilizada" id="tabla-reponer">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Categoría</th>
-          <th>Stock</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+    <div class="contenedor-bodega" style="padding: 24px;">
+      <h2 class="titulo-seccion">📦 Productos en Bodega</h2>
 
-  <h2 class="titulo-seccion">🟢 Productos Disponibles (stock > 5)</h2>
-  <label for="filtro-categoria" style="font-weight: bold; display: block; margin: 10px 0;">Filtrar por categoría:</label>
-  <select id="filtro-categoria" class="filtro-categoria">
-    <option value="todas">Todas</option>
-  </select>
+      <!-- Sección Productos a Reponer -->
+      <section class="seccion-tabla">
+        <h3 class="subtitulo-seccion">🟠 Productos a Reponer (stock ≤ 5)</h3>
+        <table class="tabla-estilizada" id="tabla-reponer">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Stock</th>
+              <th style="min-width: 160px;">Reponer</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
 
-  <div class="tabla-responsive">
-    <table class="tabla-estilizada" id="tabla-disponibles">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Categoría</th>
-          <th>Stock</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+      <!-- Sección Productos Disponibles -->
+      <section class="seccion-tabla">
+        <div class="filtro-contenedor">
+          <h3 class="subtitulo-seccion">🟢 Productos Disponibles (stock > 5)</h3>
+          <label for="filtro-categoria" class="filtro-label">Filtrar por categoría:</label>
+          <select id="filtro-categoria" class="filtro-categoria">
+            <option value="todas">Todas</option>
+          </select>
+        </div>
+
+        <table class="tabla-estilizada" id="tabla-disponibles">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Stock</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
   </div>
 </div>
 
 <style>
-  .tabla-responsive {
-    overflow-x: auto;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    border-radius: 12px;
+  .titulo-seccion {
+    font-size: 1.8rem;
+    color: #0a4a82;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .subtitulo-seccion {
+    font-size: 1.4rem;
+    color: #0a4a82;
+    font-weight: 600;
+    margin: 30px 0 10px;
+  }
+
+  .seccion-tabla {
+    margin-bottom: 40px;
+  }
+
+  .filtro-contenedor {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .filtro-label {
+    font-weight: 600;
+    color: #ffffff;
+  }
+
+  .filtro-categoria {
+    padding: 6px 12px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #0a4a82;
   }
 
   .tabla-estilizada {
     width: 100%;
     border-collapse: collapse;
-    font-family: 'Poppins', sans-serif;
-    background-color: #ff0000;
+    background-color: #1160af;
     border-radius: 12px;
     overflow: hidden;
+    font-family: 'Poppins', sans-serif;
   }
 
   .tabla-estilizada thead {
     background-color: #0a4a82;
-    color: white;
+    color: rgb(255, 255, 255);
   }
 
   .tabla-estilizada th,
   .tabla-estilizada td {
-    padding: 12px 15px;
-    text-align: left;
+    padding: 12px 16px;
     border-bottom: 1px solid #e0e0e0;
+    font-size: 0.95rem;
   }
 
   .tabla-estilizada tbody tr:hover {
-    background-color: #f3f8fc;
+    background-color: #008cff;
   }
 
-  .titulo-seccion {
-    font-size: 1.4rem;
-    margin-top: 30px;
-    color: #0a4a82;
-    font-weight: 600;
-  }
-
-  .filtro-categoria {
-    padding: 8px 12px;
-    font-size: 1rem;
+  .input-reponer {
+    width: 70px;
+    padding: 6px;
+    text-align: center;
     border-radius: 6px;
     border: 1px solid #ccc;
-    margin-bottom: 15px;
+    margin-right: 8px;
   }
 
   .btn-reponer, .btn-eliminar-producto {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 6px 12px;
-    background-color: #ff9800;
-    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
     border: none;
     border-radius: 6px;
+    color: white;
     cursor: pointer;
-    transition: background 0.2s ease;
+    font-family: 'Poppins', sans-serif;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .btn-reponer {
+    background-color: #ff9800;
   }
 
   .btn-reponer:hover {
     background-color: #e07f00;
+    transform: scale(1.05);
   }
 
   .btn-eliminar-producto {
@@ -277,17 +321,12 @@
 
   .btn-eliminar-producto:hover {
     background-color: #d32f2f;
+    transform: scale(1.05);
   }
 
-  .input-reponer {
-    padding: 6px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    text-align: center;
-    width: 70px;
+  .btn-reponer i, .btn-eliminar-producto i {
+    margin-right: 4px;
   }
 </style>
 
-  </div>
-</div>
 {% endblock %}

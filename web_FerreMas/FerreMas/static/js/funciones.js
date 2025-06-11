@@ -948,63 +948,76 @@ function aplicarAnimacionSiEsRegistroPersonal() {
   //
   //---------------------------------
 
-  function alternarFormularioTablaAnimado() {
-    const btnCrear = document.getElementById("btn-crear");
-    const btnTabla = document.getElementById("btn-tabla");
-    const modalTabla = document.getElementById("modal-tabla-trabajadores");
-    const cerrarModal = document.getElementById("cerrar-modal");
+function alternarFormularioTablaAnimado() {
+  const btnCrear = document.getElementById("btn-crear");
+  const btnTabla = document.getElementById("btn-tabla");
+  const modalTabla = document.getElementById("modal-tabla-trabajadores");
+  const cerrarModal = document.getElementById("cerrar-modal");
 
-    // Solo correr si todos los elementos existen
-    if (!btnCrear || !btnTabla || !modalTabla || !cerrarModal) {
-      // Elimina este error para que no moleste en páginas donde no aplica
-      return;
+  if (!btnCrear || !btnTabla || !modalTabla || !cerrarModal) return;
+
+  function mostrarModal() {
+    modalTabla.style.display = "block";
+    modalTabla.classList.remove("animacion-salida", "oculto");
+    modalTabla.classList.add("animacion-entrada");
+
+    setTimeout(() => {
+      modalTabla.classList.remove("animacion-entrada");
+    }, 400);
+  }
+
+  function ocultarModal() {
+    modalTabla.classList.remove("animacion-entrada");
+    modalTabla.classList.add("animacion-salida");
+
+    setTimeout(() => {
+      modalTabla.classList.add("oculto");
+      modalTabla.style.display = "none";
+      modalTabla.classList.remove("animacion-salida");
+    }, 400);
+  }
+
+  btnTabla.addEventListener("click", () => {
+    if (btnTabla.classList.contains("active")) return;
+
+    btnTabla.classList.add("active");
+    btnCrear.classList.remove("active");
+
+    mostrarModal();
+
+    if (typeof cargarTrabajadores === "function") {
+      cargarTrabajadores();
     }
+  });
 
-    // ✅ Abrir el modal al hacer clic en "Tabla trabajadores"
-    btnTabla.addEventListener("click", () => {
-      if (btnTabla.classList.contains("active")) return;
+  cerrarModal.addEventListener("click", () => {
+    ocultarModal();
+    btnCrear.classList.add("active");
+    btnTabla.classList.remove("active");
+  });
 
-      btnTabla.classList.add("active");
-      btnCrear.classList.remove("active");
+  btnCrear.addEventListener("click", () => {
+    if (btnCrear.classList.contains("active")) return;
 
-      modalTabla.style.display = "block";
+    btnCrear.classList.add("active");
+    btnTabla.classList.remove("active");
 
-      if (typeof cargarTrabajadores === "function") {
-        cargarTrabajadores();
-      }
-    });
+    ocultarModal();
+  });
 
-    // ✅ Cerrar modal con botón cerrar (X)
-    cerrarModal.addEventListener("click", () => {
-      modalTabla.style.display = "none";
+  window.addEventListener("click", (event) => {
+    if (event.target === modalTabla) {
+      ocultarModal();
       btnCrear.classList.add("active");
       btnTabla.classList.remove("active");
-    });
+    }
+  });
+}
 
-    // ✅ Cerrar modal al hacer clic en "Crear trabajador"
-    btnCrear.addEventListener("click", () => {
-      if (btnCrear.classList.contains("active")) return;
+if (document.getElementById("btn-crear") && document.getElementById("btn-tabla")) {
+  alternarFormularioTablaAnimado();
+}
 
-      btnCrear.classList.add("active");
-      btnTabla.classList.remove("active");
-
-      modalTabla.style.display = "none";
-    });
-
-    // ✅ Cerrar modal si se hace clic fuera del contenido
-    window.addEventListener("click", (event) => {
-      if (event.target === modalTabla) {
-        modalTabla.style.display = "none";
-        btnCrear.classList.add("active");
-        btnTabla.classList.remove("active");
-      }
-    });
-  }
-
-  // ✅ Inicialización
-  if (document.getElementById("btn-crear") && document.getElementById("btn-tabla")) {
-    alternarFormularioTablaAnimado();
-  }
 
 
 //---------------------------------
@@ -1483,13 +1496,34 @@ renderizarCarrito();
 function alternarFormularioTablaDirecciones() {
   const btnAgregar = document.getElementById("btn-agregar-direccion");
   const btnTabla = document.getElementById("btn-tabla-direcciones");
-
   const modalDirecciones = document.getElementById("modal-direcciones");
   const cerrarModal = document.getElementById("cerrar-modal-direcciones");
 
   if (!btnAgregar || !btnTabla || !modalDirecciones || !cerrarModal) {
     console.error("❌ Faltan elementos necesarios para direcciones");
     return;
+  }
+
+  // Función para mostrar el modal con animación
+  function mostrarModal() {
+    modalDirecciones.style.display = "block";
+    modalDirecciones.classList.remove("animacion-salida", "oculto");
+    modalDirecciones.classList.add("animacion-entrada");
+    setTimeout(() => {
+      modalDirecciones.classList.remove("animacion-entrada");
+    }, 400);
+  }
+
+  // Función para ocultar el modal con animación
+  function ocultarModal() {
+    modalDirecciones.classList.remove("animacion-entrada");
+    modalDirecciones.classList.add("animacion-salida");
+
+    setTimeout(() => {
+      modalDirecciones.classList.add("oculto");
+      modalDirecciones.style.display = "none";
+      modalDirecciones.classList.remove("animacion-salida");
+    }, 400);
   }
 
   // ✅ Abrir el modal al hacer clic en "Tus direcciones"
@@ -1499,7 +1533,7 @@ function alternarFormularioTablaDirecciones() {
     btnTabla.classList.add("active");
     btnAgregar.classList.remove("active");
 
-    modalDirecciones.style.display = "block";
+    mostrarModal();
 
     if (typeof cargarDirecciones === "function") {
       cargarDirecciones();
@@ -1508,7 +1542,7 @@ function alternarFormularioTablaDirecciones() {
 
   // ✅ Cerrar modal con botón cerrar (X)
   cerrarModal.addEventListener("click", () => {
-    modalDirecciones.style.display = "none";
+    ocultarModal();
     btnAgregar.classList.add("active");
     btnTabla.classList.remove("active");
   });
@@ -1520,18 +1554,19 @@ function alternarFormularioTablaDirecciones() {
     btnAgregar.classList.add("active");
     btnTabla.classList.remove("active");
 
-    modalDirecciones.style.display = "none";
+    ocultarModal();
   });
 
   // ✅ Cerrar modal al hacer clic fuera del contenido
   window.addEventListener("click", (event) => {
     if (event.target === modalDirecciones) {
-      modalDirecciones.style.display = "none";
+      ocultarModal();
       btnAgregar.classList.add("active");
       btnTabla.classList.remove("active");
     }
   });
 }
+
 
 // ✅ Inicialización
 if (

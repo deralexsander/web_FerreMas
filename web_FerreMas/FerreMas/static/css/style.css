@@ -2871,6 +2871,7 @@ hr {
 
 /* Fondo del modal */
 .fondo-modal-trabajadores {
+  backdrop-filter: blur(100px);
   display: block;
   justify-content: center;
   align-items: center;
