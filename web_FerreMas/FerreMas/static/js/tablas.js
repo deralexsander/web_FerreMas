@@ -1582,100 +1582,149 @@ esperarFirebaseYCargar();
 
   window.cargarPedidosAArmar();
 
-  //---------------------------------
-  //
-  // tabla de historial de pedidos
-  //
-  //---------------------------------
-  window.cargarHistorialPedidos = async function () {
-    const tabla = document.querySelector("#tabla-historial-pedidos tbody");
-    if (!tabla) return;
 
-    tabla.innerHTML = "<tr><td colspan='9'>Cargando pedidos...</td></tr>";
 
-    try {
-      const ref = window.collection(window.firebaseDB, "pedidos");
-      const snapshot = await window.getDocs(ref);
+//---------------------------------
+//
+// tabla de historial de pedidos
+//
+//---------------------------------
 
-      tabla.innerHTML = "";
+// Esta función renderiza el historial del cliente autenticado
+window.cargarHistorialPedidosConUsuario = async function (user) {
+  const tabla = document.querySelector("#tabla-historial-pedidos tbody");
+  if (!tabla) return;
 
-      if (snapshot.empty) {
-        tabla.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en el historial.</em></td></tr>`;
+  tabla.innerHTML = `<tr><td colspan="9">Cargando historial...</td></tr>`;
+
+  try {
+    const pedidos = await window.llamarPedidos();
+    tabla.innerHTML = "";
+
+    const pedidosDelUsuario = pedidos.filter(p => p.uidCliente === user.uid);
+
+    if (pedidosDelUsuario.length === 0) {
+      tabla.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No tienes pedidos en el historial.</em></td></tr>`;
+      return;
+    }
+
+    pedidosDelUsuario.forEach(p => {
+      const fila = document.createElement("tr");
+
+      let fechaCorta = "-";
+      try {
+        const fechaObj = typeof p.timestamp === "string"
+          ? new Date(p.timestamp)
+          : p.timestamp?.toDate?.() || new Date(p.timestamp);
+        if (!isNaN(fechaObj)) fechaCorta = fechaObj.toLocaleString("es-CL");
+      } catch (e) {}
+
+      let fechaTerminado = "-";
+      try {
+        const fechaObj = typeof p.terminadoEn === "string"
+          ? new Date(p.terminadoEn)
+          : p.terminadoEn?.toDate?.() || new Date(p.terminadoEn);
+        if (!isNaN(fechaObj)) fechaTerminado = fechaObj.toLocaleString("es-CL");
+      } catch (e) {}
+
+      const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "-";
+      const estadoPedido = p.pedido || "-";
+      const rut = p.rutTitular || p.rut || "-";
+      const nombreTitular = p.nombreTitular || p.nombre || "-";
+      const comuna = p.comuna || p.comunaSucursal || p.direccionDespacho?.comuna || "-";
+      const region = p.region || p.regionSucursal || p.direccionDespacho?.region || "-";
+      const banco = p.banco || "-";
+      const tipoPago = p.tipoDePago || "-";
+      const estadoTransferencia = p.estadoTransferencia || "-";
+      const email = p.email || p.correo || "-";
+      const tipoEntrega = p.tipoEntrega || "-";
+      const boleta = p.boleta || "-";
+      const direccion = p.direccionDespacho
+        ? [
+            p.direccionDespacho.calleNumero,
+            p.direccionDespacho.departamento,
+            p.direccionDespacho.codigoPostal
+          ].filter(Boolean).join(", ")
+        : "-";
+
+      const productosArray = Array.isArray(p.productos)
+        ? p.productos
+        : (Array.isArray(p.carrito) ? p.carrito : []);
+      const productos = productosArray.length > 0
+        ? `<ul style="padding-left: 0; list-style: none;">${productosArray.map(prod => `
+            <li style="display: flex; align-items: center; margin-bottom: 6px;">
+              ${prod.imagen ? `<img src="${prod.imagen}" alt="${prod.nombre}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 4px;">` : ""}
+              <span>${prod.cantidad || 1} × ${prod.nombre || "Producto"} — $${prod.precio?.toLocaleString("es-CL") || "0"}</span>
+            </li>`).join("")}</ul>`
+        : "<em>No hay productos</em>";
+
+      fila.innerHTML = `
+        <td colspan="9">
+          <div class="contenedor-pedido-grid">
+            <div class="lado-datos">
+              <div class="lado-izquierdo">
+                <p><strong>RUT:</strong> ${rut}</p>
+                <p><strong>Nombre:</strong> ${nombreTitular}</p>
+                <p><strong>Estado pedido:</strong> ${estadoPedido}</p>
+                <p><strong>Banco:</strong> ${banco}</p>
+                <p><strong>Tipo de pago:</strong> ${tipoPago}</p>
+                <p><strong>Estado transferencia:</strong> ${estadoTransferencia}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Tipo entrega:</strong> ${tipoEntrega}</p>
+                <p><strong>Boleta:</strong> ${boleta}</p>
+                <p><strong>Comuna:</strong> ${comuna}</p>
+                <p><strong>Región:</strong> ${region}</p>
+                <p><strong>Dirección:</strong> ${direccion}</p>
+              </div>
+              <div class="lado-derecho">
+                <p><strong>Productos:</strong></p>
+                ${productos}
+              </div>
+            </div>
+            <div class="fila-inferior">
+              <div><strong>Total:</strong> ${total}</div>
+              <div><strong>Fecha pedido:</strong> ${fechaCorta}</div>
+              <div><strong>Fecha terminado:</strong> ${fechaTerminado}</div>
+            </div>
+          </div>
+        </td>
+      `;
+      tabla.appendChild(fila);
+    });
+
+  } catch (error) {
+    console.error(error);
+    tabla.innerHTML = `<tr><td colspan="9">Error al cargar historial.</td></tr>`;
+  }
+};
+
+// Espera la autenticación y carga el historial solo si hay usuario
+function esperarFirebaseYAuthParaHistorial() {
+  if (
+    typeof window.firebaseAuth !== "undefined" &&
+    typeof window.onFirebaseAuthStateChanged === "function"
+  ) {
+    window.onFirebaseAuthStateChanged(user => {
+      const tabla = document.querySelector("#tabla-historial-pedidos tbody");
+      if (!tabla) return;
+
+      if (!user) {
+        tabla.innerHTML = `<tr><td colspan="9">Debes iniciar sesión para ver tu historial.</td></tr>`;
         return;
       }
 
-      snapshot.forEach((docSnap) => {
-        const p = docSnap.data();
-        const id = docSnap.id;
+      window.cargarHistorialPedidosConUsuario(user);
+    });
+  } else {
+    setTimeout(esperarFirebaseYAuthParaHistorial, 100);
+  }
+}
 
-        let fechaCorta = "-";
-        try {
-          const fechaObj = typeof p.timestamp === "string"
-            ? new Date(p.timestamp)
-            : p.timestamp?.toDate?.() || new Date(p.timestamp);
-          if (!isNaN(fechaObj)) fechaCorta = fechaObj.toLocaleDateString("es-CL");
-        } catch {}
+esperarFirebaseYAuthParaHistorial();
 
-        const total = typeof p.total === "number" ? `$${p.total.toLocaleString("es-CL")}` : "-";
-        const estadoPedido = p.pedido || "-";
-        const rut = p.rutTitular || p.direccionDespacho?.rut || "-";
-        const nombreTitular = p.nombreTitular || p.direccionDespacho?.nombre || "-";
-        const comuna = p.comuna || p.direccionDespacho?.comuna || p.comunaSucursal || "-";
-        const region = p.region || p.direccionDespacho?.region || p.regionSucursal || "-";
 
-        const productosArray = Array.isArray(p.productos)
-          ? p.productos
-          : Array.isArray(p.carrito)
-            ? p.carrito
-            : [];
-        const productos = productosArray.length > 0
-          ? `<ul style="padding-left: 0; list-style: none;">${productosArray.map(prod => `
-              <li style="display: flex; align-items: center; margin-bottom: 6px;">
-                ${prod.imagen ? `<img src="${prod.imagen}" alt="${prod.nombre}" style="width: 40px; height: 40px; object-fit: cover; margin-right: 8px; border-radius: 4px;">` : ""}
-                <span>${prod.cantidad || 1} × ${prod.nombre || "Producto"} — $${prod.precio?.toLocaleString("es-CL") || "0"}</span>
-              </li>`).join("")}</ul>`
-          : "<em>No hay productos</em>";
 
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td colspan="9">
-            <div class="contenedor-pedido-grid">
-              <div class="lado-datos">
-                <div class="lado-izquierdo">
-                  <p><strong>RUT:</strong> ${rut}</p>
-                  <p><strong>Nombre:</strong> ${nombreTitular}</p>
-                  <p><strong>Estado pedido:</strong> ${estadoPedido}</p>
-                  <p><strong>Comuna:</strong> ${comuna}</p>
-                  <p><strong>Región:</strong> ${region}</p>
-                </div>
-                <div class="lado-derecho">
-                  <p><strong>Productos:</strong></p>
-                  ${productos}
-                </div>
-              </div>
-              <div class="fila-inferior">
-                <div><strong>Total:</strong> ${total}</div>
-                <div><strong>Fecha:</strong> ${fechaCorta}</div>
-                <div><strong>ID Pedido:</strong> ${id}</div>
-              </div>
-            </div>
-          </td>
-        `;
-        tabla.appendChild(fila);
-      });
 
-    } catch (error) {
-      console.error("❌ Error al cargar historial de pedidos:", error);
-      tabla.innerHTML = `<tr><td colspan="9">Ocurrió un error al cargar los pedidos.</td></tr>`;
-    }
-  };
-
-  // Puedes llamar esta función cuando abras el modal:
-  document.getElementById("modal-historial")?.addEventListener("show", () => {
-    window.cargarHistorialPedidos();
-  });
-
-  // O simplemente llama window.cargarHistorialPedidos() cuando quieras mostrar el historial.
 
 });
 

@@ -9,72 +9,44 @@
 
 {% block contenido %}
 
-<style>
-  #tabla-datos-pedidos {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: "Segoe UI", sans-serif;
-    margin: 20px 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
+  <a class="button-volver contenedor_boton_volver" href="{% url 'perfil' %}">
+  ⬅ Volver
+  </a>
 
-  #tabla-datos-pedidos thead {
-    background-color: #0a4a82;
-    color: white;
-    text-align: left;
-  }
 
-  #tabla-datos-pedidos th, #tabla-datos-pedidos td {
-    padding: 12px 16px;
-    border-bottom: 1px solid #ddd;
-  }
 
-  #tabla-datos-pedidos tr:hover {
-    background-color: #f1f9ff;
-  }
-
-  #tabla-datos-pedidos td {
-    font-size: 14px;
-    color: #333;
-  }
-
-  #tabla-datos-pedidos td:first-child {
-    font-weight: bold;
-    color: #0a4a82;
-  }
-
-  #tabla-datos-pedidos td:last-child {
-    white-space: nowrap;
-  }
-
-  @media (max-width: 768px) {
-    #tabla-datos-pedidos {
-      font-size: 12px;
-    }
-
-    #tabla-datos-pedidos th, #tabla-datos-pedidos td {
-      padding: 8px 10px;
-    }
-  }
-</style>
-
-<div class="contenedor_tabla_pedidos">
-  <h2>🧾 Mis pedidos</h2>
-  <table id="tabla-pedidos" class="tabla">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Total</th>
-        <th>Entrega</th>
-        <th>Estado</th>
-        <th>Fecha</th>
-      </tr>
-    </thead>
-    <tbody id="tbody-pedidos">
-      <!-- Los pedidos se cargarán aquí -->
-    </tbody>
-  </table>
+<div class="contenedor_botones">
+<div class="segmented-control">
+  <button class="segment active" id="btn-crear">Pedidos Pendientes</button>
+  <button class="segment" id="btn-tabla">Pedidos listos</button>
 </div>
+
+</div>
+
+
+<div id="modal-pendientes" class="fondo-modal-trabajadores animacion-entrada visible">
+  <div class="modal_productos">
+    <div class="contenedor_informacion">
+      <table id="tabla-historial-pedidos" class="tabla-transferencias">
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="modal-historial" class="fondo-modal-trabajadores oculto">
+  <div class="modal_productos">
+    <div class="contenedor_informacion">
+        <table id="tabla-pedidos-listos" class="tabla-transferencias">
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
+
 
 
 
