@@ -1397,18 +1397,43 @@ function renderizarCarrito() {
     btn.addEventListener("click", () => modificarCantidad(btn.dataset.index, -1))
   );
   document.querySelectorAll(".btn-eliminar").forEach(btn =>
-    btn.addEventListener("click", () => eliminarProducto(btn.dataset.index))
-  );
-}
+    btn.addEventListener("click", () => {
+      if (confirm("¿Estás seguro de que quieres eliminar este producto del carrito?")) {
+        eliminarProducto(btn.dataset.index);
+        mostrarMensaje("Producto eliminado correctamente.", "success");
+            }
+          })
+        );
+      }
 
-// ======= VACIAR CARRITO =======
-document.getElementById("btn-vaciar-carrito")?.addEventListener("click", () => {
-  if (confirm("🗑 ¿Estás seguro de que quieres vaciar el carrito?")) {
-    localStorage.removeItem("carrito");
-    renderizarCarrito();
-    actualizarContadorProductosDiferentes();
-  }
-});
+      // ======= VACIAR CARRITO (solo si hay más de un producto) =======
+      const btnVaciarCarrito = document.getElementById("btn-vaciar-carrito");
+      if (btnVaciarCarrito) {
+        // Mostrar u ocultar el botón según la cantidad de productos
+        function actualizarBotonVaciar() {
+          const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+          btnVaciarCarrito.style.display = carrito.length > 1 ? "inline-block" : "none";
+        }
+
+        btnVaciarCarrito.addEventListener("click", () => {
+          if (confirm("🗑 ¿Estás seguro de que quieres vaciar el carrito?")) {
+            localStorage.removeItem("carrito");
+            renderizarCarrito();
+            actualizarContadorProductosDiferentes();
+            mostrarMensaje("Carrito vaciado correctamente.", "success");
+            actualizarBotonVaciar();
+          }
+        });
+
+        // Llamar al cargar la página y cada vez que se renderiza el carrito
+        actualizarBotonVaciar();
+        // Sobrescribe renderizarCarrito para actualizar el botón después de renderizar
+        const renderizarCarritoOriginal = renderizarCarrito;
+        renderizarCarrito = function () {
+          renderizarCarritoOriginal();
+          actualizarBotonVaciar();
+        };
+      }
 
 // ======= EVENTO PARA BOTÓN DE AGREGAR AL CARRITO =======
 document.getElementById("btn-agregar-carrito")?.addEventListener("click", agregarAlCarrito);

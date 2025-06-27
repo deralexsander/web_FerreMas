@@ -1081,15 +1081,20 @@ esperarFirebaseYCargar();
       );
     });
 
-    // Mostrar mensajes vacíos por defecto
-    cuerpoDomicilio.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos a domicilio por preparar.</em></td></tr>`;
-    cuerpoSucursal.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en sucursal por preparar.</em></td></tr>`;
+    // Verificar si hay alguno por tipo de entrega
+    const hayDomi = pedidosFiltrados.some(p => (p.tipoEntrega || "").toLowerCase() === "domicilio");
+    const haySucursal = pedidosFiltrados.some(p => (p.tipoEntrega || "").toLowerCase() === "tienda");
+
+    if (!hayDomi) {
+      cuerpoDomicilio.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos a domicilio por preparar.</em></td></tr>`;
+    }
+
+    if (!haySucursal) {
+      cuerpoSucursal.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en sucursal por preparar.</em></td></tr>`;
+    }
 
     // Si no hay ninguno, no renderizamos nada más
-    if (pedidosFiltrados.length === 0) return;
-
-    let hayDomi = false;
-    let haySucursal = false;
+    if (!hayDomi && !haySucursal) return;
 
     pedidosFiltrados.forEach(p => {
       const fila = document.createElement("tr");
@@ -1141,7 +1146,6 @@ esperarFirebaseYCargar();
       const estadoLower = estadoPedido.toLowerCase();
 
       if (tipoEntrega === "tienda") {
-        haySucursal = true;
         if (estadoLower === "en espera de preparación") {
           botonTomar = `<button class="btn btn-tomar" data-id="${id}">🛒 Tomar pedido</button>`;
         } else if (estadoLower === "en preparación") {
@@ -1154,7 +1158,6 @@ esperarFirebaseYCargar();
           botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">⏳ Esperando retiro</button>`;
         }
       } else if (tipoEntrega === "domicilio") {
-        hayDomi = true;
         if (estadoLower === "en espera de preparación") {
           botonTomar = `<button class="btn btn-tomar" data-id="${id}">🛒 Tomar pedido</button>`;
         } else if (estadoLower === "en preparación") {
@@ -1200,14 +1203,8 @@ esperarFirebaseYCargar();
       `;
 
       if (tipoEntrega === "domicilio") {
-        if (hayDomi && cuerpoDomicilio.innerHTML.includes("No hay pedidos a domicilio por preparar.")) {
-          cuerpoDomicilio.innerHTML = "";
-        }
         cuerpoDomicilio.appendChild(fila);
       } else if (tipoEntrega === "tienda") {
-        if (haySucursal && cuerpoSucursal.innerHTML.includes("No hay pedidos en sucursal por preparar.")) {
-          cuerpoSucursal.innerHTML = "";
-        }
         cuerpoSucursal.appendChild(fila);
       }
     });
@@ -1241,7 +1238,10 @@ esperarFirebaseYCargar();
         await window.updateDoc(pedidoRef, { pedido: "En preparación" });
 
         alert("✅ Pedido tomado con éxito.");
+        // Recargar las tablas y el modal si existe
         if (typeof window.recargarPedidos === "function") window.recargarPedidos();
+        // Si hay un modal abierto, recargar los datos del pedido en el modal
+        if (typeof window.actualizarModalPedido === "function") window.actualizarModalPedido(idPedido);
 
       } catch (error) {
         console.error("Error al tomar pedido:", error);
@@ -1407,7 +1407,22 @@ esperarFirebaseYCargar();
     cargarPedidosEnTablas();
   });
 
-  // Llamar al cargar la página para mostrar mensajes vacíos correctamente
+  // Permite recargar las tablas de pedidos desde otros lugares
+  window.recargarPedidos = cargarPedidosEnTablas;
+
+  // Si tienes un modal de pedido, puedes definir esta función para actualizarlo
+  window.actualizarModalPedido = async function(idPedido) {
+    // Aquí deberías actualizar el contenido del modal con los datos más recientes del pedido
+    // Ejemplo:
+    // const pedidoRef = window.doc(window.firebaseDB, "pedidos", idPedido);
+    // const pedidoSnap = await window.getDoc(pedidoRef);
+    // if (pedidoSnap.exists()) {
+    //   // Actualiza los campos del modal aquí
+    // }
+    // Si no usas modal, puedes dejar esto vacío o eliminarlo.
+  };
+
+  // Carga inicial
   cargarPedidosEnTablas();
 
   //---------------------------------
