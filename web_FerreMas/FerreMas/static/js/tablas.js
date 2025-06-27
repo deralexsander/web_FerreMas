@@ -1066,6 +1066,7 @@ esperarFirebaseYCargar();
     cuerpoDomicilio.innerHTML = "";
     cuerpoSucursal.innerHTML = "";
 
+    // Filtrar estados válidos
     const pedidosFiltrados = pedidos.filter(p => {
       const estado = (p.pedido || "").toLowerCase();
       return (
@@ -1076,9 +1077,19 @@ esperarFirebaseYCargar();
         estado === "listo para entrega/envío" ||
         estado === "listo para entrega" ||
         estado === "pedido enviado" ||
-        estado === "entregado" 
+        estado === "entregado"
       );
     });
+
+    // Mostrar mensajes vacíos por defecto
+    cuerpoDomicilio.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos a domicilio por preparar.</em></td></tr>`;
+    cuerpoSucursal.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en sucursal por preparar.</em></td></tr>`;
+
+    // Si no hay ninguno, no renderizamos nada más
+    if (pedidosFiltrados.length === 0) return;
+
+    let hayDomi = false;
+    let haySucursal = false;
 
     pedidosFiltrados.forEach(p => {
       const fila = document.createElement("tr");
@@ -1122,7 +1133,6 @@ esperarFirebaseYCargar();
             </li>`).join("")}</ul>`
         : "<em>No hay productos</em>";
 
-      // Para el cuerpo del correo
       const productosTexto = productosArray.length > 0
         ? productosArray.map(prod => `- ${prod.cantidad || 1} × ${prod.nombre || "Producto"}`).join('\n')
         : "Sin productos";
@@ -1131,6 +1141,7 @@ esperarFirebaseYCargar();
       const estadoLower = estadoPedido.toLowerCase();
 
       if (tipoEntrega === "tienda") {
+        haySucursal = true;
         if (estadoLower === "en espera de preparación") {
           botonTomar = `<button class="btn btn-tomar" data-id="${id}">🛒 Tomar pedido</button>`;
         } else if (estadoLower === "en preparación") {
@@ -1138,12 +1149,12 @@ esperarFirebaseYCargar();
         } else if (estadoLower === "en preparación - armando") {
           botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">🛠️ En armado</button>`;
         } else if (estadoLower === "en preparación - terminado") {
-          // Cuando el pedido está terminado, mostrar botón para notificar retiro en tienda
           botonTomar = `<button class="btn btn-recibir-tienda" data-id="${id}" data-email="${email}" data-nombre="${nombreTitular}" data-productos="${encodeURIComponent(productosTexto)}" data-region="${region}" data-comuna="${comuna}">✅ Pedido listo para retiro</button>`;
         } else if (estadoLower === "listo para entrega/envío") {
           botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">⏳ Esperando retiro</button>`;
         }
       } else if (tipoEntrega === "domicilio") {
+        hayDomi = true;
         if (estadoLower === "en espera de preparación") {
           botonTomar = `<button class="btn btn-tomar" data-id="${id}">🛒 Tomar pedido</button>`;
         } else if (estadoLower === "en preparación") {
@@ -1151,10 +1162,8 @@ esperarFirebaseYCargar();
         } else if (estadoLower === "en preparación - armando") {
           botonTomar = `<button class="btn" disabled style="opacity: 0.6; cursor: not-allowed;">🛠️ En armado</button>`;
         } else if (estadoLower === "en preparación - terminado") {
-          // Mostrar botón para notificar envío a domicilio
           botonTomar = `<button class="btn btn-recibir-domicilio" data-id="${id}" data-email="${email}" data-nombre="${nombreTitular}" data-productos="${encodeURIComponent(productosTexto)}" data-calle="${calleNumero}" data-depto="${departamento}" data-region="${region}" data-comuna="${comuna}">🚚 Pedido enviado</button>`;
         } else if (estadoLower === "listo para entrega/envío") {
-          // Mostrar botón para marcar como enviado (si se requiere)
           botonTomar = `<button class="btn btn-enviado-domicilio" data-id="${id}" disabled style="opacity: 0.6; cursor: not-allowed;">✈️ Pedido enviado</button>`;
         }
       }
@@ -1191,20 +1200,19 @@ esperarFirebaseYCargar();
       `;
 
       if (tipoEntrega === "domicilio") {
+        if (hayDomi && cuerpoDomicilio.innerHTML.includes("No hay pedidos a domicilio por preparar.")) {
+          cuerpoDomicilio.innerHTML = "";
+        }
         cuerpoDomicilio.appendChild(fila);
       } else if (tipoEntrega === "tienda") {
+        if (haySucursal && cuerpoSucursal.innerHTML.includes("No hay pedidos en sucursal por preparar.")) {
+          cuerpoSucursal.innerHTML = "";
+        }
         cuerpoSucursal.appendChild(fila);
       }
     });
-
-    if (cuerpoDomicilio.children.length === 0) {
-      cuerpoDomicilio.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos a domicilio por preparar.</em></td></tr>`;
-    }
-
-    if (cuerpoSucursal.children.length === 0) {
-      cuerpoSucursal.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en sucursal por preparar.</em></td></tr>`;
-    }
   };
+
 
   // 🚀 Tomar pedido y botones personalizados
   document.addEventListener("click", async (event) => {
@@ -1326,7 +1334,17 @@ esperarFirebaseYCargar();
   async function cargarPedidosEnTablas() {
     const usuario = window.usuarioActual;
 
+    const tbodyDomi = document.querySelector("#tabla-pedidos-domicilio tbody");
+    const tbodySuc = document.querySelector("#tabla-pedidos-sucursal tbody");
+
+    // Si aún no hay usuario cargado, mostrar mensajes de "no hay pedidos"
     if (!usuario) {
+      if (tbodyDomi) {
+        tbodyDomi.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos a domicilio por preparar.</em></td></tr>`;
+      }
+      if (tbodySuc) {
+        tbodySuc.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px;"><em>No hay pedidos en sucursal por preparar.</em></td></tr>`;
+      }
       setTimeout(cargarPedidosEnTablas, 100);
       return;
     }
@@ -1340,7 +1358,6 @@ esperarFirebaseYCargar();
     let pedidosFiltrados;
 
     if (filtro === "enviados/listos") {
-      // Solo mostrar pedidos con estado "pedido enviado" o "listo para entrega"
       pedidosFiltrados = pedidos.filter(p => {
         const estado = (p.pedido || "").toLowerCase();
         return estado === "pedido enviado" || estado === "listo para entrega";
@@ -1354,23 +1371,14 @@ esperarFirebaseYCargar();
         const matchRegion = region.includes(regionSucursal) || regionSucursal.includes(region);
 
         const perteneceAMiSucursal = matchComuna && matchRegion;
-
-        // Si el pedido no tiene región o comuna clara, lo mostramos
         const direccionInvalida = comuna === "none" || region === "none";
 
-        // Mostrar si:
-        // - Pertenece a mi sucursal
-        // - O la dirección es inválida
-        const mostrar = perteneceAMiSucursal || direccionInvalida;
-
-        // Excluir los estados "pedido enviado" y "listo para entrega"
         const estado = (p.pedido || "").toLowerCase();
         if (estado === "pedido enviado" || estado === "listo para entrega") return false;
 
-        return mostrar;
+        return perteneceAMiSucursal || direccionInvalida;
       });
     } else if (filtro === "todos") {
-      // Mostrar todos, excepto los enviados/listos
       pedidosFiltrados = pedidos.filter(p => {
         const estado = (p.pedido || "").toLowerCase();
         return estado !== "pedido enviado" && estado !== "listo para entrega";
@@ -1381,6 +1389,7 @@ esperarFirebaseYCargar();
 
     window.renderPedidos(pedidosFiltrados);
   }
+
 
   // ✅ Función para limpiar texto: minúsculas, sin espacios dobles ni acentos
   function normalizarTexto(texto) {
@@ -1397,6 +1406,9 @@ esperarFirebaseYCargar();
   document.getElementById("sucursal")?.addEventListener("change", () => {
     cargarPedidosEnTablas();
   });
+
+  // Llamar al cargar la página para mostrar mensajes vacíos correctamente
+  cargarPedidosEnTablas();
 
   //---------------------------------
   //
