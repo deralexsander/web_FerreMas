@@ -1,0 +1,174 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block nombrePag %}
+  <title>Dirección</title>
+{% endblock %}
+
+{% block contenido %}
+
+<a class="button-volver contenedor_boton_volver" href="{% url 'perfil' %}">
+  ⬅ Volver
+</a>
+
+<div class="contenedor_botones">
+  <div class="segmented-control" id="grupo-botones-direccion">
+    <button class="segment active" id="btn-agregar-direccion">Agregar dirección</button>
+    <button class="segment" id="btn-tabla-direcciones">Tus direcciones</button>
+  </div>
+</div>
+
+
+<!-- PASO 1: Datos personales -->
+<div class="contenedor_informacion animacion-entrada visible" id="paso-1-direccion">
+  <div class="bloque_info">
+    <div class="columna_info">
+      <div class="centrar">
+        <div class="encabezado-formulario">
+          <h1>Datos de contacto</h1>
+        </div>
+        <div class="subtexto-formulario">
+          <p>Ingresa tu nombre, teléfono, correo y RUT.</p>
+        </div>
+      </div>
+    </div>
+    <div class="columna_form">
+      <form class="formulario-paso" novalidate>
+        <div class="flex-column"><label>Nombre completo</label></div>
+        <div class="inputForm">
+          <input type="text" id="nombre" class="input" required placeholder="Ej: Nombre Apellido">
+        </div>
+
+        <div class="flex-column"><label>Teléfono</label></div>
+        <div class="inputForm">
+          <input type="text" id="telefono" class="input" required placeholder="Ej: 912345678">
+        </div>
+
+        <div class="flex-column"><label>Correo electrónico</label></div>
+        <div class="inputForm">
+          <input type="email" id="correo" class="input" required placeholder="Ej: ejemplo@correo.com">
+        </div>
+
+        <div class="flex-column"><label>RUT</label></div>
+        <div class="inputForm">
+          <input type="text" id="rut" class="input" required placeholder="Ej: 12345678-9">
+        </div>
+
+        <button type="button" onclick="mostrarPaso(2)" class="button-submit">Continuar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- PASO 2: Dirección -->
+<div class="contenedor_informacion oculto" id="paso-2-direccion">
+  <div class="bloque_info">
+    <div class="columna_info">
+      <div class="centrar">
+        <div class="encabezado-formulario">
+          <h1>Dirección de envío</h1>
+        </div>
+        <div class="subtexto-formulario">
+          <p>Completa la dirección donde deseas recibir tus pedidos.</p>
+        </div>
+      </div>
+    </div>
+    <div class="columna_form">
+      <form class="formulario-paso" novalidate>
+        <div class="flex-column"><label>Calle y número</label></div>
+        <div class="inputForm">
+          <input type="text" id="calle-numero" class="input" required placeholder="Ej: Av. Libertad 1234">
+        </div>
+
+        <div class="flex-column"><label>Depto/Casa (opcional)</label></div>
+        <div class="inputForm">
+          <input type="text" id="departamento" class="input" placeholder="Ej: Depto 405, Casa 7">
+        </div>
+
+        <div class="flex-column"><label>Código postal (opcional)</label></div>
+        <div class="inputForm">
+          <input type="text" id="codigo-postal" class="input" placeholder="Ej: 2340000">
+        </div>
+
+        <button type="button" onclick="mostrarPaso(3)" class="button-submit">Continuar</button>
+        <button type="button" onclick="mostrarPaso(1)" class="volver-atras button-submit">⬅ Volver</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- PASO 3: Ubicación -->
+<div class="contenedor_informacion oculto" id="paso-3-direccion">
+  <div class="bloque_info">
+    <div class="columna_info">
+      <div class="centrar">
+        <div class="encabezado-formulario">
+          <h1>Ubicación</h1>
+        </div>
+        <div class="subtexto-formulario">
+          <p>Selecciona tu región y comuna.</p>
+        </div>
+      </div>
+    </div>
+    <div class="columna_form">
+      <form class="formulario-paso" onsubmit="return false">
+        <div class="flex-column"><label>Región</label></div>
+        <div class="inputForm">
+          <select id="region" class="input" required>
+            <option value="">Seleccione una región</option>
+          </select>
+        </div>
+
+        <div class="flex-column"><label>Comuna</label></div>
+        <div class="inputForm">
+          <select id="comuna" class="input" disabled required>
+            <option value="">Seleccione una comuna</option>
+          </select>
+        </div>
+
+        <button type="button" onclick="guardarDireccion()" class="button-submit">Guardar dirección</button>
+        <button type="button" onclick="mostrarPaso(2)" class="volver-atras button-submit">⬅ Volver</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ======================= -->
+<!-- MODAL de tabla de direcciones -->
+<!-- ======================= -->
+<div id="modal-direcciones" class="fondo-modal-trabajadores" style="display: none;">
+    <div id="cerrar-modal-direcciones" class="boton_salir oculto">
+    <svg data-lucide="x" class="icono-salir"></svg>
+  </div>
+
+  
+  <div class="modal_productos">
+
+    <h2 class="centrar-titulo-modal">Direcciones guardadas</h2>
+
+    <div class="contenedor_informacion">
+
+    <table class="tabla-transferencias ">
+      <tbody id="tbody-direcciones"></tbody>
+    </table>
+
+    </div>
+
+
+
+
+    
+  </div>
+
+
+
+
+  
+</div>
+
+
+
+
+{% endblock %}

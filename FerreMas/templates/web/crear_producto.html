@@ -1,0 +1,332 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block nombrePag %}
+  <title>Crear Producto</title>
+{% endblock %}
+
+{% block contenido %}
+
+
+
+
+
+
+
+<a class="button-volver contenedor_boton_volver" href="{% url 'perfil' %}">
+  ⬅ Volver
+</a>
+
+<div class="contenedor_botones">
+  <div class="segmented-control">
+    <button class="segment active" id="btn-crear-producto">Crear producto</button>
+    <button class="segment" id="btn-tabla-productos">Tabla productos</button>
+  </div>
+</div>
+
+<!-- FORMULARIO QUE ABARCA LOS 4 PASOS -->
+<form id="crearProductoForm" enctype="multipart/form-data">
+
+  <!-- PASO 1 -->
+  <div class="contenedor_informacion animacion-entrada visible" id="paso-1-producto">
+    <div class="bloque_info">
+      <div class="columna_info">
+        <div class="centrar">
+          <div class="encabezado-formulario">
+            <h1>Información general</h1>
+          </div>
+          <div class="subtexto-formulario">
+            <p>Completa los datos principales del producto.</p>
+          </div>
+        </div>
+      </div>
+      <div class="columna_form">
+        <div class="flex-column"><label>Nombre del producto</label></div>
+        <div class="inputForm"><input type="text" class="input" name="nombre" required /></div>
+
+        <div class="flex-column"><label>Foto del producto</label></div>
+        <div class="inputForm">
+          <input type="file" name="foto" accept="image/*" multiple required />
+          <small id="contador-fotos" style="display:block; margin-top:5px; color: #555;"></small>
+        </div>
+
+        <div class="flex-column"><label>Categoría</label></div>
+        <div class="inputForm">
+          <select class="input" name="categoria" required>
+            <option value="">Seleccionar...</option>
+            <option value="herramientas_manual">Herramientas manuales</option>
+            <option value="herramientas_electricas">Herramientas eléctricas</option>
+            <option value="pinturas">Pinturas</option>
+            <option value="materiales_electricos">Materiales eléctricos</option>
+            <option value="accesorios">Accesorios</option>
+            <option value="seguridad">Artículos de seguridad</option>
+          </select>
+        </div>
+
+        <div class="flex-column"><label>Descripción</label></div>
+        <div class="inputForm"><textarea class="input" name="descripcion" rows="3" required></textarea></div>
+
+        <button type="button" class="button-submit btn-siguiente" data-paso="1">Siguiente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 2 -->
+  <div class="contenedor_informacion oculto" id="paso-2-producto">
+    <div class="bloque_info">
+      <div class="columna_info">
+        <div class="centrar">
+          <div class="encabezado-formulario"><h1>Datos técnicos</h1></div>
+          <div class="subtexto-formulario"><p>Completa los datos técnicos del producto.</p></div>
+        </div>
+      </div>
+      <div class="columna_form">
+        <div class="flex-column"><label>Marca</label></div>
+        <div class="inputForm"><input type="text" class="input" name="marca" required /></div>
+
+        <div class="flex-column"><label>Precio unitario ($)</label></div>
+        <div class="inputForm"><input type="number" class="input" name="precio" step="100" required /></div>
+
+        <div class="flex-column"><label>Stock disponible</label></div>
+        <div class="inputForm"><input type="number" class="input" name="stock" required /></div>
+
+        <button type="button" class="button-submit btn-siguiente" data-paso="2">Siguiente</button>
+        <button type="button" class="volver-atras button-submit">⬅ Volver</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 3 -->
+  <div class="contenedor_informacion oculto" id="paso-3-producto">
+    <div class="bloque_info">
+      <div class="columna_info">
+        <div class="centrar">
+          <div class="encabezado-formulario"><h1>Características físicas</h1></div>
+          <div class="subtexto-formulario"><p>Agrega los datos técnicos y físicos del producto.</p></div>
+        </div>
+      </div>
+      <div class="columna_form">
+        <div class="flex-column"><label>Potencia (W)</label></div>
+        <div class="inputForm"><input type="number" class="input" name="potencia" required /></div>
+
+        <div class="flex-column"><label>Voltaje (V)</label></div>
+        <div class="inputForm"><input type="text" class="input" name="voltaje" required /></div>
+
+        <div class="flex-column"><label>Color</label></div>
+        <div class="inputForm"><input type="text" class="input" name="color" required /></div>
+
+        <div class="flex-column"><label>Tamaño / Capacidad</label></div>
+        <div class="inputForm"><input type="text" class="input" name="tamano" required /></div>
+
+        <div class="flex-column"><label>Material</label></div>
+        <div class="inputForm"><input type="text" class="input" name="material" required /></div>
+
+        <div class="flex-column"><label>Peso (kg)</label></div>
+        <div class="inputForm"><input type="number" class="input" name="peso" step="0.1" required /></div>
+
+        <div class="flex-column"><label>Dimensiones (cm)</label></div>
+        <div class="inputForm"><input type="text" class="input" name="dimensiones" required /></div>
+
+        <button type="button" class="button-submit btn-siguiente" data-paso="3">Siguiente</button>
+        <button type="button" class="volver-atras button-submit">⬅ Volver</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 4 -->
+  <div class="contenedor_informacion oculto" id="paso-4-producto">
+    <div class="bloque_info">
+      <div class="columna_info">
+        <div class="centrar">
+          <div class="encabezado-formulario"><h1>Otros atributos</h1></div>
+          <div class="subtexto-formulario"><p>Agrega información adicional útil para el cliente.</p></div>
+        </div>
+      </div>
+      <div class="columna_form">
+        <div class="flex-column"><label>Presentación</label></div>
+        <div class="inputForm"><input type="text" class="input" name="presentacion" required /></div>
+
+        <div class="flex-column"><label>Garantía</label></div>
+        <div class="inputForm"><input type="text" class="input" name="garantia" required /></div>
+
+        <div class="flex-column"><label>Uso recomendado</label></div>
+        <div class="inputForm"><input type="text" class="input" name="uso" required /></div>
+
+        <div class="flex-column"><label>Fecha de vencimiento</label></div>
+        <div class="inputForm"><input type="date" class="input" name="vencimiento" required /></div>
+
+        <!-- Botón final de envío -->
+        <button type="submit" class="button-submit">Agregar producto</button>
+        <button type="button" class="volver-atras button-submit">⬅ Volver</button>
+      </div>
+    </div>
+  </div>
+
+</form>
+
+
+
+
+<!-- MODAL MEJORADO -->
+<div id="modal-tabla-productos" class="fondo-modal-trabajadores oculto">
+  <div class="modal_productos">
+    <span id="cerrar-modal" class="cerrar oculto">&times;</span>
+
+    <div class="contenedor-bodega" style="padding: 24px;">
+      <h2 class="titulo-seccion">📦 Productos en Bodega</h2>
+
+      <!-- Sección Productos a Reponer -->
+      <section class="seccion-tabla">
+        <h3 class="subtitulo-seccion">🟠 Productos a Reponer (stock ≤ 5)</h3>
+        <table class="tabla-estilizada" id="tabla-reponer">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Stock</th>
+              <th style="min-width: 160px;">Reponer</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- Sección Productos Disponibles -->
+      <section class="seccion-tabla">
+        <div class="filtro-contenedor">
+          <h3 class="subtitulo-seccion">🟢 Productos Disponibles (stock > 5)</h3>
+          <label for="filtro-categoria" class="filtro-label">Filtrar por categoría:</label>
+          <select id="filtro-categoria" class="filtro-categoria">
+            <option value="todas">Todas</option>
+          </select>
+        </div>
+
+        <table class="tabla-estilizada" id="tabla-disponibles">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Stock</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</div>
+
+<style>
+  .titulo-seccion {
+    font-size: 1.8rem;
+    color: #0a4a82;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .subtitulo-seccion {
+    font-size: 1.4rem;
+    color: #0a4a82;
+    font-weight: 600;
+    margin: 30px 0 10px;
+  }
+
+  .seccion-tabla {
+    margin-bottom: 40px;
+  }
+
+  .filtro-contenedor {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .filtro-label {
+    font-weight: 600;
+    color: #ffffff;
+  }
+
+  .filtro-categoria {
+    padding: 6px 12px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #0a4a82;
+  }
+
+  .tabla-estilizada {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #1160af;
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .tabla-estilizada thead {
+    background-color: #0a4a82;
+    color: rgb(255, 255, 255);
+  }
+
+  .tabla-estilizada th,
+  .tabla-estilizada td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.95rem;
+  }
+
+  .tabla-estilizada tbody tr:hover {
+    background-color: #008cff;
+  }
+
+  .input-reponer {
+    width: 70px;
+    padding: 6px;
+    text-align: center;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-right: 8px;
+  }
+
+  .btn-reponer, .btn-eliminar-producto {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .btn-reponer {
+    background-color: #ff9800;
+  }
+
+  .btn-reponer:hover {
+    background-color: #e07f00;
+    transform: scale(1.05);
+  }
+
+  .btn-eliminar-producto {
+    background-color: #f44336;
+  }
+
+  .btn-eliminar-producto:hover {
+    background-color: #d32f2f;
+    transform: scale(1.05);
+  }
+
+  .btn-reponer i, .btn-eliminar-producto i {
+    margin-right: 4px;
+  }
+</style>
+
+{% endblock %}

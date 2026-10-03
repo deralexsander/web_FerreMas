@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% load static %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <script src="{% static 'js/animaciones.js' %}"></script>
+        <script src="{% static 'js/apis.js' %}"></script>
+        <script src="{% static 'js/firebase.js' %}"></script>
+        <script src="{% static 'js/tablas.js' %}"></script>
+        <script src="{% static 'js/funciones.js' %}"></script>
+        <script src="{% static 'js/formularios.js' %}"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
+        <!-- Colocar icono a la pestaña -->
+        <link rel="icon" href="{% static 'media/isotipo.svg' %}">
+        <!-- Colocar nombre a la pestaña -->
+        {% block nombrePag %}
+        {% endblock %}
+    </head>
+
+    <body>
+
+
+
+
+        
+        <!-- navbar --> 
+        <div class="button-container">
+            <!-- Botón de inicio -->
+            <a href="{% url 'inicio' %}">
+                <button class="button">
+                    <svg
+                    class="icon navbar"
+                    stroke="currentColor"
+                    fill="currentColor"
+                    stroke-width="0"
+                    viewBox="0 0 1024 1024"
+                    xmlns="http://www.w3.org/2000/svg"
+                    >
+                    <path
+                        d="M946.5 505L560.1 118.8l-25.9-25.9a31.5 31.5 0 0 0-44.4 0L77.5 505a63.9 63.9 0 0 0-18.8 46c.4 35.2 29.7 63.3 64.9 63.3h42.5V940h691.8V614.3h43.4c17.1 0 33.2-6.7 45.3-18.8a63.6 63.6 0 0 0 18.7-45.3c0-17-6.7-33.1-18.8-45.2zM568 868H456V664h112v204zm217.9-325.7V868H632V640c0-22.1-17.9-40-40-40H432c-22.1 0-40 17.9-40 40v228H238.1V542.3h-96l370-369.7 23.1 23.1L882 542.3h-96.1z"
+                    ></path>
+                    </svg>
+                </button>
+            </a>
+            <!-- Botón de búsqueda -->
+            <a href="{% url 'productos' %}">
+            <button class="button">
+                <svg
+                class="icon navbar"
+                stroke="currentColor"
+                fill="none"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                ></path>
+                </svg>
+            </button>
+            </a>
+            <!-- Botón de inicio de sesión -->
+            <a href="{% url 'acceso' %}">
+            <button class="button" >
+                <svg
+                class="icon navbar"
+                stroke="currentColor"
+                fill="currentColor"
+                stroke-width="0"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                >
+                <path
+                    d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5ZM8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0Z"
+                ></path>
+                </svg>
+            </button>
+            </a>
+
+            <!-- Botón de carrito -->
+            <a href="{% url 'carrito' %}">
+            <button class="button">
+                <svg
+                class="icon"
+                stroke="currentColor"
+                fill="none"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                xmlns="http://www.w3.org/2000/svg"
+                >
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path
+                    d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
+                ></path>
+                </svg>
+            </button>
+            </a>
+
+            <div class="contador">
+              <!-- Contador de productos distintos en el carrito -->
+              <span id="contador-productos">0</span>
+
+            </div>
+
+
+        </div>
+
+
+
+      <!-- Modal para cambiar contraseña -->
+      <div id="bloqueoTotal" class="modal">
+        <div class="contenedor_informacion">
+          <div class="bloque_info">
+            <div class="columna_info">
+              <div class="encabezado-formulario">
+                <h1>Cambio de contraseña requerido</h1>
+              </div>
+              <div class="subtexto-formulario">
+                <p>Por seguridad, debes cambiar tu contraseña antes de continuar.</p>
+              </div>
+            </div>
+            <div class="columna_info">
+              <form class="form" id="changePasswordForm">
+                <!-- Contraseña actual -->
+                <div class="flex-column">
+                  <label>Contraseña actual</label>
+                </div>
+                <div class="inputForm">
+                  <svg height="20" viewBox="-64 0 512 512" width="20" xmlns="http://www.w3.org/2000/svg" fill="white">
+                    <path d="m336 512h-288c-26.453125 0-48-21.523438-48-48v-224c0-26.476562 21.546875-48 48-48h288c26.453125 0 48 21.523438 48 48v224c0 26.476562-21.546875 48-48 48zm-288-288c-8.8125 0-16 7.167969-16 16v224c0 8.832031 7.1875 16 16 16h288c8.8125 0 16-7.167969 16-16v-224c0-8.832031-7.1875-16-16-16zm0 0"></path>
+                    <path d="m304 224c-8.832031 0-16-7.167969-16-16v-80c0-52.929688-43.070312-96-96-96s-96 43.070312-96 96v80c0 8.832031-7.167969 16-16 16s-16-7.167969-16-16v-80c0-70.59375 57.40625-128 128-128s128 57.40625 128 128v80c0 8.832031-7.167969 16-16 16zm0 0"></path>
+                  </svg>
+                  <input type="password" class="input" id="currentPassword" placeholder="Ingresa tu contraseña actual" />
+                </div>
+
+                <!-- Nueva contraseña -->
+                <div class="flex-column">
+                  <label>Nueva contraseña:</label>
+                </div>
+                <div class="inputForm">
+                  <svg height="20" viewBox="-64 0 512 512" width="20" xmlns="http://www.w3.org/2000/svg" fill="white">
+                    <path d="m336 512h-288c-26.453125 0-48-21.523438-48-48v-224c0-26.476562 21.546875-48 48-48h288c26.453125 0 48 21.523438 48 48v224c0 26.476562-21.546875 48-48 48zm-288-288c-8.8125 0-16 7.167969-16 16v224c0 8.832031 7.1875 16 16 16h288c8.8125 0 16-7.167969 16-16v-224c0-8.832031-7.1875-16-16-16zm0 0"></path>
+                    <path d="m304 224c-8.832031 0-16-7.167969-16-16v-80c0-52.929688-43.070312-96-96-96s-96 43.070312-96 96v80c0 8.832031-7.167969 16-16 16s-16-7.167969-16-16v-80c0-70.59375 57.40625-128 128-128s128 57.40625 128 128v80c0 8.832031-7.167969 16-16 16zm0 0"></path>
+                  </svg>
+                  <input type="password" class="input" id="newPassword" placeholder="Ingresa tu contraseña nueva" />
+                </div>
+
+                <!-- Confirmar contraseña -->
+                <div class="flex-column">
+                  <label>Confirmar nueva contraseña:</label>
+                </div>
+                <div class="inputForm">
+                  <svg height="20" viewBox="-64 0 512 512" width="20" xmlns="http://www.w3.org/2000/svg" fill="white">
+                    <path d="m336 512h-288c-26.453125 0-48-21.523438-48-48v-224c0-26.476562 21.546875-48 48-48h288c26.453125 0 48 21.523438 48 48v224c0 26.476562-21.546875 48-48 48zm-288-288c-8.8125 0-16 7.167969-16 16v224c0 8.832031 7.1875 16 16 16h288c8.8125 0 16-7.167969 16-16v-224c0-8.832031-7.1875-16-16-16zm0 0"></path>
+                    <path d="m304 224c-8.832031 0-16-7.167969-16-16v-80c0-52.929688-43.070312-96-96-96s-96 43.070312-96 96v80c0 8.832031-7.167969 16-16 16s-16-7.167969-16-16v-80c0-70.59375 57.40625-128 128-128s128 57.40625 128 128v80c0 8.832031-7.167969 16-16 16zm0 0"></path>
+                  </svg>
+                  <input type="password" class="input" id="confirmPassword" placeholder="Repita contraseña nueva" />
+                </div>
+
+                <button type="submit" class="button-submit">Cambiar contraseña</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+
+        <div id="errorModal" class="modal">
+          <div class="contenedor_informacion" >
+            <div class="bloque_info">
+              <div class="columna_info">
+                <form class="form" >
+                  <div class="encabezado-formulario">
+                    <h1>OH Noo...</h1>
+                    <p>Creo que ha ocurrido algo con el proceso de compra, por favor inténtelo nuevamente.</p>
+                  </div>
+                  <div>
+                    <button  onclick="document.getElementById('modal-error').style.display='none'" class="button-submit">Cerrar</button>
+                  </div>
+              </form> 
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <!-- Contenedor mensaje ERROR -->
+      <div id="contenedor-mensaje" class="oculto">
+        <div class="error">
+          <div class="error__icon">
+            <svg fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="m13 13h-2v-6h2zm0 4h-2v-2h2zm-1-15c-1.3132 0-2.61358.25866-3.82683.7612-1.21326.50255-2.31565 1.23915-3.24424 2.16773-1.87536 1.87537-2.92893 4.41891-2.92893 7.07107 0 2.6522 1.05357 5.1957 2.92893 7.0711.92859.9286 2.03098 1.6651 3.24424 2.1677 1.21325.5025 2.51363.7612 3.82683.7612 2.6522 0 5.1957-1.0536 7.0711-2.9289 1.8753-1.8754 2.9289-4.4189 2.9289-7.0711 0-1.3132-.2587-2.61358-.7612-3.82683-.5026-1.21326-1.2391-2.31565-2.1677-3.24424-.9286-.92858-2.031-1.66518-3.2443-2.16773-1.2132-.50254-2.5136-.7612-3.8268-.7612z"
+                fill="#fff"></path>
+            </svg>
+          </div>
+          <div id="mensaje-texto" class="error__title">Aquí irá el mensaje dinámico</div>
+        </div>
+      </div>
+
+      <!-- Contenedor mensaje SUCCESS -->
+      <div id="contenedor-mensaje-success" class="oculto">
+        <div class="success">
+          <div class="success__icon">
+            <svg fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
+                  10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L11 14.17
+                  l7.59-7.59L20 8l-9 9z"
+                fill="#fff"></path>
+            </svg>
+          </div>
+          <div id="mensaje-texto-success" class="success__title">Aquí irá el mensaje dinámico</div>
+        </div>
+      </div>
+
+      <div id="pantalla-carga" class="pantalla-carga">
+        <div class="contenido-carga">
+          <svg class="pl" viewBox="0 0 128 128" width="128px" height="128px" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                  <linearGradient id="pl-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="hsl(193,90%,55%)"></stop>
+                      <stop offset="100%" stop-color="hsl(223,90%,55%)"></stop>
+                  </linearGradient>
+              </defs>
+              <circle class="pl__ring" r="56" cx="64" cy="64" fill="none" stroke="hsla(0,10%,10%,0.1)" stroke-width="16" stroke-linecap="round"></circle>
+              <path class="pl__worm" d="M92,15.492S78.194,4.967,66.743,16.887c-17.231,17.938-28.26,96.974-28.26,96.974L119.85,59.892l-99-31.588,57.528,89.832L97.8,19.349,13.636,88.51l89.012,16.015S81.908,38.332,66.1,22.337C50.114,6.156,36,15.492,36,15.492a56,56,0,1,0,56,0Z" fill="none" stroke="url(#pl-grad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="44 1111" stroke-dashoffset="10"></path>
+          </svg>
+          <p class="texto-cargando">Cargando {% block loader %}{% endblock %} ...</p>
+        </div>
+      </div>
+
+
+        <!-- buscador para productos -->
+        {% block buscador %}
+        {% endblock %}
+        <!-- Contenido de la web -->
+        {% block contenido %}
+        {% endblock %}
+
+
+
+    </body>
+
+</html>

@@ -1,0 +1,106 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block nombrePag %}
+  <title>Productos</title>
+{% endblock %}
+
+{% block loader %}Productos{% endblock %}
+
+{% block contenido %}
+
+
+
+
+<div class="layout_productos">
+  <!-- Categorías -->
+  <div id="lista-categorias" class="lista_categorias"></div>
+
+  <!-- Productos -->
+  <div id="contenedor-productos" class="contenedor_productos_horizontal"></div>
+</div>
+
+<div id="modal-producto" class="fondo-modal-productos">
+  <div class="boton_salir">
+    <svg data-lucide="x" class="icono-salir"></svg>
+  </div>
+
+  <div class="modal_productos">
+    <div class="contenedor_informacion">
+
+      <!-- BLOQUE 1: Imagen principal + info básica -->
+      <div class="bloque_info">
+        <div class="columna_info">
+          <img id="modal-imagen" class="foto_producto" src="" alt="Imagen del producto"
+            onerror="this.className='foto_producto'; this.src='/static/media/imagen-no-disponible.jpg';">
+        </div>
+        <div class="columna_info">
+          <div class="titulo_form_producto">
+            <h1 id="modal-nombre"></h1>
+          </div>
+          <div class="descripcion_form_producto">
+            <p id="modal-descripcion"></p>
+          </div>
+          <div class="precio_form_producto">
+            <p id="modal-precio"></p>
+          </div>
+          <div class="stock_form_producto">
+            <p id="modal-stock"></p>
+          </div>
+
+          <div class="contenedor-cantidad-boton">
+            <div class="input-cantidad-container">
+              <button class="btn-cantidad">-</button>
+                <input class="cantidad-productos" id="cantidad" type="number" value="1" min="1" disabled />
+              <button class="btn-cantidad">+</button>
+            </div>
+
+            <button id="btn-agregar-carrito" class="btn-ferremas-sumar noselect">
+              <span class="btn-ferremas-texto">Agregar</span>
+              <span class="btn-ferremas-icono">
+                <span class="btn-ferremas-icono-signo"><svg data-lucide="shopping-cart"></svg></span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BLOQUE 2: Información técnica + imagen secundaria -->
+      <div class="bloque_info">
+        <div class="columna_info">
+          <h1>Información Técnica</h1>
+          <p id="modal-categoria"></p>
+          <p id="modal-marca"></p>
+          <p id="modal-codigo"></p>
+          <p id="modal-potencia"></p>
+          <p id="modal-voltaje"></p>
+          <p id="modal-color"></p>
+        </div>
+        <div class="columna_info">
+          <img src="/static/media/imagen-no-disponible.jpg" alt="Imagen secundaria" class="img-producto">
+        </div>
+      </div>
+
+      <!-- BLOQUE 3: Detalles adicionales + imagen terciaria -->
+      <div class="bloque_info invertido">
+        <div class="columna_info">
+          <h1>Detalles Adicionales</h1>
+          <p id="modal-tamano"></p>
+          <p id="modal-material"></p>
+          <p id="modal-presentacion"></p>
+          <p id="modal-garantia"></p>
+          <p id="modal-uso"></p>
+          <p id="modal-peso"></p>
+          <p id="modal-dimensiones"></p>
+          <p id="modal-vencimiento"></p>
+        </div>
+        <div class="columna_info">
+          <img src="/static/media/imagen-no-disponible.jpg" alt="Imagen terciaria" class="img-producto">
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

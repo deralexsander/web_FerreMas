@@ -1,0 +1,66 @@
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block nombrePag %}
+<title>Carrito</title>
+{% endblock %}
+
+{% block contenido %}
+
+
+
+  <a class="button-volver contenedor_boton_volver" href="{% url 'perfil' %}">
+  ⬅ Volver
+  </a>
+
+
+
+  <div class="contenedor_botones">
+    <div class="segmented-control">
+      <button class="segment active" id="btn-crear">Pedidos en sucursal</button>
+      <button class="segment" id="btn-tabla">Pedidos a domicilio</button>
+      <select id="sucursal" class="segment-select">
+        <option value="mi_sucursal">Mi sucursal</option>
+        <option value="todos">Todos</option>
+        <option value="enviados/listos">Enviados/Listos</option>
+        
+      </select>
+
+    </div>
+
+  </div>
+
+
+<div id="modal-pendientes" class="fondo-modal-trabajadores animacion-entrada visible">
+  <div class="modal_productos">
+    <div class="contenedor_informacion">
+      <table id="tabla-pedidos-sucursal" class="tabla-transferencias ">
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="modal-historial" class="fondo-modal-trabajadores oculto">
+  <div class="modal_productos">
+    <div class="contenedor_informacion">
+        <table id="tabla-pedidos-domicilio" class="tabla-transferencias">
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
