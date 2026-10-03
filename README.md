@@ -1,52 +1,46 @@
 # 🛠️ FerreMas — Plataforma Web de Comercio Electrónico & Gestión Omnicanal
 
-[![Django](https://img.shields.io/badge/Backend-Django_4.x-092E20?logo=django&logoColor=white)](#)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](#)
-[![Firebase](https://img.shields.io/badge/NoSQL-Cloud_Firestore-FFCA28?logo=firebase&logoColor=black)](#)
-[![Mercado Pago](https://img.shields.io/badge/Pasarela-Mercado_Pago_SDK-009EE3?logo=mercadopago&logoColor=white)](#)
-[![Licence](https://img.shields.io/badge/Academic_Project-Duoc_UC-002B49)](#)
-
 ---
 
 ## 📖 1. Contexto del Negocio y Planteamiento del Caso
 
-**FERREMAS** es una distribuidora tradicional de herramientas, maquinarias y materiales de construcción fundada en la década de los 80 en Santiago de Chile[cite: 1, 8, 10]. En la actualidad dispone de **7 sucursales estratégicas** (4 ubicadas en la Región Metropolitana y 3 en regiones como Valparaíso, Biobío y Los Lagos), distribuyendo marcas reconocidas como Bosch, Makita, Stanley y Sika[cite: 1, 8, 10].
+**FERREMAS** es una distribuidora tradicional de herramientas, maquinarias y materiales de construcción fundada en la década de los 80 en Santiago de Chile. En la actualidad dispone de sucursales estratégicas distribuidas entre la Región Metropolitana y regiones (Valparaíso, Biobío y Los Lagos), comercializando marcas líderes como Bosch, Makita, Stanley y Sika.
 
-Históricamente, la compañía basó su éxito operativo en la venta física y directa en mostrador[cite: 1, 8]. No obstante, las restricciones de movilidad y distanciamiento derivadas de la contingencia sanitaria de 2020 impactaron fuertemente el flujo de clientes presenciales, evidenciando una debilidad crítica: **la ausencia de un canal digital de ventas e integración de inventario en tiempo real[cite: 1, 2, 8, 10].**
+Históricamente, la compañía operó bajo un esquema de venta física directa en mostrador. La contingencia sanitaria y las restricciones de movilidad evidenciaron una necesidad crítica: modernizar la operación mediante una plataforma digital capaz de integrar la venta web con los procesos de inventario y los roles operativos de cada sucursal.
 
 ### Propósito del Proyecto
-Desarrollar e implementar una plataforma web de comercio electrónico moderna, segura y escalable que combine la vitrina digital orientada al cliente B2C/B2B con paneles de administración interna adaptados a la jerarquía de roles de la empresa (Administrador, Vendedor, Bodeguero y Contador)[cite: 1, 3, 8, 10].
+Desarrollar una solución integral de comercio electrónico que conecte la vitrina virtual y la experiencia de compra del cliente con paneles internos de gestión específicos para cada perfil de la empresa: **Administrador**, **Vendedor**, **Bodeguero** y **Contador**.
 
 ---
 
 ## 🎯 2. Matriz de Requerimientos del Sistema
 
-| Código | Módulo / Requerimiento | Descripción Funcional | Tipo |
+| Código | Requerimiento | Descripción Funcional | Tipo |
 | :--- | :--- | :--- | :--- |
-| **R.1** | Cuentas Iniciales Administrador | Cuentas con credenciales temporales que exigen cambio de clave en el primer acceso. | Funcional |
-| **R.2** | Sistema de Autenticación | Control de sesiones y accesos diferenciados según rol asignado. | Funcional |
-| **R.3** | Registro y Beneficios Cliente | Alta de clientes por correo con descuentos por compras de volumen (>4 unidades). | Funcional |
-| **R.4** | Gestión de Personal Interno | Alta y administración de usuarios (Vendedor, Bodeguero, Contador) y asignación a sucursal[cite: 8]. | Funcional[cite: 8] |
-| **R.5** | Catálogo Dinámico | Vitrina virtual de productos con filtros de categoría y ficha técnica detallada[cite: 8]. | Funcional[cite: 8] |
-| **R.6** | Carrito de Compras | Gestión local persistente de ítems seleccionados y cálculo dinámico de subtotales[cite: 8]. | Funcional[cite: 8] |
-| **R.7** | Despacho y Logística | Selección entre retiro en sucursal filtrado por región/comuna o despacho a domicilio[cite: 8]. | Funcional[cite: 8] |
-| **R.8** | Métodos de Pago Híbridos | Integración con pasarela externa (Mercado Pago: QR/Tarjetas) y transferencia bancaria directa[cite: 8]. | Funcional[cite: 8] |
-| **R.9** | Validación Comercial | Revisión, aprobación y emisión de órdenes hacia el área de bodega[cite: 4, 8]. | Funcional[cite: 8] |
-| **R.10** | Control de Stock y Bodega | Monitoreo de productos a reponer (stock ≤ 5), existencias y preparación de pedidos[cite: 8]. | Funcional[cite: 8] |
-| **R.11** | Conciliación y Caja | Validación de comprobantes de transferencia y emisión de boleta por el Contador[cite: 8]. | Funcional[cite: 8] |
-| **R.12 - R.17** | Calidad y Arquitectura | Protección de datos sensibles, interfaz responsiva multidispositivo y carga fluida[cite: 8]. | No Funcional[cite: 8] |
+| **R.1** | Cuentas Iniciales Administrador | Credenciales temporales con cambio forzado de contraseña en el primer inicio de sesión. | Funcional |
+| **R.2** | Sistema de Autenticación | Control de acceso y sesiones diferenciadas por rol operativo. | Funcional |
+| **R.3** | Registro y Beneficios Cliente | Registro vía correo electrónico y aplicación de promociones en compras por volumen (>4 unidades). | Funcional |
+| **R.4** | Gestión de Personal Interno | Creación, asignación de sucursal y gestión de roles (Vendedor, Bodeguero, Contador). | Funcional |
+| **R.5** | Catálogo Virtual | Vitrina interactiva con filtros por categoría y especificaciones técnicas detalladas. | Funcional |
+| **R.6** | Carrito de Compras | Persistencia de productos seleccionados, ajuste de unidades y desglose de subtotales. | Funcional |
+| **R.7** | Modalidades de Entrega | Selección entre retiro presencial en sucursales o despacho a domicilio. | Funcional |
+| **R.8** | Pasarela de Pago Híbrida | Integración con Mercado Pago (tarjetas y código QR) y soporte para transferencia bancaria directa. | Funcional |
+| **R.9** | Validación Comercial | Revisión y confirmación de pedidos antes de su paso a bodega. | Funcional |
+| **R.10** | Control de Stock y Bodega | Identificación de productos a reponer (stock crítico ≤ 5) y preparación de órdenes. | Funcional |
+| **R.11** | Conciliación Financiera | Validación de comprobantes de transferencia y registro contable de entregas. | Funcional |
+| **R.12 - R.17** | Estándares de Calidad | Seguridad de datos, responsividad multidispositivo y tiempos de carga óptimos. | No Funcional |
 
 ---
 
 ## 🏛️ 3. Arquitectura y Tecnologías Utilizadas
 
-El sistema fue concebido bajo el patrón arquitectónico **MVT (Model-View-Template)** impulsado por el framework Django, interactuando con servicios en la nube para agilidad y escalabilidad[cite: 8]:
+El sistema fue desarrollado bajo el patrón arquitectónico **MVT (Model-View-Template)** utilizando el framework Django, acoplado con servicios en la nube para persistencia y pagos:
 
-* **Backend:** Python / Django Framework (gestión de sesiones, endpoints, orquestación lógica)[cite: 8, 11].
-* **Base de Datos & Almacenamiento:** Cloud Firestore (colecciones para productos, catálogo, control de stock y pedidos en tiempo real)[cite: 7, 8].
-* **Frontend:** HTML5 semántico, CSS3 modular (con efectos glassmorphism y variables CSS), JavaScript ES6+ y Lucide Icons[cite: 7].
-* **Pasarela de Pagos:** SDK oficial de Mercado Pago (procesamiento de tarjetas de crédito/débito y generación de códigos QR dinámicos).
-* **APIs de Georreferenciación:** Servicios REST para la carga y renderizado en cascada de regiones y comunas oficiales de Chile[cite: 8].
+* **Backend:** Python / Django (orquestación lógica, enrutamiento, controladores y sesiones).
+* **Base de Datos & Almacenamiento:** Cloud Firestore (gestión de colecciones de inventario, pedidos y usuarios en tiempo real).
+* **Frontend:** HTML5 semántico, CSS3 modular, JavaScript vanilla y Lucide Icons.
+* **Pasarela de Pagos:** SDK de Mercado Pago (procesamiento de checkout con tarjeta y códigos QR dinámicos).
+* **Georreferenciación:** Integración de APIs REST con respaldo local para la carga en cascada de regiones y comunas de Chile.
 
 ---
 
@@ -55,75 +49,74 @@ El sistema fue concebido bajo el patrón arquitectónico **MVT (Model-View-Templ
 ### 4.1. Plataforma Pública y Experiencia de Usuario (Cliente)
 
 #### Vitrina Principal y Propuesta de Valor
-La pantalla inicial incorpora un slider dinámico de categorías y módulos informativos que garantizan la encriptación de datos, soporte continuo y cobertura territorial de tiendas físicas[cite: 1, 4].
+Cabecera interactiva con carrusel dinámico de categorías y módulos informativos sobre garantías de compra y cobertura logística.
 
-| Hero Banner y Categorías | Seguridad Garantizada |
+| Hero Banner Dinámico | Seguridad Garantizada |
 | :---: | :---: |
-| ![Hero Banner](docs/img/01-inicio-hero-banner.jpg) | ![Seguridad y Garantías](docs/img/04-inicio-seguridad-garantizada.jpg) |
+| ![Hero Banner](./docs/img/01-inicio-hero-banner.gif) | ![Seguridad y Garantías](./docs/img/04-inicio-seguridad-garantizada.png) |
 
-#### Directorio de Sucursales y Canales de Retiro
-Panel dinámico que lista las tiendas activas de la red (Santiago Centro, Quilpué Centro, Viña Oriente, Concepción Norte y Puerto Montt Costanera) con sus datos de contacto y dirección para retiro presencial[cite: 2, 6, 8].
+#### Directorio de Sucursales
+Módulo regional que exhibe las tiendas físicas habilitadas para retiro presencial con dirección y teléfono de contacto.
 
-![Directorio Sucursales](docs/img/06-inicio-sucursales-directorio.jpg)
+![Directorio Sucursales](./docs/img/06-inicio-sucursales-directorio.png)
 
-#### Catálogo Virtual, Ficha de Producto y Carrito
-Navegación filtrada por categorías (*seguridad*, *herramientas manuales*, *materiales eléctricos*, entre otras), modal con ficha técnica bajo normativas vigentes y sincronización con el carrito de compras[cite: 2, 6].
+#### Catálogo Virtual, Ficha Técnica y Carrito
+Navegación por categorías de productos (seguridad, herramientas, materiales eléctricos, pinturas), vista modal con especificaciones normativas y control de cantidades hacia el carrito.
 
 | Catálogo General de Productos | Incorporación Interactiva al Carrito |
 | :---: | :---: |
-| ![Catálogo General](docs/img/09-catalogo-general-grid-categorias.jpg) | ![Detalle de Producto](docs/img/08-catalogo-modal-detalle-carrito.gif) |
+| ![Catálogo General](./docs/img/09-catalogo-general-grid-categorias.png) | ![Detalle de Producto](./docs/img/08-catalogo-modal-detalle-carrito.gif) |
 
 ---
 
-### 4.2. Flujo de Checkout y Opciones de Entrega
+### 4.2. Logística de Entrega y Libreta de Direcciones
 
-El proceso de compra permite alternar entre **Despacho a Domicilio** (con registro normalizado de direcciones) y **Retiro en Tienda** mediante selectores en cascada por Región y Comuna[cite: 8, 9].
+El checkout permite seleccionar entre despacho a domicilio (utilizando el registro dinámico de direcciones normalizadas) y retiro en tienda con selector territorial por región y comuna.
 
-| Registro y Libreta de Direcciones | Selección de Retiro en Tienda |
+| Gestión de Direcciones de Envío | Selección de Retiro en Tienda |
 | :---: | :---: |
-| ![Gestión Direcciones](docs/img/07-registro-y-gestion-direcciones.gif) | ![Retiro Tienda](docs/img/14-checkout-seleccion-retiro-en-tienda.gif) |
+| ![Gestión Direcciones](./docs/img/07-registro-y-gestion-direcciones.gif) | ![Retiro Tienda](./docs/img/14-checkout-seleccion-retiro-en-tienda.gif) |
 
 ---
 
-### 4.3. Pasarela de Pagos (Híbrida: Mercado Pago & Transferencia)
+### 4.3. Procesamiento de Pagos
 
-El cliente dispone de pago electrónico inmediato mediante redirección a **Mercado Pago** (soporte de tarjetas y códigos QR) o pago asistido vía **Transferencia Bancaria** que envía el comprobante a validación interna[cite: 5, 10, 11].
+Soporte dual de pago: pasarela automatizada mediante **Mercado Pago** y flujo de validación manual vía **Transferencia Bancaria**.
 
-| Redirección y Pago con Tarjeta | Transferencia Bancaria Manual |
+| Pasarela Mercado Pago | Formulario de Transferencia Bancaria |
 | :---: | :---: |
-| ![Pago Mercado Pago](docs/img/16-checkout-flujo-pago-tarjeta-redireccion.gif) | ![Pago Transferencia](docs/img/17-checkout-flujo-pago-transferencia-bancaria.gif) |
+| ![Pago Mercado Pago](./docs/img/16-checkout-flujo-pago-tarjeta-redireccion.gif) | ![Pago Transferencia](./docs/img/17-checkout-flujo-pago-transferencia-bancaria.gif) |
 
 ---
 
-### 4.4. Panel Administrativo y Gestión por Roles
+### 4.4. Panel Administrativo y Roles Internos
 
-#### Administración y Seguridad de Cuentas
-Módulo para el alta de colaboradores asignando perfiles (Administrador, Vendedor, Bodeguero, Contador) y sucursal de pertenencia. Incluye directiva de seguridad con cambio forzado de credenciales en el primer inicio de sesión.
+#### Gestión de Personal y Seguridad de Cuentas
+Módulo para el alta de trabajadores con asignación de sucursal y rol en el sistema, junto con la directiva de seguridad que exige cambio de contraseña en el primer acceso.
 
-| Menú de Gestión Administrador | Alta de Trabajadores y Sucursales | Cambio de Contraseña Forzado |
+| Navegación Administrador | Alta de Trabajadores | Primer Acceso y Cambio de Clave |
 | :---: | :---: | :---: |
-| ![Menú Admin](docs/img/18-panel-navegacion-administrador.gif) | ![Alta Personal](docs/img/19-modulo-creacion-gestion-trabajadores.gif) | ![Primer Acceso](docs/img/20-autenticacion-primer-acceso-cambio-clave.gif) |
+| ![Menú Admin](./docs/img/18-panel-navegacion-administrador.gif) | ![Alta Personal](./docs/img/19-modulo-creacion-gestion-trabajadores.gif) | ![Primer Acceso](./docs/img/20-autenticacion-primer-acceso-cambio-clave.gif) |
 
-#### Control Financiero y Gestión de Bodega
-* **Panel de Contador:** Conciliación de pagos manuales por transferencia, revisión del RUT/banco emisor, emisión del comprobante y aprobación de la orden.
-* **Panel de Bodeguero:** Monitoreo del catálogo de existencias segregado entre artículos disponibles y productos críticos a reponer (stock $\le 5$).
+#### Control de Caja e Inventario de Bodega
+* **Contador:** Panel de conciliación para verificar comprobantes bancarios, emitir la orden validada y autorizar el despacho.
+* **Bodega:** Control de existencias clasificado en artículos disponibles y artículos críticos a reponer (stock ≤ 5).
 
-| Validación de Transferencias (Contador) | Control de Stock y Reposición (Bodega) |
+| Conciliación Contable de Transferencias | Gestión de Inventario y Stock Crítico |
 | :---: | :---: |
-| ![Panel Contador](docs/img/21-contador-validacion-transferencias-comprobante.gif) | ![Panel Bodega](docs/img/22-bodega-inventario-productos-filtro-categoria.gif) |
+| ![Panel Contador](./docs/img/21-contador-validacion-transferencias-comprobante.gif) | ![Panel Bodega](./docs/img/22-bodega-inventario-productos-filtro-categoria.gif) |
 
 ---
 
 ## ⚙️ 5. Instalación y Puesta en Marcha Local
 
 ### Prerrequisitos
-* Python 3.10 o superior[cite: 11]
-* Node.js (opcional, para empaquetado frontend)[cite: 11]
-* Entorno virtual de Python configurado[cite: 11]
+* Python 3.10 o superior
+* Git instalado
 
 ### Pasos de Despliegue
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone [https://github.com/tu-usuario/web_FerreMas.git](https://github.com/tu-usuario/web_FerreMas.git)
-   cd web_FerreMas/web_FerreMas
+   git clone [https://github.com/deralexsander/web_FerreMas.git](https://github.com/deralexsander/web_FerreMas.git)
+   cd web_FerreMas
