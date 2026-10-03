@@ -39,7 +39,7 @@ El sistema fue desarrollado bajo el patrón arquitectónico **MVT (Model-View-Te
 * **Backend:** Python / Django (orquestación lógica, enrutamiento, controladores y sesiones).
 * **Base de Datos & Almacenamiento:** Cloud Firestore (gestión de colecciones de inventario, pedidos y usuarios en tiempo real).
 * **Frontend:** HTML5 semántico, CSS3 modular, JavaScript vanilla y Lucide Icons.
-* **Pasarela de Pagos:** SDK de Mercado Pago (procesamiento de checkout con tarjeta y códigos QR dinámicos).
+* **Pasarela de Pagos:** SDK oficial de Mercado Pago (procesamiento de checkout con tarjeta y códigos QR dinámicos).
 * **Georreferenciación:** Integración de APIs REST con respaldo local para la carga en cascada de regiones y comunas de Chile.
 
 ---
@@ -48,63 +48,105 @@ El sistema fue desarrollado bajo el patrón arquitectónico **MVT (Model-View-Te
 
 ### 4.1. Plataforma Pública y Experiencia de Usuario (Cliente)
 
-#### Vitrina Principal y Propuesta de Valor
-Cabecera interactiva con carrusel dinámico de categorías y módulos informativos sobre garantías de compra y cobertura logística.
+#### Hero Banner Dinámico de Bienvenida
+Cabecera interactiva a pantalla completa del sitio web con logotipo institucional, navegación rápida y carrusel continuo con la iconografía de categorías ferreteras.
 
-| Hero Banner Dinámico | Seguridad Garantizada |
-| :---: | :---: |
-| ![Hero Banner](./docs/img/01-inicio-hero-banner.gif) | ![Seguridad y Garantías](./docs/img/04-inicio-seguridad-garantizada.png) |
-
-#### Directorio de Sucursales
-Módulo regional que exhibe las tiendas físicas habilitadas para retiro presencial con dirección y teléfono de contacto.
-
-![Directorio Sucursales](./docs/img/06-inicio-sucursales-directorio.png)
-
-#### Catálogo Virtual, Ficha Técnica y Carrito
-Navegación por categorías de productos (seguridad, herramientas, materiales eléctricos, pinturas), vista modal con especificaciones normativas y control de cantidades hacia el carrito.
-
-| Catálogo General de Productos | Incorporación Interactiva al Carrito |
-| :---: | :---: |
-| ![Catálogo General](./docs/img/09-catalogo-general-grid-categorias.png) | ![Detalle de Producto](./docs/img/08-catalogo-modal-detalle-carrito.gif) |
+<p align="center">
+  <img src="./docs/img/01-inicio-hero-banner.gif" alt="Hero Banner FerreMas" width="100%" />
+</p>
 
 ---
 
-### 4.2. Logística de Entrega y Libreta de Direcciones
+#### Catálogo Virtual, Ficha de Producto y Carrito
+Navegación interactiva por el catálogo, apertura del modal con especificaciones técnicas normativas (ANSI Z87+), ajuste de unidades y adición dinámica al carrito con actualización de badges.
 
-El checkout permite seleccionar entre despacho a domicilio (utilizando el registro dinámico de direcciones normalizadas) y retiro en tienda con selector territorial por región y comuna.
-
-| Gestión de Direcciones de Envío | Selección de Retiro en Tienda |
-| :---: | :---: |
-| ![Gestión Direcciones](./docs/img/07-registro-y-gestion-direcciones.gif) | ![Retiro Tienda](./docs/img/14-checkout-seleccion-retiro-en-tienda.gif) |
+<p align="center">
+  <img src="./docs/img/08-catalogo-modal-detalle-carrito.gif" alt="Modal de Detalle de Producto e Incorporación al Carrito" width="95%" />
+</p>
 
 ---
 
-### 4.3. Procesamiento de Pagos
+#### Directorio Regional de Sucursales Físicas
+Módulo con las tiendas de la red de FerreMas (Santiago Centro, Quilpué Centro, Viña Oriente, Concepción Norte y Puerto Montt Costanera) indicando dirección y contacto para retiro presencial.
 
-Soporte dual de pago: pasarela automatizada mediante **Mercado Pago** y flujo de validación manual vía **Transferencia Bancaria**.
+<p align="center">
+  <img src="./docs/img/06-inicio-sucursales-directorio.png" alt="Directorio de Sucursales FerreMas" width="90%" />
+</p>
 
-| Pasarela Mercado Pago | Formulario de Transferencia Bancaria |
-| :---: | :---: |
-| ![Pago Mercado Pago](./docs/img/16-checkout-flujo-pago-tarjeta-redireccion.gif) | ![Pago Transferencia](./docs/img/17-checkout-flujo-pago-transferencia-bancaria.gif) |
+---
+
+### 4.2. Logística de Despacho y Checkout
+
+#### Registro y Libreta de Direcciones
+Formulario de contacto y dirección con selectores en cascada por Región y Comuna, guardado dinámico de ubicación y consulta de libreta de direcciones.
+
+<p align="center">
+  <img src="./docs/img/07-registro-y-gestion-direcciones.gif" alt="Registro y Gestión de Direcciones" width="95%" />
+</p>
+
+#### Modalidad Retiro en Tienda y Despacho
+Alternancia fluida entre retiro físico filtrando la sucursal por región/comuna y despacho a domicilio vinculado a la dirección guardada del usuario.
+
+<p align="center">
+  <img src="./docs/img/14-checkout-seleccion-retiro-en-tienda.gif" alt="Selección de Retiro en Tienda" width="95%" />
+</p>
+
+---
+
+### 4.3. Procesamiento de Pagos (Mercado Pago & Transferencia)
+
+#### Checkout Automatizado (Mercado Pago)
+Confirmación del resumen de pedido y redirección fluida a la pasarela externa de Mercado Pago para procesar cobros seguros con tarjeta o código QR.
+
+<p align="center">
+  <img src="./docs/img/16-checkout-flujo-pago-tarjeta-redireccion.gif" alt="Redirección y Checkout Mercado Pago" width="95%" />
+</p>
+
+#### Pago Asistido por Transferencia Bancaria
+Flujo de pago manual con ingreso de datos del titular, banco emisor y registro del pedido en estado pendiente para revisión del área contable.
+
+<p align="center">
+  <img src="./docs/img/17-checkout-flujo-pago-transferencia-bancaria.gif" alt="Flujo de Pago por Transferencia Bancaria" width="95%" />
+</p>
 
 ---
 
 ### 4.4. Panel Administrativo y Roles Internos
 
-#### Gestión de Personal y Seguridad de Cuentas
-Módulo para el alta de trabajadores con asignación de sucursal y rol en el sistema, junto con la directiva de seguridad que exige cambio de contraseña en el primer acceso.
+#### Menú de Navegación del Perfil Administrador
+Consola de control con acceso a personal, catálogo, transferencias bancarias, pedidos y armados de bodega.
 
-| Navegación Administrador | Alta de Trabajadores | Primer Acceso y Cambio de Clave |
-| :---: | :---: | :---: |
-| ![Menú Admin](./docs/img/18-panel-navegacion-administrador.gif) | ![Alta Personal](./docs/img/19-modulo-creacion-gestion-trabajadores.gif) | ![Primer Acceso](./docs/img/20-autenticacion-primer-acceso-cambio-clave.gif) |
+<p align="center">
+  <img src="./docs/img/18-panel-navegacion-administrador.gif" alt="Panel de Navegación Administrador" width="95%" />
+</p>
 
-#### Control de Caja e Inventario de Bodega
-* **Contador:** Panel de conciliación para verificar comprobantes bancarios, emitir la orden validada y autorizar el despacho.
-* **Bodega:** Control de existencias clasificado en artículos disponibles y artículos críticos a reponer (stock ≤ 5).
+#### Registro de Personal y Asignación de Roles
+Alta de nuevos trabajadores asignando roles (Vendedor, Bodeguero, Contador) y vinculación a una sucursal regional específica.
 
-| Conciliación Contable de Transferencias | Gestión de Inventario y Stock Crítico |
-| :---: | :---: |
-| ![Panel Contador](./docs/img/21-contador-validacion-transferencias-comprobante.gif) | ![Panel Bodega](./docs/img/22-bodega-inventario-productos-filtro-categoria.gif) |
+<p align="center">
+  <img src="./docs/img/19-modulo-creacion-gestion-trabajadores.gif" alt="Alta y Asignación de Trabajadores" width="95%" />
+</p>
+
+#### Primer Acceso y Cambio Forzado de Contraseña
+Directiva de seguridad que intercepta las credenciales temporales en el primer inicio de sesión para forzar la actualización de la clave personal.
+
+<p align="center">
+  <img src="./docs/img/20-autenticacion-primer-acceso-cambio-clave.gif" alt="Autenticación Primer Acceso y Cambio de Clave" width="95%" />
+</p>
+
+#### Validación de Pagos y Emisión de Comprobantes (Contador)
+Módulo contable para revisar órdenes pendientes, validar el pago por transferencia y autorizar el despacho o retiro.
+
+<p align="center">
+  <img src="./docs/img/21-contador-validacion-transferencias-comprobante.gif" alt="Validación de Transferencias por el Contador" width="95%" />
+</p>
+
+#### Control de Inventario y Stock Crítico (Bodega)
+Clasificación automática de artículos entre productos con stock regular y productos críticos a reponer (stock ≤ 5), con filtros por categoría.
+
+<p align="center">
+  <img src="./docs/img/22-bodega-inventario-productos-filtro-categoria.gif" alt="Gestión de Inventario y Stock en Bodega" width="95%" />
+</p>
 
 ---
 
@@ -119,4 +161,4 @@ Módulo para el alta de trabajadores con asignación de sucursal y rol en el sis
 1. **Clonar el repositorio:**
    ```bash
    git clone [https://github.com/deralexsander/web_FerreMas.git](https://github.com/deralexsander/web_FerreMas.git)
-   cd web_FerreMas
+   cd web_FerreMas/web_FerreMas
